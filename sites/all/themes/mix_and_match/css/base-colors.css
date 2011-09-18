@@ -1,0 +1,1113 @@
+/* $Id: base-colors.css,v 1.4 2011/01/15 16:03:46 aross Exp $ */ 
+
+/**
+ * @file
+ * Colors for individual base color schemes.
+ */
+
+/* ------------------- WHITE BODY BACKGROUND (DEFAULT) -------------------- */
+
+body {
+  background-color: #FFF;
+  color: #323232;
+}
+
+a,
+a:link,
+a:visited {
+  color: #767676;
+}
+
+a:hover,
+a:focus,
+a:active {
+  color: #454545;
+}
+
+/* SITE INFO */
+#site-name a:link,
+#site-name a:visited,
+#site-name a:hover,
+#site-name a:active {
+  color: #323232;
+}
+
+#slogan {
+  color: #767676;
+}
+
+/* SECONDARY MENU */
+.secondary-menu-inner ul.links li a:link,
+.secondary-menu-inner ul.links li a:visited {
+  color: #767676;
+}
+
+.secondary-menu-inner ul.links li a:hover,
+.secondary-menu-inner ul.links li a:focus,
+.secondary-menu-inner ul.links li a.active {
+  color: #000;
+}
+
+/* FOOTER */
+.footer-message-text {
+  color: #767676;
+}
+
+/* NODE LINKS */
+.node div.links {
+  background: #DEDEDE;
+}
+
+/* CUSTOM BULLETS FOR MENU LISTS */
+.block-outer ul li.leaf,
+.node ul li.leaf {
+  list-style-image: url(../images/menu-leaf.png);
+}
+
+.block-outer ul li.expanded,
+.node ul li.expanded {
+  list-style-image: url(../images/menu-expanded.png);
+}
+
+.block-outer ul li.collapsed,
+.node ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed.png);  /* LTR */
+}
+
+
+/* --------------------- GRAY BODY BACKGROUND ------------------------------- */
+
+body.gray {
+  background: #e3e3e3 url(../images/bg-gray.gif) top left repeat-x;
+}
+
+.gray #site-name a:link,
+.gray #site-name a:visited,
+.gray #site-name a:hover,
+.gray #site-name a:active {
+  color: #000;
+}
+
+.gray #slogan {
+  color: #565656;
+}
+
+.gray .secondary-menu-inner ul.links li a:link,
+.gray .secondary-menu-inner ul.links li a:visited {
+  color: #565656;
+}
+
+.gray .secondary-menu-inner ul.links li a:hover,
+.gray .secondary-menu-inner ul.links li a:focus,
+.gray .secondary-menu-inner ul.links li a.active {
+  color: #000;
+}
+
+/* -------------------- BLACK BODY BACKGROUND ------------------------------- */
+
+body.black {
+  background: #464845 url(../images/bg-black.gif) top left repeat-x;
+}
+
+.black a,
+.black a:link,
+.black a:visited {
+  color: #AEAEAE;
+}
+
+.black a:hover,
+.black a:focus,
+.black a:active {
+  color: #FFF;
+}
+
+.black #site-name a:link,
+.black #site-name a:visited,
+.black #site-name a:hover,
+.black #site-name a:active {
+  color: #FFF;
+}
+
+.black #slogan {
+  color: #8E8E8E;
+}
+
+.black .secondary-menu-inner ul.links li a:link,
+.black .secondary-menu-inner ul.links li a:visited {
+  color: #8E8E8E;
+}
+
+.black .secondary-menu-inner ul.links li a:hover,
+.black .secondary-menu-inner ul.links li a:focus,
+.black .secondary-menu-inner ul.links li a.active {
+  color: #FFF;
+}
+
+.black .footer-message-text {
+  color: #8E8E8E;
+}
+
+.black .node div.links {
+  background-color: #747574;
+}
+
+/* --------------------- RED BODY BACKGROUND ------------------------------- */
+
+body.red {
+  background: #AB1B1B url(../images/bg-red.gif) top left repeat-x;
+}
+
+.red a,
+.red a:link,
+.red a:visited {
+  color: #949494;
+}
+
+.red a:hover,
+.red a:focus,
+.red a:active {
+  color: #FFF;
+}
+
+.red #site-name a:link,
+.red #site-name a:visited,
+.red #site-name a:hover,
+.red #site-name a:active {
+  color: #FFF;
+}
+
+.red #slogan {
+  color: #181818;
+}
+
+.red .secondary-menu-inner ul.links li a:link,
+.red .secondary-menu-inner ul.links li a:visited {
+  color: #E15B51;
+}
+
+.red .secondary-menu-inner ul.links li a:hover,
+.red .secondary-menu-inner ul.links li a:focus,
+.red .secondary-menu-inner ul.links li a.active {
+  color: #FFF;
+}
+
+.red .footer-message-text {
+  color: #E75D53;
+}
+
+.red .node div.links {
+  background-color: #C62929;
+}
+
+/* --------------------- BLUE BODY BACKGROUND ------------------------------- */
+
+body.blue {
+  background: #335299 url(../images/bg-blue.gif) top left repeat-x;
+}
+
+.blue a,
+.blue a:link,
+.blue a:visited {
+  color: #AEAEAE;
+}
+
+.blue a:hover,
+.blue a:focus,
+.blue a:active {
+  color: #FFF;
+}
+
+.blue #site-name a:link,
+.blue #site-name a:visited,
+.blue #site-name a:hover,
+.blue #site-name a:active {
+  color: #FFF;
+}
+
+.blue #slogan {
+  color: #9ABCE4;
+}
+
+.blue .secondary-menu-inner ul.links li a:link,
+.blue .secondary-menu-inner ul.links li a:visited {
+  color: #9ABCE4;
+}
+
+.blue .secondary-menu-inner ul.links li a:hover,
+.blue .secondary-menu-inner ul.links li a:focus,
+.blue .secondary-menu-inner ul.links li a.active {
+  color: #FFF;
+}
+
+.blue .footer-message-text {
+  color: #9ABCE4;
+}
+
+.blue .node div.links {
+  background-color: #355FA7;
+}
+
+/* --------------------- GREEN BODY BACKGROUND ------------------------------ */
+
+body.green {
+  background: #2B7B0B url(../images/bg-green.gif) top left repeat-x;
+}
+
+.green a,
+.green a:link,
+.green a:visited {
+  color: #AEAEAE;
+}
+
+.green a:hover,
+.green a:focus,
+.green a:active {
+  color: #FFF;
+}
+
+.green #site-name a:link,
+.green #site-name a:visited,
+.green #site-name a:hover,
+.green #site-name a:active {
+  color: #FFF;
+}
+
+.green #slogan {
+  color: #7FBC35;
+}
+
+.green .secondary-menu-inner ul.links li a:link,
+.green .secondary-menu-inner ul.links li a:visited {
+  color: #7FBC35;
+}
+
+.green .secondary-menu-inner ul.links li a:hover,
+.green .secondary-menu-inner ul.links li a:focus,
+.green .secondary-menu-inner ul.links li a.active {
+  color: #FFF;
+}
+
+.green .footer-message-text {
+  color: #7FBC35;
+}
+
+.green .node div.links {
+  background-color: #2F7912;
+}
+
+/* ------------ CHANGE TO WHITE TEXT AND BULLETS ON DARK BACKGROUNDS -------- */
+
+body.black,
+body.red,
+body.blue,
+body.green {
+  color: #FFF;
+}
+
+.black .block-outer ul li.leaf,
+.red .block-outer ul li.leaf,
+.blue .block-outer ul li.leaf,
+.green .block-outer ul li.leaf,
+.black .node ul li.leaf,
+.red .node ul li.leaf,
+.blue .node ul li.leaf,
+.green .node ul li.leaf {
+  list-style-image: url(../images/menu-leaf-wh.png);
+}
+
+.black .block-outer ul li.expanded,
+.red .block-outer ul li.expanded,
+.blue .block-outer ul li.expanded,
+.green .block-outer ul li.expanded,
+.black .node ul li.expanded,
+.red .node ul li.expanded,
+.blue .node ul li.expanded,
+.green .node ul li.expanded {
+  list-style-image: url(../images/menu-expanded-wh.png);
+}
+
+.black .block-outer ul li.collapsed,
+.red .block-outer ul li.collapsed,
+.blue .block-outer ul li.collapsed,
+.green .block-outer ul li.collapsed,
+.black .node ul li.collapsed,
+.red .node ul li.collapsed,
+.blue .node ul li.collapsed,
+.green .node ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed-wh.png);  /* LTR */
+}
+
+/* -------------- ADD A WHITE BACKGROUND TO CONTENT AREA -------------------- */
+
+.white-page-bg #main,
+.white-page-bg #preface-top,
+.white-page-bg #postscript-bottom,
+.default-footer .white-page-bg #footer {
+  background-color: #FFF;
+  color: #323232;
+}
+
+.white-page-bg a,
+.white-page-bg a:link,
+.white-page-bg a:visited {
+  color: #666;
+}
+
+/* Add a little extra spacing on edges if have white bg */
+.white-page-bg #preface-top .block.first .inner,
+.white-page-bg #postscript-bottom .block.first .inner,
+.white-page-bg #footer .block.first .inner {
+  margin-left: 10px;  /* LTR */
+}
+
+.white-page-bg #preface-top .block.last .inner,
+.white-page-bg #postscript-bottom .block.last .inner,
+.white-page-bg #footer .block.last .inner {
+  margin-right: 10px; /* LTR */
+}
+
+.sidebars-split .white-page-bg .sidebar-first .block .inner {
+  margin-left: 10px; /* LTR */
+}
+
+.sidebars-split .white-page-bg .preface-bottom .block.last .inner,
+.sidebars-split .white-page-bg .postscript-top .block.last .inner,
+.sidebars-split .white-page-bg .sidebar-last .block .inner {
+  margin-right: 10px; /* LTR */
+}
+
+.sidebars-both-first .white-page-bg .sidebar-first .block .inner {
+  margin-left: 10px; /* LTR */
+}
+
+.sidebars-both-first .white-page-bg .main-content .block .inner,
+.sidebars-both-first .white-page-bg .preface-bottom .block.last .inner,
+.sidebars-both-first .white-page-bg .postscript-top .block.last .inner {
+  margin-right: 10px; /* LTR */
+}
+
+.sidebars-both-first .white-page-bg .sidebar-last .block .inner {
+  margin-right: 5px; /* LTR */
+}
+
+.sidebars-both-last .white-page-bg .main-content .block .inner,
+.sidebars-both-last .white-page-bg .preface-bottom .block.first .inner,
+.sidebars-both-last .white-page-bg .postscript-top .block.first .inner {
+  margin-left: 10px; /* LTR */
+}
+
+.sidebars-both-last .white-page-bg .sidebar-first .block .inner {
+  margin-right: 10px; /* LTR */
+}
+
+.sidebars-both-last .white-page-bg .sidebar-last .block .inner {
+  margin-left: 5px; /* LTR */
+}
+
+.white-page-bg .node div.links {
+  background: #E3E5E3;
+}
+
+/* CHANGE TO DARK BULLETS ON WHITE BG */
+
+.white-page-bg .block-outer ul li.leaf,
+.white-page-bg .node ul li.leaf {
+  list-style-image: url(../images/menu-leaf.png);
+}
+
+.white-page-bg .block-outer ul li.expanded,
+.white-page-bg .node ul li.expanded {
+  list-style-image: url(../images/menu-expanded.png);
+}
+
+.white-page-bg .block-outer ul li.collapsed,
+.white-page-bg .node ul li.collapsed  {
+  list-style-image: url(../images/menu-collapsed.png);  /* LTR */
+}
+
+/* --------------------- GRAY NAVBAR/BUTTONS ------------------------------ */
+
+/* PRIMARY MENU */
+.primary-menu {
+  background: #CCCCCA url(../images/nav-bg-gray.gif) top left repeat-x;
+  border-bottom: 1px solid #B5B5B4;
+}
+
+.primary-menu-inner ul.sf-menu {
+  border-right: 1px solid #E1E1E1;  /* LTR */
+}
+
+.primary-menu-inner ul.sf-menu a,
+.primary-menu-inner ul.sf-menu a:visited,
+.primary-menu-inner ul.sf-menu ul.menu a,
+.primary-menu-inner ul.sf-menu ul.menu a:visited {
+  color: #333;
+}
+
+.primary-menu-inner ul.sf-menu a:hover,
+.primary-menu-inner ul.sf-menu a:active,
+.primary-menu-inner ul.sf-menu a:focus{
+  color: #000;
+}
+
+.primary-menu-inner ul.sf-menu li {
+  border-right: 1px solid #B5B5B4;  /* LTR */
+  border-left: 1px solid #E1E1E1;  /* LTR */
+}
+
+.primary-menu-inner ul.sf-menu li.first {
+  border-left: 0;  /* LTR */
+}
+
+.primary-menu-inner ul.sf-menu ul {
+  border: none;
+}
+
+.primary-menu-inner ul.sf-menu li li {
+  border: 1px solid #B5B5B4;
+  border-top: 0;
+  background-color: #CCCCCC;
+}
+
+.primary-menu-inner ul.sf-menu li li.first {
+ border: 1px solid #B5B5B4;
+}
+
+.primary-menu-inner ul.sf-menu li ul li:hover,
+.primary-menu-inner ul.sf-menu li ul li.sfHover {
+    background-color: #BBB;
+}
+
+/* FORM SUBMIT BUTTONS */
+form input.form-submit {
+  background: #CCCCCA url(../images/nav-bg-gray.gif) top left repeat-x;
+  border-bottom: 1px solid #B5B5B4;
+  border-top: 1px solid #E1E1E1;
+  border-right: 1px solid #B5B5B4;  /* LTR */
+  border-left: 1px solid #E1E1E1; /* LTR */
+  color: #000;
+}
+
+/* --------------------- BLACK NAVBAR/BUTTONS ------------------------------ */
+
+/* PRIMARY MENU */
+.black-accents .primary-menu {
+  background: #272727 url(../images/nav-bg-black.gif) top left repeat-x;
+  border-bottom: 1px solid #232323;
+}
+
+.black-accents .primary-menu-inner ul.sf-menu {
+  border-right: 1px solid  #414140; /* LTR */
+}
+
+.black-accents .primary-menu-inner ul.sf-menu a,
+.black-accents .primary-menu-inner ul.sf-menu a:visited,
+.black-accents .primary-menu-inner ul.sf-menu ul.menu a,
+.black-accents .primary-menu-inner ul.sf-menu ul.menu a:visited  {
+  color: #FFF;
+}
+
+.black-accents .primary-menu-inner ul.sf-menu a:hover,
+.black-accents .primary-menu-inner ul.sf-menu a:active,
+.black-accents .primary-menu-inner ul.sf-menu a:focus {
+  color: #000
+}
+
+.black-accents .primary-menu-inner ul.sf-menu li {
+  border-right: 1px solid #232323; /* LTR */
+  border-left: 1px solid #414140; /* LTR */
+}
+
+.black-accents .primary-menu-inner ul.sf-menu li.first {
+  border-left: 0; /* LTR */
+}
+
+.black-accents .primary-menu-inner ul.sf-menu ul {
+  border: none;
+}
+
+.black-accents .primary-menu-inner ul.sf-menu li li {
+  border: 1px solid #444;
+  border-top: 0;
+  background-color: #555;
+}
+
+.black-accents .primary-menu-inner ul.sf-menu li li.first {
+  border: 1px solid #444;
+}
+
+.black-accents .primary-menu-inner ul.sf-menu li ul li:hover,
+.black-accents .primary-menu-inner ul.sf-menu li ul li.sfHover {
+    background-color: #282828;
+}
+
+/* FORM SUBMIT BUTTONS */
+.black-accents form input.form-submit {
+  background: #272727 url(../images/nav-bg-black.gif) top left repeat-x;
+  border-bottom: 1px solid #232323;
+  border-top: 1px solid #414140;
+  border-right: 1px solid #232323; /* LTR */
+  border-left: 1px solid #414140; /* LTR */
+  color: #FFF;
+}
+
+/* --------------------- RED NAVBAR/BUTTONS ------------------------------ */
+
+/* PRIMARY MENU */
+.red-accents .primary-menu,
+.red-accents form input.form-submit {
+  background: #A51D1D url(../images/nav-bg-red.gif) top left repeat-x;
+  border-bottom: 1px solid #A4141E;
+}
+
+.red-accents .primary-menu-inner ul.sf-menu {
+  border-right: 1px solid #A4141E; /* LTR */
+}
+
+.red-accents .primary-menu-inner ul.sf-menu a,
+.red-accents .primary-menu-inner ul.sf-menu a:visited,
+.red-accents .primary-menu-inner ul.sf-menu ul.menu a,
+.red-accents .primary-menu-inner ul.sf-menu ul.menu a:visited  {
+  color: #FFF;
+}
+
+.red-accents .primary-menu-inner ul.sf-menu a:hover,
+.red-accents .primary-menu-inner ul.sf-menu a:active,
+.red-accents .primary-menu-inner ul.sf-menu a:focus {
+  color: #000
+}
+
+.red-accents .primary-menu-inner ul.sf-menu li {
+  border-right: 1px solid #D73131; /* LTR */
+  border-left: 1px solid #A4141E; /* LTR */
+}
+
+.red-accents .primary-menu-inner ul.sf-menu li.first {
+  border-left: 0; /* LTR */
+}
+
+.red-accents .primary-menu-inner ul.sf-menu ul {
+  border: none;
+}
+
+.red-accents .primary-menu-inner ul.sf-menu li li {
+  border: 1px solid #D73131;
+  border-top: 0;
+  background-color: #BA2622;
+}
+
+.red-accents .primary-menu-inner ul.sf-menu li li.first {
+  border: 1px solid #D73131;
+}
+
+.red-accents .primary-menu-inner ul.sf-menu li ul li:hover,
+.red-accents .primary-menu-inner ul.sf-menu li ul li.sfHover {
+  background-color: #9E0F16;
+}
+/* FORM SUBMIT BUTTON */
+.red-accents form input.form-submit {
+  background: #A51D1D url(../images/nav-bg-red.gif) top left repeat-x;
+  border-bottom: 1px solid #A4141E;
+  border-top: 1px solid #D73131;
+  border-right: 1px solid #A4141E; /* LTR */
+  border-left: 1px solid #D73131; /* LTR */
+  color: #FFF;
+}
+
+/* --------------------- BLUE NAVBAR/BUTTONS ------------------------------ */
+
+/* PRIMARY MENU */
+.blue-accents .primary-menu {
+  background: #2C2C2C url(../images/nav-bg-blue.gif) top left repeat-x;
+  border-bottom: 1px solid #064287;
+}
+
+.blue-accents .primary-menu-inner ul.sf-menu {
+  border-right: 1px solid #4181C9; /* LTR */
+}
+
+.blue-accents .primary-menu-inner ul.sf-menu a,
+.blue-accents .primary-menu-inner ul.sf-menu a:visited,
+.blue-accents .primary-menu-inner ul.sf-menu ul.menu a,
+.blue-accents .primary-menu-inner ul.sf-menu ul.menu a:visited {
+  color: #FFF;
+}
+
+.blue-accents .primary-menu-inner ul.sf-menu a:hover,
+.blue-accents .primary-menu-inner ul.sf-menu a:active,
+.blue-accents .primary-menu-inner ul.sf-menu a:focus {
+  color: #000
+}
+
+.blue-accents .primary-menu-inner ul.sf-menu li {
+  border-right: 1px solid #064287; /* LTR */
+  border-left: 1px solid #4181C9; /* LTR */
+}
+
+.blue-accents .primary-menu-inner ul.sf-menu li.first {
+  border-left: 0; /* LTR */
+}
+
+.blue-accents .primary-menu-inner ul.sf-menu ul {
+  border: none;
+}
+
+.blue-accents .primary-menu-inner ul.sf-menu li li {
+  border: 1px solid #4181C9;
+  border-top: 0;
+  background-color: #1B5FAD;
+}
+
+.blue-accents .primary-menu-inner ul.sf-menu li li.first {
+  border: 1px solid #4181C9;
+}
+
+.blue-accents .primary-menu-inner ul.sf-menu li ul li:hover,
+.blue-accents .primary-menu-inner ul.sf-menu li ul li.sfHover {
+  background-color: #023E84;
+}
+
+/* FORM SUBMIT BUTTONS */
+.blue-accents form input.form-submit {
+  background: #2C2C2C url(../images/nav-bg-blue.gif) top left repeat-x;
+  border-bottom: 1px solid #064287;
+  border-top: 1px solid #4181C9;
+  border-right: 1px solid #064287; /* LTR */
+  border-left: 1px solid #4181C9; /* LTR */
+  color: #FFF;
+}
+
+/* --------------------- GREEN NAVBAR/BUTTONS ------------------------------ */
+
+/* PRIMARY MENU */
+.green-accents .primary-menu {
+  background: #3C8514 url(../images/nav-bg-green.gif) top left repeat-x;
+  border-bottom: 1px solid #337311;
+  color: #FFF;
+}
+
+.green-accents .primary-menu-inner ul.sf-menu {
+  border-right: 1px solid #62B131; /* LTR */
+}
+
+.green-accents .primary-menu-inner ul.sf-menu a,
+.green-accents .primary-menu-inner ul.sf-menu a:visited,
+.green-accents .primary-menu-inner ul.sf-menu ul.menu a,
+.green-accents .primary-menu-inner ul.sf-menu ul.menu a:visited {
+  color: #FFF;
+}
+
+.green-accents .primary-menu-inner ul.sf-menu a:hover,
+.green-accents .primary-menu-inner ul.sf-menu a:active,
+.green-accents .primary-menu-inner ul.sf-menu a:focus {
+  color: #000
+}
+
+.green-accents .primary-menu-inner ul.sf-menu li {
+  border-right: 1px solid #337311; /* LTR */
+  border-left: 1px solid #62B131; /* LTR */
+}
+
+.green-accents .primary-menu-inner ul.sf-menu li.first {
+  border-left: 0; /* LTR */
+}
+
+.green-accents .primary-menu-inner ul.sf-menu ul {
+  border: none;
+}
+
+.green-accents .primary-menu-inner ul.sf-menu li li {
+  border: 1px solid #62B131;
+  border-top: 0;
+  background-color: #408A16;
+}
+
+.green-accents .primary-menu-inner ul.sf-menu li li.first {
+  border: 1px solid #62B131;
+}
+
+.green-accents .primary-menu-inner ul.sf-menu li ul li:hover,
+.green-accents .primary-menu-inner ul.sf-menu li ul li.sfHover {
+  background-color: #2B7106;
+}
+
+/* FORM SUBMIT BUTTONS */
+.green-accents form input.form-submit {
+  background: #3C8514 url(../images/nav-bg-green.gif) top left repeat-x;
+  border-bottom: 1px solid #337311;
+  border-top: 1px solid #62B131;
+  border-right: 1px solid #337311; /* LTR */
+  border-left: 1px solid #62B131; /* LTR */
+  color: #FFF;
+}
+
+/* --------------------- ORANGE NAVBAR/BUTTONS ------------------------------ */
+
+/* PRIMARY MENU */
+.orange-accents .primary-menu,
+.orange-accents form input.form-submit {
+  background: #D94707 url(../images/nav-bg-orange.gif) top left repeat-x;
+  border-bottom: 1px solid #D54A05;
+}
+
+.orange-accents .primary-menu-inner ul.sf-menu {
+  border-right: 1px solid #F27A47; /* LTR */
+}
+
+.orange-accents .primary-menu-inner ul.sf-menu a,
+.orange-accents .primary-menu-inner ul.sf-menu a:visited,
+.orange-accents .primary-menu-inner ul.sf-menu ul.menu a,
+.orange-accents .primary-menu-inner ul.sf-menu ul.menu a:visited {
+  color: #FFF;
+}
+
+.orange-accents .primary-menu-inner ul.sf-menu a:hover,
+.orange-accents .primary-menu-inner ul.sf-menu a:active,
+.orange-accents .primary-menu-inner ul.sf-menu a:focus {
+  color: #000;
+}
+
+.orange-accents .primary-menu-inner ul.sf-menu li {
+  border-right: 1px solid #D54A05; /* LTR */
+  border-left: 1px solid #F27A47; /* LTR */
+}
+
+.orange-accents .primary-menu-inner ul.sf-menu li.first {
+  border-left: 0; /* LTR */
+}
+
+.orange-accents .primary-menu-inner ul.sf-menu ul {
+  border: 0;
+}
+
+.orange-accents .primary-menu-inner ul.sf-menu li li {
+  border: 1px solid #F27A47;
+  border-top: 0;
+  background-color: #E24C0A;
+}
+
+.orange-accents .primary-menu-inner ul.sf-menu li li.first {
+  border: 1px solid #F27A47;
+}
+
+.orange-accents .primary-menu-inner ul.sf-menu li ul li:hover,
+.orange-accents .primary-menu-inner ul.sf-menu li ul li.sfHover {
+  background-color: #D13F00;
+}
+
+/* FORM SUBMIT BUTTONS */
+.orange-accents form input.form-submit {
+  background: #D94707 url(../images/nav-bg-orange.gif) top left repeat-x;
+  border-bottom: 1px solid #D54A05;
+  border-top: 1px solid #F27A47;
+  border-right: 1px solid #D54A05; /* LTR */
+  border-left: 1px solid #F27A47; /* LTR */
+  color: #FFF;
+}
+
+/* ------------------ FOOTER --------------------------- */
+
+/* Backgrounds */
+.black-footer #footer {
+  background-color: #242424;
+  color: #FFF;
+}
+
+.lt-gray-footer #footer  {
+  background-color: #DEDEDE;
+  color: #333;
+}
+
+.gray-footer #footer {
+  background-color: #C7C7C7;
+  color: #333;
+}
+
+.dk-gray-footer #footer {
+  background-color: #747474;
+  color: #FFF;
+}
+
+.red-footer #footer {
+  background-color: #BF2222;
+  color: #FFF;
+}
+
+.blue-footer #footer {
+  background-color: #2E61B4;
+  color: #FFF;
+}
+
+.lt-blue-footer #footer {
+  background-color: #9DBDE2;
+  color: #333;
+}
+
+.green-footer #footer {
+  background-color: #4B9A1E;
+  color: #FFF;
+}
+
+.lt-green-footer #footer {
+  background-color: #B2D982;
+  color: #333;
+}
+
+.orange-footer #footer {
+  background-color: #E9620F;
+  color: #FFF;
+}
+
+.lt-orange-footer #footer {
+  background-color: #FFA85C;
+  color: #333;
+}
+
+/* Use matching bullets on different footer backgrounds */
+.lt-gray-footer #footer ul li,
+.lt-gray-footer #footer ul li.leaf {
+  list-style-image: url(../images/menu-leaf-lgy.png);
+}
+
+.lt-gray-footer #footer ul li.expanded {
+  list-style-image: url(../images/menu-expanded-lgy.png);
+}
+
+.lt-gray-footer #footer ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed-lgy.png); /* LTR */
+}
+
+.gray-footer #footer ul li,
+.gray-footer #footer ul li.leaf {
+  list-style-image: url(../images/menu-leaf-mgy.png);
+}
+
+.gray-footer #footer ul li.expanded {
+  list-style-image: url(../images/menu-expanded-mgy.png);
+}
+
+.gray-footer #footer ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed-mgy.png); /* LTR */
+}
+
+.dk-gray-footer #footer ul li,
+.dk-gray-footer #footer ul li.leaf {
+  list-style-image: url(../images/menu-leaf-mgy2.png);
+}
+
+.dk-gray-footer #footer ul li.expanded {
+  list-style-image: url(../images/menu-expanded-mgy2.png);
+}
+
+.dk-gray-footer #footer ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed-mgy2.png); /* LTR */
+}
+
+.black-footer #footer ul li,
+.black-footer #footer ul li.leaf {
+  list-style-image: url(../images/menu-leaf-dgy.png);
+}
+
+.black-footer #footer ul li.expanded {
+  list-style-image: url(../images/menu-expanded-dgy.png);
+}
+
+.black-footer #footer ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed-dgy.png); /* LTR */
+}
+
+.red-footer #footer ul li,
+.red-footer #footer ul li.leaf {
+  list-style-image: url(../images/menu-leaf-red.png);
+}
+
+.red-footer #footer ul li.expanded {
+  list-style-image: url(../images/menu-expanded-red.png);
+}
+
+.red-footer #footer ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed-red.png); /* LTR */
+}
+
+.blue-footer #footer ul li,
+.blue-footer #footer ul li.leaf {
+  list-style-image: url(../images/menu-leaf-bl.png);
+}
+
+.blue-footer #footer ul li.expanded {
+  list-style-image: url(../images/menu-expanded-bl.png);
+}
+
+.blue-footer #footer ul li.collapsed{
+  list-style-image: url(../images/menu-collapsed-bl.png); /* LTR */
+}
+
+.lt-blue-footer #footer ul li,
+.lt-blue-footer #footer ul li.leaf {
+  list-style-image: url(../images/menu-leaf-bl2.png);
+}
+
+.lt-blue-footer #footer ul li.expanded {
+  list-style-image: url(../images/menu-expanded-bl2.png);
+}
+
+.lt-blue-footer #footer ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed-bl2.png); /* LTR */
+}
+
+.green-footer #footer  ul li,
+.green-footer #footer  ul li.leaf {
+  list-style-image: url(../images/menu-leaf-gr.png);
+}
+
+.green-footer #footer  ul li.expanded {
+  list-style-image: url(../images/menu-expanded-gr.png);
+}
+
+.green-footer #footer  ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed-gr.png); /* LTR */
+}
+
+.lt-green-footer #footer ul li,
+.lt-green-footer #footer ul li.leaf {
+  list-style-image: url(../images/menu-leaf-gr2.png);
+}
+
+.lt-green-footer #footer ul li.expanded {
+  list-style-image: url(../images/menu-expanded-gr2.png);
+}
+
+.lt-green-footer #footer ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed-gr2.png); /* LTR */
+}
+
+.orange-footer #footer ul li,
+.orange-footer #footer ul li.leaf {
+  list-style-image: url(../images/menu-leaf-or.png);
+}
+
+.orange-footer #footer ul li.expanded {
+  list-style-image: url(../images/menu-expanded-or.png);
+}
+
+.orange-footer #footer ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed-or.png); /* LTR */
+}
+
+.lt-orange-footer #footer ul li,
+.lt-orange-footer #footer ul li.leaf {
+  list-style-image: url(../images/menu-leaf-or2.png);
+}
+
+.lt-orange-footer #footer ul li.expanded {
+  list-style-image: url(../images/menu-expanded-or2.png);
+}
+
+.lt-orange-footer #footer ul li.collapsed {
+  list-style-image: url(../images/menu-collapsed-or2.png); /* LTR */
+}
+
+/* ------------------ PAGE AND BLOCK HEADERS ---------------- */
+
+.white-headers h1.title,
+.white-headers h2.title {
+  color: #FFF;
+}
+
+.gray-headers h1.title,
+.gray-headers h2.title {
+  color: #767676;
+}
+
+.black-headers h1.title,
+.black-headers h2.title {
+  color: #323232;
+}
+
+.blue-headers h1.title,
+.blue-headers h2.title {
+  color: #1A59B1;
+}
+
+.red-headers h1.title,
+.red-headers h2.title {
+  color: #BF1D20;
+}
+
+.orange-headers h1.title,
+.orange-headers h2.title,
+.orange-title #site-name a:link,
+.orange-title #site-name a:visited,
+.orange-title #site-name a:hover,
+.orange-title #site-name a:active,
+.orange-slogan #slogan {
+  color: #E45B05;
+}
+
+.green-headers h1.title,
+.green-headers h2.title {
+  color: #2A9400;
+}
+
+/* ---------------------------------- LINK COLORS -------------------------- */
+
+.gray-links a,
+.gray-links a:link,
+.gray-links a:visited {
+  color: #767676;
+}
+
+.gray-links a:hover,
+.gray-links a:focus,
+.gray-links a:active {
+  color: #454545;
+}
+
+.blue-links a,
+.blue-links a:link,
+.blue-links a:visited {
+  color: #135DB1;
+}
+
+.blue-links a:hover,
+.blue-links a:focus,
+.blue-links a:active {
+  color: #508BDF;
+}
+
+.red-links a,
+.red-links a:link,
+.red-links a:visited {
+  color: #BF1D20;
+}
+
+.red-links a:hover,
+.red-links a:focus,
+.red-links a:active {
+  color: #D43C3E;
+}
+
+.green-links a,
+.green-links a:link,
+.green-links a:visited {
+  color: #2A9400;;
+}
+
+.green-links a:hover,
+.green-links a:focus,
+.green-links a:active {
+  color: #48B71D;
+}
+
+.orange-links a,
+.orange-links a:link,
+.orange-links a:visited {
+  color: #E45B05;
+}
+
+.orange-links a:hover,
+.orange-links a:focus,
+.orange-links a:active {
+  color: #FC7D2D;
+}
+

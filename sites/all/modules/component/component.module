@@ -1,0 +1,138 @@
+<?php
+
+/**
+ * Implementation of hook_menu().
+ */
+function component_menu() {
+  $items = array();
+
+  $items['node/%node/component'] = array(
+    'page callback' => 'component_ajax_get_node',
+    'page arguments' => array(1),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['component/node/%node'] = array(
+    'page callback' => 'component_ajax_get_node',
+    'page arguments' => array(2),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  $items['component/block/%/%'] = array(
+    'page callback' => 'component_ajax_get_block',
+    'page arguments' => array(2, 3),
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK,
+  );
+
+  if (module_exists('views')) {
+    $items['component/view/%'] = array(
+      'page callback' => 'component_ajax_get_view',
+      'page arguments' => array(2),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+    );
+    $items['component/viewform/%'] = array(
+      'page callback' => 'component_ajax_get_view_filter_form',
+      'page arguments' => array(2),
+      'access arguments' => array('access content'),
+      'type' => MENU_CALLBACK,
+    );
+  }
+
+  return $items;
+}
+
+
+/**
+ * Returns the themed contents of a block specified by module and delta
+ *
+ * @param string $module
+ *  The module that provides the block we want
+ * @param mixed $delta
+ *  The delta of the block we want
+ * @param string $title_text
+ *  The text to use in place of the default title, if any
+ */
+function component_get_block($module, $delta, $title_text = NULL) {
+  $block = (object) module_invoke($module, 'block', 'view', $delta);
+  $block->module = $module;
+  $block->delta = $delta;
+  if (isset($title_text)) {
+    $block->subject = check_plain($title_text);
+  }
+
+  $output = theme('block', $block);
+  return $output;
+}
+
+
+/**
+* Output function for the 'views' content type. Outputs a views
+* based on the view and display name.
+*
+* @param $view_name
+*   The name of the view to display
+* @param $display
+*   The name of the display on the specified view.
+* @param ...
+*   Any additional parameters will be passed as arguments to the view.
+* @see views_embed_view().
+*/
+function component_get_view() {
+  $args = func_get_args();
+  return call_user_func_array('views_embed_view', $args);
+}
+
+/**
+ * Returns the rendered filter form for a specified view.
+ */
+function component_get_view_filter_form($view_name) {
+  $args = func_get_args();
+  $view = views_get_view($view_name);
+  return views_theme('views_display_filters', $view);
+}
+
+/*
+// I've no idea how this will work when Panels is actually done. :-)
+function component_get_panel($did) {
+  return panels_panels_page($did);
+}
+*/
+
+/**
+ * Returns the themed contents of a node.
+ *
+ * @param $node
+ *  The node object to display.
+ *
+ */
+function component_get_node($node) {
+  return node_show($node, 0);
+}
+
+/*
+ * Ajax handling wrappers
+ */
+
+function component_ajax_get_block($module, $delta) {
+  print component_get_block($module, $delta);
+  exit();
+}
+
+function component_ajax_get_node($node) {
+  print component_get_node($node);
+  exit();
+}
+
+function component_ajax_get_view($view_name) {
+  $args = func_get_args();
+  print call_user_func_array('component_get_view', $args);
+  exit();
+}
+
+function component_ajax_get_view_filter_form($view_name) {
+  print component_get_view_filter_form($view_name);
+  exit();
+}

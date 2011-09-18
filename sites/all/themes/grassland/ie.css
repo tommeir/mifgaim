@@ -1,0 +1,12 @@
+/* Remove some alpha blended PNGs to avoid problems with antiquated IE <= 6. It doesn't look much different unless you look closely. */
+div.post-content, span.post-frame-top, span.post-frame-bottom { background-image: url(images/post-ie.png);height:1px; overflow:visible}
+div.widget-center, span.widget-top, span.widget-bottom { background-image: url(images/widget-ie.png);height:1px; overflow:visible}
+
+div.post-body img { margin: 0 5px}
+div.post-footer {height: 1px; overflow: visible}
+/*
+	Some crude fixes for ie5.5 to get it to a useable state, not going to worry about 5.5 beyond this. 
+*/
+body.ie5 div.widget-centre,	body.ie55 div.widget-centre{ width: 290px}
+body.ie5 div.container, 		body.ie55 div.container{ margin-left: 20px;} /* As ie55 won't centre the container on the page I'll move it a small amount away from the edge. */
+body.ie5 div#comments-block,  body.ie55 div#comments-block{width:543px}

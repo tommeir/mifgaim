@@ -1,0 +1,388 @@
+/* $Id: drupal6-core-rtl.css,v 1.2 2009/03/25 15:42:55 gibbozer Exp $ */
+
+/*
+ * modules/aggregator/aggregator-rtl.css
+ */
+#aggregator .feed-source .feed-icon {
+  float: left;
+}
+
+/*
+ * modules/book/book-rtl.css
+ */
+.book-navigation .page-previous {
+  float: right;
+}
+.book-navigation .page-up {
+  float: right;
+}
+
+/*
+ * modules/color/color-rtl.css
+ */
+#placeholder {
+  left: 0;
+  right: auto;
+}
+
+/* Palette */
+.color-form .form-item {
+  padding-left: 0;
+  padding-right: 1em;
+}
+.color-form label {
+  float: right;
+  clear: right;
+}
+.color-form .form-text, .color-form .form-select {
+  float: right;
+}
+.color-form .form-text {
+  margin-right: 0;
+  margin-left: 5px;
+}
+
+#palette .hook {
+  float: right;
+}
+#palette .down, #palette .up, #palette .both {
+  background: url(../../misc/hook-rtl.png) no-repeat 0 0;
+}
+#palette .up {
+  background-position: 0 -27px;
+}
+#palette .both {
+  background-position: 0 -54px;
+}
+
+#palette .lock {
+  float: right;
+  right: -10px;
+}
+html.js #preview {
+  float: right;
+}
+
+/*
+ * modules/comment/comment-rtl.css
+ */
+.indented {
+  margin-left: 0;
+  margin-right: 25px;
+}
+
+/*
+ * modules/dblog/dblog-rtl.css
+ */
+#dblog-filter-form .form-item {
+  float: right;
+  padding-right: 0;
+  padding-left: .8em;
+}
+
+/*
+ * modules/forum/forum-rtl.css
+ */
+#forum tr td.forum {
+  padding-left: 0.5em;
+  padding-right: 25px;
+  background-position: 98% 2px;
+}
+.forum-topic-navigation {
+  padding: 1em 3em 0 0;
+}
+.forum-topic-navigation .topic-previous {
+  text-align: left;
+  float: right;
+}
+.forum-topic-navigation .topic-next {
+  text-align: right;
+  float: left;
+}
+
+/*
+ * modules/help/help-rtl.css
+ */
+.help-items {
+  float: right;
+  padding-right: 0;
+  padding-left: 3%;
+}
+.help-items-last {
+  padding-right: 0;
+  padding-left: 0;
+}
+
+/*
+ * modules/node/node-rtl.css
+ */
+#node-admin-buttons {
+  float: right;
+  margin-left: 0;
+  margin-right: 0.5em;
+  clear: left;
+}
+
+/*
+ * modules/poll/poll-rtl.css
+ */
+.poll .bar .foreground {
+  float: right;
+}
+.poll .percent {
+  text-align: left;
+}
+.poll .vote-form .choices {
+  text-align: right;
+}
+
+/*
+ * modules/search/search-rtl.css
+ */
+.search-advanced .criterion {
+  float: right;
+  margin-right: 0;
+  margin-left: 2em;
+}
+.search-advanced .action {
+  float: right;
+  clear: right;
+}
+
+/*
+ * modules/system/admin-rtl.css
+ */
+
+div.admin-panel .body {
+  padding: 0 8px 2px 4px;
+}
+
+div.admin .expert-link {
+  text-align: left;
+  margin-right: 0;
+  margin-left: 1em;
+  padding-right: 0;
+  padding-left: 4px;
+}
+
+table.system-status-report th, table.system-status-report tr.merge-up td {
+  padding-right: 30px;
+}
+
+table.system-status-report th {
+  background-position: 95% 50%;
+}
+
+table.screenshot {
+  margin-left: 1em;
+}
+
+.date-container {
+  clear: right;
+}
+.date-container .select-container, .date-container .custom-container {
+  float: right;
+}
+.date-container .custom-container {
+  margin-left: 0;
+  margin-right: 15px;
+}
+
+/*
+ * modules/system/defaults-rtl.css
+ */
+th {
+  text-align: right;
+  padding-right: 0;
+  padding-left: 1em;
+}
+
+/*
+ * modules/system/system-menus-rtl.css
+ */
+ul.menu {
+  text-align:right;
+}
+ul.menu li {
+  margin: 0 0.5em 0 0;
+}
+li.expanded {
+  padding: 0.2em 0 0 0.5em;
+}
+li.collapsed {
+  list-style-image: url(../../misc/menu-collapsed-rtl.png);
+  padding: 0.2em 0 0 0.5em;
+}
+li.leaf {
+  padding: 0.2em 0 0 0.5em;
+}
+
+/*
+ * modules/system/system-rtl.css
+ */
+thead th {
+  text-align: right;
+  padding-left: 1em;
+  padding-right: 0.5em;
+}
+
+.item-list .icon {
+  float: left;
+  padding-left: 0;
+  padding-right: 0.25em;
+  clear: left;
+}
+.item-list ul li {
+  margin: 0 1.5em 0.25em 0;
+}
+
+.more-link {
+  text-align: left;
+}
+.more-help-link {
+  text-align: left;
+}
+
+dl.multiselect dt, dl.multiselect dd {
+  float: right;
+  margin: 0 0 0 1em;
+}
+
+.block ul {
+  padding: 0 1em 0.25em 0;
+}
+
+ul.primary {
+  padding: 0 1em 0 0;
+}
+ul.primary li a {
+  margin-right: 5px;
+  margin-left: 0.5em;
+}
+ul.secondary li {
+  display: inline;
+  padding: 0 1em;
+  border-right: none;
+  border-left: 1px solid #ccc;
+}
+html.js input.form-autocomplete {
+  background-position: 0% 2px;
+}
+html.js input.throbbing {
+  background-position: 0% -18px;
+}
+
+html.js fieldset.collapsible legend a {
+  padding-left: 0;
+  padding-right: 15px;
+  background-position: 98% 75%;
+}
+html.js fieldset.collapsed legend a {
+  background-image: url(../../misc/menu-collapsed-rtl.png);
+  background-position: 98% 50%;
+}
+
+div.teaser-button-wrapper {
+  float: left;
+  padding-right: 0;
+  padding-left: 5%;
+}
+.teaser-checkbox div.form-item {
+  float: left;
+  margin: 0 0 0 5%;
+}
+.progress .percentage {
+  float: left;
+}
+.progess-disabled {
+  float: right;
+}
+.ahah-progress {
+  float: right;
+}
+.ahah-progress .throbber {
+  float: right;
+}
+input.password-field {
+  margin-left: 10px;
+  margin-right: 0;
+}
+input.password-confirm {
+  margin-left: 10px;
+  margin-right: 0;
+}
+
+.draggable a.tabledrag-handle {
+  float: right;
+  margin: -0.4em -0.5em -0.4em 0;
+  padding: 0.42em 0.5em 0.42em 1.5em;
+}
+div.indentation {
+  margin: -0.4em -0.4em -0.4em 0.2em;
+  padding: 0.42em 0.6em 0.42em 0;
+  float: right;
+}
+div.tree-child, div.tree-child-last {
+  background-position: -65px center;
+}
+
+
+/*
+ * modules/update/update-rtl.css
+ */
+.update .project {
+  padding-right: .25em;
+}
+
+.update .version-status {
+  float: left;
+  padding-left: 10px;
+}
+
+.update .version-status .icon {
+  padding-right: .5em;
+}
+
+.update table.version .version-title {
+  padding-left: 1em;
+}
+
+.update table.version .version-details {
+  padding-left: .5em;
+  direction: ltr;
+}
+
+.update table.version .version-links {
+  text-align: left;
+  padding-left: 1em;
+}
+
+.update .check-manually {
+  padding-right: 1em;
+}
+
+
+/*
+ * modules/user/user-rtl.css
+ */
+
+#permissions td.permission {
+  padding-left: 0;
+  padding-right: 1.5em;
+}
+#access-rules .access-type, #access-rules .rule-type {
+  margin-right: 0;
+  margin-left: 1em;
+  float: right;
+}
+#user-admin-buttons {
+  float: right;
+  margin-left: 0;
+  margin-right: 0.5em;
+  clear: left;
+}
+
+.profile .picture {
+  float: left;
+  margin: 0 0 1em 1em;
+}

@@ -1,0 +1,89 @@
+/* $Id: nodeadmin.css,v 1.4 2009/03/09 16:04:24 detour Exp $ */
+
+/* table headers */
+
+table#nodeadmin > thead > tr {
+  background-color: #c0c0c0;
+}
+
+table#nodeadmin > thead > tr > th {
+  border-color: #ffffff;
+  border-style: solid;
+  border-width: 1px 1px;
+  font-size: 0.875em;
+  color: #202020;
+}
+
+table#nodeadmin thead tr th.sortable:hover {
+  background-color: #e0e0e0;
+}
+
+table#nodeadmin thead tr th.sortUp, table#nodeadmin thead tr th.sortDown {
+  background-color: #a0a0a0;
+}
+
+table#nodeadmin thead tr th.sortable {
+  background-image: url(icons/table-bg.gif);
+  background-repeat: no-repeat;
+  background-position: center right;
+}
+
+table#nodeadmin thead tr th.sortUp {
+  background-image: url(icons/table-asc.gif);
+}
+
+table#nodeadmin thead tr th.sortDown {
+  background-image: url(icons/table-desc.gif);
+}
+
+/* table contents */
+
+table#nodeadmin > tbody > tr {
+  border-color: #e0e0e0;
+  border-style: solid;
+  border-width: 1px 0;
+}
+
+table#nodeadmin > tbody > tr.odd {
+  background-color: #ffffff;
+}
+
+table#nodeadmin > tbody > tr.even {
+  background-color: #f0f0f0;
+}
+
+table#nodeadmin > tbody > tr.row:hover {
+  background-color: #e0e0e0;
+  border-color: #c0c0c0;
+}
+
+table#nodeadmin tbody tr td.node-actions {
+  vertical-align: top;
+  width: 92px;
+}
+
+table#nodeadmin tbody td.node-field {
+  width: 16%;
+}
+
+table#nodeadmin tbody tr .form-item {
+  white-space: normal;
+}
+
+/* messages */
+
+#nodeadmin-working {
+  position: fixed;
+  bottom: 0px;
+  width: 100%;
+  text-align: center;
+  color: #000000;
+  background-color: #c08080;
+  z-index: 99;
+}
+
+table#nodeadmin tbody td.query-message {
+  background-color: #c08080;
+  text-align: center;
+  color: #000000;
+}

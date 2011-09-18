@@ -1,0 +1,62 @@
+<?php
+// $Id: views404.module,v 1.1.2.3 2010/05/14 02:38:01 mikeytown2 Exp $
+
+/**
+ * @file
+ * Return 404 if internal path doesn't match the view path
+ */
+
+/**
+ * Implementation of hook_views_pre_view().
+ */
+function views404_views_pre_view(&$view) {
+  $path = $view->display_handler->options['path'];
+  if (!empty($path)) {
+    $path_array = explode('/', $path);
+    $args = array_filter(arg());
+    $matched = array_intersect($path_array, $args);
+    $conflicting_in_view = array_diff($path_array, $matched);
+    $conflicting_in_args = array_diff($args, $matched);
+    $view_arguments = $view->display_handler->options['arguments'];
+
+    // Return if view is embeded
+    if (count($matched) == 0) {
+      return;
+    }
+
+    // Add in % for each argument, as needed
+    if (count($view_arguments) > 0) {
+      foreach ($view_arguments as $type => $data) {
+        if (count($conflicting_in_view) < count($conflicting_in_args)) {
+          $path_array[] = '%';
+          // Re init varables to take into account the % in the path
+          $path = implode('/', $path_array);
+          $matched = array_intersect($path_array, $args);
+          $conflicting_in_view = array_diff($path_array, $matched);
+          $conflicting_in_args = array_diff($args, $matched);
+        }
+        else {
+          break;
+        }
+      }
+    }
+
+    // Return if parameter count matches
+    if (count($conflicting_in_view) == count($conflicting_in_args)) {
+      return;
+    }
+
+    // If we got this far, odds are this is a 404
+    watchdog('views404', t('View path: !path <br />Path given: !args <br />Matched: !match<br />Was Looking for: !looking<br />Got this instead: !got<br />Number of view arguments: !viewarg', array(
+        '!path' => $path,
+        '!args' => implode('/', $args),
+        '!match' => implode('/', $matched),
+        '!looking' => implode('/', $conflicting_in_view),
+        '!got' => implode('<strong>/</strong>', $conflicting_in_args),
+        '!viewarg' => count($view_arguments),
+      )
+    ));
+    drupal_not_found();
+    exit();
+  }
+}

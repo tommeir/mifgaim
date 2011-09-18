@@ -1,0 +1,435 @@
+<?php
+// $Id: nodeadmin.module,v 1.8 2009/04/23 23:42:22 detour Exp $
+
+/**
+ * @file
+ * Simple and speedy interface for content administration.
+ *
+ * Content Administration module (nodeadmin)
+ * Compatible with Drupal 6.x
+ *
+ * By Joe Turgeon [http://arithmetric.com]
+ * Licensed under GPL version 2
+ * Version 2009-04-23
+ */
+
+/**
+ * Implementation of hook_perm().
+ */
+function nodeadmin_perm() {
+  return array('access content administration');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function nodeadmin_menu() {
+  $items = array();
+
+  $items['admin/content/nodeadmin'] = array(
+    'title' => 'Content administration',
+    'description' => 'Dynamic interface for content administration',
+    'page callback' => 'nodeadmin_page',
+    'access arguments' => array('access content administration'),
+  );
+  $items['admin/content/nodeadmin/ajax'] = array(
+    'title' => 'Content administration',
+    'page callback' => 'nodeadmin_ajax',
+    'access arguments' => array('access content administration'),
+    'type' => MENU_CALLBACK,
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_form_alter().
+ * 
+ * Add node title to the node delete confirmation form
+ * for improved clarity.
+ */
+function nodeadmin_form_alter(&$form, $form_state, $form_id) {
+  if ($form_id == 'nodeadmin_delete_form' && is_array($form_state) && empty($form_state['op'])) {
+    if (is_array($form) && is_array($form['nid']) && $form['nid']['#value']) {
+      $nid = intval($form['nid']['#value']);
+      $title = db_result(db_query('SELECT title FROM {node} WHERE nid = %d', $nid));
+      $form['description'] = array(
+        '#type' => 'item',
+        '#value' => t('Are you sure you want to delete the node %title? This action cannot be undone.', array('%title' => $title)),
+      );
+    }
+  }
+}
+
+/**
+ * Callback for generating nodeadmin page.
+ */
+function nodeadmin_page() {
+  global $base_url;
+
+  // build map of content type names
+  $types = array();
+  $ctypes = node_get_types();
+  foreach ($ctypes as $ctype => $cdata) {
+    $types[$ctype] = $cdata->name;
+  }
+
+  // generate content administration page
+  $output = '<div class="nodeadmin-options"><div>Filter by type: <select id="filterType"><option value="" selected>All</option>';
+  foreach ($types as $ctype => $cname) {
+    $output .= '<option value="' . $ctype .'">'. $cname .'</option>';
+  }
+  $output .= '</select></div>';
+  $output .= '<div>Filter by author: <input id="filterUser" type="text" size="20" value="" /></div>';
+  if (module_exists('search')) {
+    $output .= '<div>Filter by text content: <input id="filterText" type="text" size="20" value="" /></div>';
+  }
+  $output .= '<div>Results per page: <input id="optionLimit" type="text" size="6" value="50" /><span id="numberResults">&nbsp;</span><div id="pageResults"></div></div>';
+  $output .= '</div><br/><div class="nodeadmin-addnode"><img src="'. $base_url .'/'. drupal_get_path('module', 'nodeadmin') .'/icons/doc-option-add.png" width="16" height="16" /> Add new content by type: <select id="addType"><option value="" selected></option>';
+  foreach ($ctypes as $ctype => $cdata) {
+    $output .= '<option value="' . $ctype .'">'. $cdata->name .'</option>';
+  }
+  $output .= '</select></div>';
+
+  $results = array();
+  nodeadmin_ajax_query($results);
+  $node_data = $results['nodeData'];
+
+  $header = array(t('Actions'), t('Title'), t('Type'), t('Author'), t('Modified date'));
+  $rows = array();
+  if (is_array($node_data) && count($node_data)) {
+    foreach ($node_data as $nid => $node) {
+      $links = '';
+      $links .= "<a href='javascript:viewNode({$node->nid})' title='". t('View') ."'><img src='". $base_url .'/'. drupal_get_path('module', 'nodeadmin') ."/icons/doc-option-tab.png' alt='". t('View') ."' width='16' height='16' /></a>";
+      $links .= " <a href='javascript:editNode({$node->nid})' title='". t('Edit') ."'><img src='". $base_url .'/'. drupal_get_path('module', 'nodeadmin') ."/icons/doc-option-edit.png' alt='". t('Edit') ."' width='16' height='16' /></a>";
+      $links .= " <a href='javascript:deleteNode({$node->nid})' title='". t('Delete') ."'><img src='". $base_url .'/'. drupal_get_path('module', 'nodeadmin') ."/icons/doc-option-remove.png' alt='". t('Delete') ."' width='16' height='16' /></a>";
+      $row = array(
+        array(
+          'data' => $links,
+          'class' => 'node-actions'
+        ),
+        array(
+          'data' => $node->title,
+          'id' => 'node-'. $nid,
+        ),
+        array(
+          'data' => $types[$node->type],
+          'class' => 'node-field',
+        ),
+        array(
+          'data' => $node->name,
+          'class' => 'node-field',
+        ),
+        array(
+          'data' => format_date($node->changed, 'custom', 'Y/m/d - H:i'),
+          'class' => 'node-field',
+        ),
+      );
+      $rows[] = $row;
+    }
+  }
+  else {
+    $rows[] = array(array('data' => t('No results found'), 'class' => 'query-message', 'colspan' => '5'));
+  }
+  $output .= theme_table($header, $rows, array('id' => 'nodeadmin'));
+
+  drupal_add_css(drupal_get_path('module', 'nodeadmin') .'/nodeadmin.css');
+
+  drupal_add_js('misc/jquery.form.js');
+  drupal_add_js(drupal_get_path('module', 'nodeadmin') .'/nodeadmin.js');
+  drupal_add_js(array('nodeadmin' => array('ajaxUrl' => url('admin/content/nodeadmin/ajax', array('absolute' => TRUE)), 'modulePath' => $base_url .'/'. drupal_get_path('module', 'nodeadmin'))), 'setting');
+  drupal_add_js('var nodeCount = '. json_encode($results['nodeCount']) .'; var nodeData = '. json_encode($node_data) .'; var nodeState = { }; var nodeadminState = {optionLimit: 50, optionOffset: 1, optionSortField: "changed", optionSortDirection: "DESC"}; var typeData = '. json_encode($types) .'; var fieldData = ["", "title", "type", "uid", "changed"]; var nodeadminData = {js: '. json_encode(nodeadmin_get_js()) .', css: '. json_encode(nodeadmin_get_css()) .'};', 'inline');
+
+  return $output;
+}
+
+/**
+ * Callback for AJAX processor.
+ */
+function nodeadmin_ajax() {
+  if (!empty($_POST['ajax'])) {
+    $options = $_POST;
+  }
+  else if (!empty($_GET['ajax'])) {
+    $options = $_GET;
+  }
+
+  if (is_array($options)) {
+    $op = strtolower($options['ajax']);
+    $results = array('op' => $op);
+    
+    if ($op == 'query') {
+      nodeadmin_ajax_query($results, $options);
+    }
+    else if ($op == 'view') {
+      nodeadmin_ajax_view($results, $options);
+    }
+    else if ($op == 'form') {
+      nodeadmin_ajax_form($results, $options);
+    }
+    else {
+      $results['status'] = 'error';
+      $results['message'] = 'Invalid operation';
+    }
+    
+    echo(json_encode($results));
+    exit(0);
+  }
+}
+
+/**
+ * Handle AJAX content query requests.
+ */
+function nodeadmin_ajax_query(&$results, $options = array()) {
+  $args = array();
+  $text_results = false;
+
+  // if a text filter is specified, then first perform a full text search
+  if (!empty($options['filterText']) && module_exists('search')) {
+    $text_results = array();
+    $keys = check_plain($options['filterText']);
+    $search_data = module_invoke('node', 'search', 'search', $keys);
+    foreach ($search_data as $item) {
+      if ($item['node'] && $item['node']->nid) {
+        $text_results[] = $item['node']->nid;
+      }
+    }
+  }
+
+  // generate query of node table for other filters
+  // add fields
+  $qfields = 'n.nid, n.title, n.type, n.uid, u.name, n.changed ';
+
+  // add tables
+  $qtable = 'FROM {node} n LEFT JOIN {users} u USING(uid) ';
+
+  // add where clause
+  $qwheres = array();
+  if (!empty($options['filterType'])) {
+    $qwheres[] = 'n.type = "%s" ';
+    $args[] = check_plain($options['filterType']);
+  }
+  if (!empty($options['filterUser']) && is_numeric($options['filterUser'])) {
+    $qwheres[] = 'n.uid = %d ';
+    $args[] = intval($options['filterUser']);
+  }
+  else if (!empty($options['filterUser']) && strlen($options['filterUser']) > 0) {
+    $qwheres[] = 'u.name = "%s" ';
+    $args[] = check_plain($options['filterUser']);
+  }
+  if (count($qwheres)) {
+    $qwhere = 'WHERE '. join('AND ', $qwheres) .' ';
+  }
+
+  // add sort clause
+  $valid_fields = array('nid', 'title', 'type', 'uid', 'changed');
+  if (!empty($options['optionSortField']) && in_array($options['optionSortField'], $valid_fields)) {
+    $sort_field = 'n.'. db_escape_string($options['optionSortField']);
+  }
+  else {
+    $sort_field = 'n.changed';
+  }
+  if (!empty($options['optionSortDirection']) && ($options['optionSortDirection'] == 'ASC' || $options['optionSortDirection'] == 'DESC')) {
+    $sort_direction = db_escape_string($options['optionSortDirection']);
+  }
+  else {
+    $sort_direction = 'DESC';
+  }
+  $qorder = 'ORDER BY '. $sort_field .' '. $sort_direction .' ';
+
+  // add limits
+  if (!empty($options['optionOffset']) && is_numeric($options['optionOffset'])) {
+    $offset = intval($options['optionOffset']) - 1;
+  }
+  else {
+    $offset = 0;
+  }
+  if (!empty($options['optionLimit']) && is_numeric($options['optionLimit'])) {
+    $limit = intval($options['optionLimit']);
+  }
+  else {
+    $limit = 50;
+  }
+  $qlimit = '';
+  if ($offset > 0 && $limit > 0) {
+    $qlimit = 'LIMIT '. intval($limit) .' OFFSET '. intval($offset) .' ';
+  }
+  else if ($limit > 0) {
+    $qlimit = 'LIMIT '. intval($limit) .' ';
+  }
+
+  // perform query for count if no text filter is specified
+  if (!is_array($text_results)) {
+    $q = 'SELECT COUNT(*) '. $qtable . $qwhere;
+    $qargs = array_merge(array($q), $args);
+    $res = call_user_func_array('db_query', $qargs);
+    if ($res) {
+      $results['nodeCount'] = db_result($res);
+      if (!$results['nodeCount']) {
+        $results['nodeCount'] = 0;
+        return;
+      }
+    }
+    else {
+      watchdog('nodeadmin', t('Query failed: '). print_r($qargs, TRUE), WATCHDOG_ERROR);
+      return;
+    }
+  }
+
+  // perform query for results
+  $results['nodeData'] = array();
+  if (is_array($text_results)) {
+    $q = 'SELECT '. $qfields . $qtable . $qwhere . $qorder;
+  }
+  else {
+    $q = 'SELECT '. $qfields . $qtable . $qwhere . $qorder . $qlimit;
+  }
+  $qargs = array_merge(array($q), $args);
+  $res = call_user_func_array('db_query', $qargs);
+  if ($res) {
+    while ($obj = db_fetch_object($res)) {
+      // if text search results exist, intersect with query results
+      if (!is_array($text_results) || in_array($obj->nid, $text_results)) {
+        $results['nodeData'][$obj->nid] = $obj;
+      }
+    }
+    if (is_array($text_results)) {
+      $results['nodeCount'] = count($results['nodeData']);
+    }
+  }
+  else {
+    watchdog('nodeadmin', t('Query failed: '). print_r($qargs, TRUE), WATCHDOG_ERROR);
+    return;
+  }
+}
+
+/**
+ * Handle AJAX requests to return a node's rendered view.
+ */
+function nodeadmin_ajax_view(&$results, $options = array()) {
+  if (is_numeric($options['nid']) && intval($options['nid']) > 0) {
+    $nid = intval($options['nid']);
+    $node = node_load($nid);
+    if ($node && node_access('view', $node)) {
+      $results['nid'] = $nid;
+      $results['htmlData'] = node_view($node, FALSE, FALSE, FALSE);
+      $results['messages'] = drupal_get_messages();
+      $results['js'] = nodeadmin_get_js();
+      $results['css'] = nodeadmin_get_css();
+    }
+  }
+}
+
+/**
+ * Handle AJAX requests to access the node form.
+ */
+function nodeadmin_ajax_form(&$results, $options = array()) {
+  if (!empty($options['form'])) {
+    $formtype = strtolower($options['form']);
+    $results['form'] = $formtype;
+    if (is_numeric($options['token']) && $options['token'] >= 0) {
+      $results['token'] = $options['token'];
+    } 
+    if ($formtype == 'add' && !empty($options['nodetype']) && node_access('create', $options['nodetype'])) {
+      $results['nodetype'] = $options['nodetype'];
+      module_load_include('inc', 'node', 'node.pages');
+      $results['htmlData'] = node_add($options['nodetype']);
+      $results['messages'] = drupal_get_messages();
+      $results['js'] = nodeadmin_get_js();
+      $results['css'] = nodeadmin_get_css();
+    }
+    else if ($formtype == 'edit' && is_numeric($options['nid']) && intval($options['nid']) > 0) {
+      $node = node_load(intval($options['nid']));
+      if (node_access('update', $node)) {
+        $results['nid'] = $options['nid'];
+        module_load_include('inc', 'node', 'node.pages');
+        $results['htmlData'] = drupal_get_form($node->type .'_node_form', $node);
+        $results['messages'] = drupal_get_messages();
+        $results['js'] = nodeadmin_get_js();
+        $results['css'] = nodeadmin_get_css();
+      }
+    }
+    else if ($formtype == 'delete' && is_numeric($options['nid']) && intval($options['nid']) > 0) {
+      $node = node_load(intval($options['nid']));
+      if (node_access('delete', $node)) {
+        $results['cmd'] = 'delete';
+        $results['nid'] = $options['nid'];
+        $results['htmlData'] = drupal_get_form('nodeadmin_delete_form', $node);
+        $results['messages'] = drupal_get_messages();
+      }
+    }
+    else {
+      $results['status'] = 'error';
+      $results['message'] = 'Invalid form type';
+    }
+  }
+}
+
+/**
+ * Wrapper for node_delete_confirm form builder.
+ */
+function nodeadmin_delete_form(&$form_state, $node) {
+  module_load_include('inc', 'node', 'node.pages');
+  return node_delete_confirm($form_state, $node);
+}
+
+/**
+ * Wrapper for node_delete_confirm_submit handler.
+ */
+function nodeadmin_delete_form_submit($form, &$form_state) {
+  node_delete_confirm_submit($form, $form_state);
+  $form_state['redirect'] = FALSE;
+}
+
+/**
+ * Returns an array structure of the JavaScript files 
+ * and inline code included by all current processing.
+ */
+function nodeadmin_get_js() {
+  $jsdata = array('files' => array(), 'html' => '');
+  $js = drupal_add_js(NULL, NULL, NULL);
+  if (is_array($js) && is_array($js['header'])) {
+    if (is_array($js['header']['core'])) {
+      foreach ($js['header']['core'] as $file => $opts) {
+        array_push($jsdata['files'], $file);
+      }
+      unset($js['header']['core']);
+    }
+    if (is_array($js['header']['module'])) {
+      foreach ($js['header']['module'] as $file => $opts) {
+        array_push($jsdata['files'], $file);
+      }
+      unset($js['header']['module']);
+    }
+    if (is_array($js['header']['theme'])) {
+      foreach ($js['header']['theme'] as $file => $opts) {
+        array_push($jsdata['files'], $file);
+      }
+      unset($js['header']['theme']);
+    }
+    $jsdata['html'] = drupal_get_js('header', $js['header']);
+  }
+  return $jsdata;
+}
+
+/**
+ * Returns an array structure of the CSS files included by
+ * modules and themes.
+ */
+function nodeadmin_get_css() {
+  $cssdata = array();
+  $css = drupal_add_css(NULL, NULL);
+  if (is_array($css) && is_array($css['all'])) {
+    if (is_array($css['all']['module'])) {
+      foreach ($css['all']['module'] as $file => $val) {
+        array_push($cssdata, $file);
+      }
+    }
+    if (is_array($css['all']['theme'])) {
+      foreach ($css['all']['theme'] as $file => $val) {
+        array_push($cssdata, $file);
+      }
+    }
+  }
+  return $cssdata;
+}

@@ -1,0 +1,19 @@
+/* $Id: custom-sample.css,v 1.1 2009/05/12 04:39:09 kong Exp $ */
+
+/**
+ * @file
+ * Contains user's custom CSS.
+ *
+ * Put your custom CSS and CSS overrides in this file.
+ * By restricting your CSS changes to custom.css, your
+ * changes will not be overwritten when upgrading to a
+ * new version of this theme.
+ */
+
+/**
+ * Steps to activate custom.css:
+ *   1. Add your custom CSS to this file
+ *   2. Rename this file to custom.css
+ *   3. Enable "Customized Stylesheet" option in theme settings page
+ */
+

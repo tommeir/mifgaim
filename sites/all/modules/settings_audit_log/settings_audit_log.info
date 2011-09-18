@@ -1,0 +1,12 @@
+name = Settings audit log
+description = Allows logging changes to system settings
+package = Settings API 
+version = VERSION
+core = 6.x
+
+; Information added by drupal.org packaging script on 2010-07-15
+version = "6.x-1.0"
+core = "6.x"
+project = "settings_audit_log"
+datestamp = "1279173618"
+

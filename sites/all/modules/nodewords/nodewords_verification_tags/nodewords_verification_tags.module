@@ -1,0 +1,29 @@
+<?php
+// $Id: nodewords_verification_tags.module,v 1.1.2.15 2010/02/14 11:22:24 kiam Exp $
+
+/**
+ * @file
+ * Define site verification meta tags required by some search engines
+ * to verify a web site.
+ */
+
+/**
+ * Implements hook_nodewords_api().
+ */
+function nodewords_verification_tags_nodewords_api() {
+  return array(
+    'api' => '1.12',
+    'path' => '',
+  );
+}
+
+/**
+ * Implements hook_perm().
+ */
+function nodewords_verification_tags_perm() {
+  return array(
+    'edit Bing Webmaster Center verification meta tag',
+    'edit Google Webmaster Tools verification meta tag',
+    'edit Yahoo! Site Explorer verification meta tag',
+  );
+}

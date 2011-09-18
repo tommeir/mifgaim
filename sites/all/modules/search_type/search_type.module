@@ -1,0 +1,89 @@
+<?php
+// $Id: search_type.module,v 1.3 2009/09/27 21:27:24 nedjo Exp $
+
+/**
+ * @file
+ * search_type module allows user to choose type of search from within search block.
+ */
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function search_type_form_alter(&$form, $form_state, $form_id) {
+  if (user_access('use advanced search') && in_array($form_id, array('search_block_form', 'search_theme_form'))) {
+    $form['#submit'][] = 'search_type_submit';
+    $options = array();
+
+    // Add standard
+    foreach (module_implements('search') as $module) {
+      // Node is a special case.
+      if ($module != 'node' && $name = module_invoke($module, 'search', 'name')) {
+        $options[$module] = $name;
+      }
+    }
+
+    // Load string for node search type.
+    $content = module_invoke('node', 'search', 'name');
+
+    $types = variable_get('search_type_node_types', array());
+    unset($types[0]);
+    $names = node_get_types('names');
+    if (count($types)) {
+      $options[$content] = array();
+      foreach (array_keys(array_filter($types)) as $type) {
+        $options[$content][$type] = $names[$type];
+      }
+    }
+    // Show all if there are no specified types.
+    else {
+      $options[$content] = $names;
+    }
+    $options[$content]['all'] = t('All content');
+
+    $form['search_type_mode'] = array(
+      '#type' => 'select',
+      '#title' => t('Search for'),
+      '#options' => $options,
+      '#default_value' => 'all',
+      '#weight' => -1,
+    );
+  }
+
+  // Admin settings
+  elseif ($form_id == 'search_admin_settings') {
+    $form['search_type'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Search type options'),
+    );
+    $form['search_type']['search_type_node_types'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Content types'),
+      '#default_value' => variable_get('search_type_node_types', array()),
+      '#options' => node_get_types('names'),
+      '#description' => t('Select the content types to present as search options in the search block. If none is selected, all types will be available.'),
+    );
+  }
+}
+
+/**
+ * Alter the search to respect the search mode selected in a block.
+ */
+function search_type_submit($form, &$form_state) {
+  $type = 'node';
+  $keys = $form_state['values'][$form_state['values']['form_id']];
+  $mode = $form_state['values']['search_type_mode'];
+  $search_types = module_implements('search');
+  if (in_array($mode, $search_types)) {
+    $type = $mode;
+  }
+  // If 'all' is selected, nothing to do.
+  elseif ($mode != 'all') {
+    // We have a node type.
+    // Remove any existing type. We will replace it.
+    // By calling search_query_insert without a third argument,
+    // we remove the given operand from the keys.
+    search_query_insert($keys, 'type');
+    $keys .= ' type:'. $mode;
+  }
+  $form_state['redirect'] = 'search/'. $type .'/'. $keys;
+}

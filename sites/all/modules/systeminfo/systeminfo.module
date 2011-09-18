@@ -1,0 +1,963 @@
+<?php
+// $Id: systeminfo.module,v 1.19.2.72.2.2 2010/04/08 21:04:40 flanker Exp $
+// $Name: DRUPAL-6--2-0 $
+
+/**
+ * @file
+ *   Displays information about the Drupal installation and system environment.
+ */
+
+
+/**
+ * Implementation of hook_help().
+ */
+function systeminfo_help($section) {
+  switch ($section) {
+    case 'admin/help#systeminfo':
+      $output = '<p>'. t('This module displays information about the Drupal installation and system environment.') .'</p>';
+      $output .= '<h4>'. t('System requirements') .'</h4>';
+      $output .= '<p>'. t('For detailed information about Drupal requirements, see <a href="@requirements">System requirements</a> in the Drupal handbook.', array('@requirements' => 'http://drupal.org/requirements/')) .'</p>';
+      return $output;
+    case 'admin/reports/systeminfo':
+      return '<p>'. t('Information about the Drupal installation and system environment.') .'</p>';
+    case 'admin/settings/systeminfo':
+      return '<p>'. t('Configure the display of <a href="@admin-reports-systeminfo">System information</a>.', array('@admin-reports-systeminfo' => url('admin/reports/systeminfo'))) .'</p>';
+  }
+}
+
+
+/**
+ * Implementation of hook_perm().
+ */
+function systeminfo_perm() {
+  return array('access system information', 'administer system information');
+}
+
+
+/**
+ * Implementation of hook_menu().
+ */
+function systeminfo_menu() {
+  $items = array();
+
+  $items['admin/reports/systeminfo'] = array(
+    'title' => 'System information',
+    'description' => 'Display information about the Drupal installation and system environment.',
+    'page callback' => 'systeminfo_display_information',
+    'access arguments' => array('access system information'),
+  );
+  $items['admin/reports/systeminfo/drupal'] = array(
+    'title' => 'Drupal',
+    'description' => 'Display information about the Drupal installation.',
+    'page callback' => 'systeminfo_display_drupal',
+    'access arguments' => array('access system information'),
+    'weight' => 0,
+  );
+  $items['admin/reports/systeminfo/php'] = array(
+    'title' => 'PHP',
+    'description' => 'Display current state of PHP.',
+    'page callback' => 'systeminfo_display_php',
+    'access arguments' => array('access system information'),
+    'weight' => 1,
+  );
+  $items['admin/reports/systeminfo/database'] = array(
+    'title' => 'Database server',
+    'description' => 'Display information about the database server.',
+    'page callback' => 'systeminfo_display_database',
+    'access arguments' => array('access system information'),
+    'weight' => 2,
+  );
+  $items['admin/reports/systeminfo/database/content'] = array(
+    'title' => 'Database table content',
+    'page callback' => 'systeminfo_display_database_table_content',
+    'access arguments' => array('access system information'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/reports/systeminfo/database/structure'] = array(
+    'title' => 'Database table structure',
+    'page callback' => 'systeminfo_display_database_table_structure',
+    'access arguments' => array('access system information'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/settings/systeminfo'] = array(
+    'title' => 'System information',
+    'description' => 'Configure the display of System information.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('systeminfo_settings'),
+    'access arguments' => array('administer system information'),
+    'file' => 'systeminfo.admin.inc',
+  );
+
+  return $items;
+}
+
+
+/**
+ * Menu callback of page 'System information'.
+ */
+function systeminfo_display_information() {
+  global $base_url, $db_url, $db_prefix;
+  $output = '';
+
+  drupal_add_css(drupal_get_path('module', 'systeminfo') .'/systeminfo.css');
+
+
+  // Drupal
+  $output_fieldset = '';
+  $output_fieldset .= '<p>'. t('More information about the Drupal installation can be found <a href="@drupal" title="Display information about the Drupal installation.">here</a>.', array('@drupal' => url('admin/reports/systeminfo/drupal'))) .'</p>';
+
+  $rows = array();
+  $rows[] = array(t('Version'), VERSION);
+  $rows[] = array(t('Configuration file'), conf_path() .'/settings.php');
+  $cron_last = variable_get('cron_last', NULL);
+  $rows[] = array(t('Cron'), isset($cron_last) ? t('Last run !time ago', array('!time' => format_interval(time() - $cron_last))) : t('Not run yet'));
+  $rows[] = array(t('File system path'), file_directory_path());
+  $output_fieldset .= theme('table', NULL, $rows, array('class' => 'systeminfo systeminfo_width50'));
+
+  $output_fieldset .= '<h4>'. t('Content') .'</h4>';
+  $rows = array();
+  $rows[] = array(t('Total'), t('!nodes', array('!nodes' => format_plural(db_result(db_query("SELECT COUNT(nid) FROM {node}")), '1 node', '@count nodes'))));
+  $types = array();
+  $result = db_query("SELECT n.type, nt.name, COUNT(n.nid) AS count FROM {node} n LEFT JOIN {node_type} nt ON n.type = nt.type GROUP BY n.type, nt.name");
+  while ($type = db_fetch_object($result)) {
+    $key = $type->name ? $type->name : $type->type;
+    $name = $type->name ? $type->name : $type->type;
+    $types[$key] = array(array('data' => check_plain($name), 'class' => 'text1'), t('!nodes', array('!nodes' => format_plural($type->count, '1 node', '@count nodes'))));
+  }
+  ksort($types);
+  if (!empty($types)) {
+    $rows[] = array(array('data' => t('Content types'), 'class' => 'title1', 'colspan' => '2'));
+    $rows += $types;
+  }
+  $output_fieldset .= theme('table', NULL, $rows, array('class' => 'systeminfo systeminfo_width50'));
+
+  $output_fieldset .= '<h4>'. t('Users') .'</h4>';
+  $rows = array();
+  $rows[] = array(t('Total'), t('!accounts', array('!accounts' => format_plural(db_result(db_query("SELECT COUNT(uid) FROM {users} WHERE uid <> 0")), '1 account', '@count accounts'))));
+  $rows[] = array(array('data' => t('Status'), 'class' => 'title1', 'colspan' => '2'));
+  $rows[] = array(array('data' => t('Active'), 'class' => 'text1'), t('!accounts', array('!accounts' => format_plural(db_result(db_query("SELECT COUNT(uid) FROM {users} WHERE uid <> 0 AND status = 1")), '1 account', '@count accounts'))));
+  $rows[] = array(array('data' => t('Blocked'), 'class' => 'text1'), t('!accounts', array('!accounts' => format_plural(db_result(db_query("SELECT COUNT(uid) FROM {users} WHERE uid <> 0 AND status = 0")), '1 account', '@count accounts'))));
+  $output_fieldset .= theme('table', NULL, $rows, array('class' => 'systeminfo systeminfo_width50'));
+
+  $output_fieldset .= '<h4>'. t('Modules') .'</h4>';
+  $rows = array();
+  foreach (module_list() as $module) {
+    $file = db_fetch_object(db_query("SELECT info FROM {system} WHERE type = 'module' AND name = '%s'", $module));
+    $file->info = unserialize($file->info);
+    $rows[$file->info['name']] = array($file->info['name'], $file->info['version']);
+  }
+  ksort($rows);
+  $output_fieldset .= theme('table', NULL, $rows, array('class' => 'systeminfo systeminfo_width50'));
+
+  $output_fieldset .= '<h4>'. t('Themes') .'</h4>';
+  $rows = array();
+  foreach (list_themes() as $theme) {
+    if ($theme->status) {
+      $rows[$theme->name] = array($theme->info['name'], $theme->info['version']);
+    }
+  }
+  ksort($rows);
+  $output_fieldset .= theme('table', NULL, $rows, array('class' => 'systeminfo systeminfo_width50'));
+
+  $fieldset = array(
+    '#type' => 'fieldset',
+    '#title' => 'Drupal',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#value' => $output_fieldset,
+  );
+  $output .= theme('fieldset', $fieldset);
+
+
+  // Web server
+  $output_fieldset = '';
+  if (preg_match('/Apache\/?([0-9|\.]*)/i', $_SERVER['SERVER_SOFTWARE'], $version)) {
+    $webserver_type = 'apache';
+    $webserver_name = 'Apache';
+    $webserver_version = !empty($version[1]) ? $version[1] : t('Unknown');
+    if (function_exists('apache_get_modules')) {
+      $apache_modules = apache_get_modules();
+    }
+  }
+  elseif (preg_match('/lighttpd\/?([0-9|\.]*)/i', $_SERVER['SERVER_SOFTWARE'], $version)) {
+    $webserver_type = 'lighttpd';
+    $webserver_name = 'LightTPD';
+    $webserver_version = !empty($version[1]) ? $version[1] : t('Unknown');
+  }
+  elseif (preg_match('/IIS\/?([0-9|\.]*)/i', $_SERVER['SERVER_SOFTWARE'], $version)) {
+    $webserver_type = 'iis';
+    $webserver_name = 'Microsoft IIS';
+    $webserver_version = !empty($version[1]) ? $version[1] : t('Unknown');
+  }
+  else {
+    $webserver_type = 'unknown';
+    $webserver_name = t('Unknown');
+    $webserver_version = $_SERVER['SERVER_SOFTWARE'];
+  }
+
+  $rows = array();
+  $rows[] = array(t('Type'), $webserver_name);
+  $rows[] = array(t('Version'), $webserver_version);
+  $rows[] = array(t('IP address'), $_SERVER['SERVER_ADDR']);
+  $rows[] = array(t('Operating system'), php_uname('s'));
+  if ($webserver_type == 'apache') {
+    $rows[] = array(t('PHP interface'), php_sapi_name());
+  }
+  $rows[] = array(t('URL'), $base_url);
+  $output_fieldset .= theme('table', NULL, $rows, array('class' => 'systeminfo systeminfo_width50'));
+
+  if (isset($apache_modules)) {
+    $output_fieldset .= '<h4>'. t('Apache modules') .'</h4>';
+    $rows = array();
+    $rows[] = array(t('Info'), in_array('mod_info', $apache_modules) ? t('Loaded') : t('Not loaded'));
+    $rows[] = array(t('Rewrite'), in_array('mod_rewrite', $apache_modules) ? t('Loaded') : t('Not loaded'));
+    $rows[] = array(t('SSL'), in_array('mod_ssl', $apache_modules) ? t('Loaded') : t('Not loaded'));
+    $rows[] = array(t('Status'), in_array('mod_status', $apache_modules) ? t('Loaded') : t('Not loaded'));
+    $output_fieldset .= theme('table', NULL, $rows, array('class' => 'systeminfo systeminfo_width50'));
+  }
+
+  $fieldset = array(
+    '#type' => 'fieldset',
+    '#title' => t('Web server'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => $output_fieldset,
+  );
+  $output .= theme('fieldset', $fieldset);
+
+
+  // PHP
+  $output_fieldset = '';
+  $output_fieldset .= '<p>'. t('More information about the current state of PHP can be found <a href="@php" title="Display current state of PHP." >here</a>.', array('@php' => url('admin/reports/systeminfo/php'))) .'</p>';
+
+  $rows = array();
+  $rows[] = array(t('Version'), phpversion());
+  $rows[] = array(t('Magic quotes GPC'), ini_get('magic_quotes_gpc') ? t('On') : t('Off'));
+  $rows[] = array(t('Magic quotes runtime'), ini_get('magic_quotes_runtime') ? t('On') : t('Off'));
+  $rows[] = array(t('Max execution time'), ini_get('max_execution_time'));
+  $rows[] = array(t('Max input time'), ini_get('max_input_time'));
+  $rows[] = array(t('Memory limit'), ini_get('memory_limit'));
+  $rows[] = array(t('Post max size'), ini_get('post_max_size'));
+  $rows[] = array(t('Register globals'), ini_get('register_globals') ? t('On') : t('Off'));
+  $rows[] = array(t('Safe mode'), ini_get('safe_mode') ? t('On') : t('Off'));
+  $rows[] = array(t('Session cache limiter'), ini_get('session.cache_limiter'));
+  $cookie_params = session_get_cookie_params();
+  $rows[] = array(t('Session cookie domain'), !empty($cookie_params['domain']) ? $cookie_params['domain'] : theme('placeholder', t('no value')));
+  $rows[] = array(t('Session name'), session_name());
+  $rows[] = array(t('Session save handler'), ini_get('session.save_handler'));
+  $rows[] = array(t('Upload max filesize'), ini_get('upload_max_filesize'));
+  $output_fieldset .= theme('table', NULL, $rows, array('class' => 'systeminfo systeminfo_width50'));
+
+  $output_fieldset .= '<h4>'. t('PHP extensions') .'</h4>';
+  $rows = array();
+  if (extension_loaded('curl')) {
+    $curl = curl_version();
+    $rows[] = array(t('cURL version'), $curl['version']);
+  }
+  else {
+    $rows[] = array(t('cURL support'), t('Disabled'));
+  }
+  if (extension_loaded('gd')) {
+    $gd = gd_info();
+    $rows[] = array(t('GD version'), $gd['GD Version']);
+    $rows[] = array(array('data' => t('FreeType support'), 'class' => 'text1'), $gd['FreeType Support'] ? t('Enabled') : t('Disabled'));
+    $rows[] = array(array('data' => t('JPG support'), 'class' => 'text1'), $gd['JPG Support'] ? t('Enabled') : t('Disabled'));
+    $rows[] = array(array('data' => t('PNG support'), 'class' => 'text1'), $gd['PNG Support'] ? t('Enabled') : t('Disabled'));
+  }
+  else {
+    $rows[] = array(t('GD support'), t('Disabled'));
+  }
+  $rows[] = array(t('Multibyte support'), extension_loaded('mbstring') ? t('Enabled') : t('Disabled'));
+  $rows[] = array(t('XML support'), extension_loaded('xml') ? t('Enabled') : t('Disabled'));
+  $rows[] = array(t('Zip support'), extension_loaded('zip') ? t('Enabled') : t('Disabled'));
+  $rows[] = array(t('Zlib support'), extension_loaded('zlib') ? t('Enabled') : t('Disabled'));
+  $output_fieldset .= theme('table', NULL, $rows, array('class' => 'systeminfo systeminfo_width50'));
+
+  $fieldset = array(
+    '#type' => 'fieldset',
+    '#title' => 'PHP',
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => $output_fieldset,
+  );
+  $output .= theme('fieldset', $fieldset);
+
+
+  // Database server
+  $output_fieldset = '';
+  $output_fieldset .= '<p>'. t('More information about the database server can be found <a href="@database" title="Display information about the database server.">here</a>.', array('@database' => url('admin/reports/systeminfo/database'))) .'</p>';
+
+  $databases = !is_array($db_url) ? array('default' => $db_url) : $db_url;
+  foreach ($databases as $connection => $database) {
+    db_set_active($connection);
+    $db = parse_url($database);
+    if ('mysql' == $db['scheme']) {
+      $database_type = 'MySQL';
+      $database_version = db_version();
+      $database_port = isset($db['port']) ? $db['port'] : '3306';
+      $storage_engine = db_fetch_object(db_query("SHOW VARIABLES LIKE 'storage_engine'"));
+      $database_storage_engine = $storage_engine->Value;
+      $uptime = db_fetch_object(db_query("SHOW STATUS LIKE 'Uptime'"));
+      $database_uptime = $uptime->Value;
+    }
+    elseif ('mysqli' == $db['scheme']) {
+      $database_type = 'MySQLi';
+      $database_version = db_version();
+      $database_port = isset($db['port']) ? $db['port'] : '3306';
+      $storage_engine = db_fetch_object(db_query("SHOW VARIABLES LIKE 'storage_engine'"));
+      $database_storage_engine = $storage_engine->Value;
+      $uptime = db_fetch_object(db_query("SHOW STATUS LIKE 'Uptime'"));
+      $database_uptime = $uptime->Value;
+    }
+    elseif ('pgsql' == $db['scheme']) {
+      $database_type = 'PostgreSQL';
+      $database_version = db_version();
+      $database_port = isset($db['port']) ? $db['port'] : '5432';
+      $database_storage_engine = NULL;
+      $database_uptime = NULL;
+    }
+    else {
+      $database_type = t('Unknown');
+      $database_version = t('Unknown');
+      $database_port = t('Unknown');
+      $database_uptime = NULL;
+      $database_storage_engine = NULL;
+    }
+    $database_name = substr($db['path'], 1);
+    $database_host = $db['host'];
+
+    $output_fieldset .= '<h4>'. t('Database connection: %connection', array('%connection' => $connection)) .'</h4>';
+    $rows = array();
+    $rows[] = array(t('Name'), $database_name);
+    $rows[] = array(t('Type'), $database_type);
+    $rows[] = array(t('Version'), $database_version);
+    $rows[] = array(t('Host'), $database_host);
+    $rows[] = array(t('Port'), $database_port);
+    if (('mysql' == $db['scheme'] && version_compare($database_version, '4.1.0', '>=')) || 'mysqli' == $db['scheme']) {
+      $rows[] = array(t('Charset'), db_result(db_query("SELECT CHARSET(USER())")));
+      $rows[] = array(t('Collation'), db_result(db_query("SELECT COLLATION(USER())")));
+    }
+    if ($database_storage_engine) {
+      $rows[] = array(t('Storage engine'), $database_storage_engine);
+    }
+    if ($database_uptime) {
+      $rows[] = array(t('Uptime'), format_interval($database_uptime));
+    }
+    if ('mysql' == $db['scheme'] || 'mysqli' == $db['scheme']) {
+      $result = db_query("SHOW GRANTS");
+      while ($grants = current(db_fetch_array($result))) {
+        if (preg_match('/(ALL PRIVILEGES|SELECT|INSERT|UPDATE|DELETE|CREATE|ALTER|INDEX|DROP|CREATE TEMPORARY TABLES|LOCK TABLES)/i', $grants)) {
+          $rows[] = array(array('data' => t('Permissions'), 'class' => 'title1', 'colspan' => '2'));
+          $rows[] = array(array('data' => 'SELECT', 'class' => 'text1'), preg_match('/(ALL PRIVILEGES|SELECT)/i', $grants) ? t('Allowed') : t('Disallowed'));
+          $rows[] = array(array('data' => 'INSERT', 'class' => 'text1'), preg_match('/(ALL PRIVILEGES|INSERT)/i', $grants) ? t('Allowed') : t('Disallowed'));
+          $rows[] = array(array('data' => 'UPDATE', 'class' => 'text1'), preg_match('/(ALL PRIVILEGES|UPDATE)/i', $grants) ? t('Allowed') : t('Disallowed'));
+          $rows[] = array(array('data' => 'DELETE', 'class' => 'text1'), preg_match('/(ALL PRIVILEGES|DELETE)/i', $grants) ? t('Allowed') : t('Disallowed'));
+          $rows[] = array(array('data' => 'CREATE', 'class' => 'text1'), preg_match('/(ALL PRIVILEGES|CREATE)/i', $grants) ? t('Allowed') : t('Disallowed'));
+          $rows[] = array(array('data' => 'ALTER', 'class' => 'text1'), preg_match('/(ALL PRIVILEGES|ALTER)/i', $grants) ? t('Allowed') : t('Disallowed'));
+          $rows[] = array(array('data' => 'INDEX', 'class' => 'text1'), preg_match('/(ALL PRIVILEGES|INDEX)/i', $grants) ? t('Allowed') : t('Disallowed'));
+          $rows[] = array(array('data' => 'DROP', 'class' => 'text1'), preg_match('/(ALL PRIVILEGES|DROP)/i', $grants) ? t('Allowed') : t('Disallowed'));
+          $rows[] = array(array('data' => 'CREATE TEMPORARY TABLES', 'class' => 'text1'), preg_match('/(ALL PRIVILEGES|CREATE TEMPORARY TABLES)/i', $grants) ? t('Allowed') : t('Disallowed'));
+          $rows[] = array(array('data' => 'LOCK TABLES', 'class' => 'text1'), preg_match('/(ALL PRIVILEGES|LOCK TABLES)/i', $grants) ? t('Allowed') : t('Disallowed'));
+          break;
+        }
+      }
+    }
+    $rows[] = array(array('data' => t('Table prefixes'), 'class' => 'title1', 'colspan' => '2'));
+    $prefixes = !is_array($db_prefix) ? array('default' => $db_prefix) : $db_prefix;
+    foreach ($prefixes as $table => $databasename_prefix) {
+      $databasename = NULL;
+      $prefix = NULL;
+      if (!empty($databasename_prefix)) {
+        list($databasename, $prefix) = explode('.', $databasename_prefix);
+      }
+      if (empty($databasename) || $databasename == $database_name) {
+        $rows[] = array(array('data' => $table, 'class' => 'text1'), !empty($prefix) ? $prefix : theme('placeholder', t('no value')));
+      }
+    }
+    $output_fieldset .= theme('table', NULL, $rows, array('class' => 'systeminfo systeminfo_width50'));
+  }
+  db_set_active();
+
+  $fieldset = array(
+    '#type' => 'fieldset',
+    '#title' => t('Database server'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => $output_fieldset,
+  );
+  $output .= theme('fieldset', $fieldset);
+
+
+  return $output;
+}
+
+
+/**
+ * Menu callback of page 'Drupal'.
+ */
+function systeminfo_display_drupal() {
+
+  drupal_add_css(drupal_get_path('module', 'systeminfo') .'/systeminfo.css');
+
+  $output = '<p>'. t('Information about the Drupal installation.') .'</p>';
+
+
+  // Content
+  $output_fieldset = '';
+  $types_active = array();
+  $types_deleted = array();
+  $result = db_query("SELECT n.type, nt.name, COUNT(n.nid) AS count FROM {node} n LEFT JOIN {node_type} nt ON n.type = nt.type GROUP BY n.type, nt.name");
+  while ($type = db_fetch_object($result)) {
+    if ($type->name) {
+      $types_active[$type->name] = $type;
+    }
+    else {
+      $types_deleted[$type->type] = $type;
+    }
+  }
+  ksort($types_active);
+  ksort($types_deleted);
+
+  $header = array(t('Group'), t('Value'));
+  $rows = array();
+  $rows[] = array(t('Total'), t('!nodes', array('!nodes' => format_plural(db_result(db_query("SELECT COUNT(nid) FROM {node}")), '1 node', '@count nodes'))));
+  if ($types_active) {
+    $rows[] = array(array('data' => t('Active content types'), 'class' => 'title1', 'colspan' => '2'));
+    foreach ($types_active as $type) {
+      $rows[] = array(array('data' => check_plain($type->name), 'class' => 'text1'), t('!nodes', array('!nodes' => format_plural($type->count, '1 node', '@count nodes'))));
+      $rows[] = array(array('data' => t('Published'), 'class' => 'text2'), t('!nodes', array('!nodes' => format_plural(db_result(db_query("SELECT COUNT(nid) FROM {node} WHERE type = '%s' AND status = 1", $type->type)), '1 node', '@count nodes'))));
+      $rows[] = array(array('data' => t('Promoted to front page'), 'class' => 'text2'), t('!nodes', array('!nodes' => format_plural(db_result(db_query("SELECT COUNT(nid) FROM {node} WHERE type = '%s' AND promote = 1", $type->type)), '1 node', '@count nodes'))));
+      $rows[] = array(array('data' => t('Sticky at top of lists'), 'class' => 'text2'), t('!nodes', array('!nodes' => format_plural(db_result(db_query("SELECT COUNT(nid) FROM {node} WHERE type = '%s' AND sticky = 1", $type->type)), '1 node', '@count nodes'))));
+    }
+  }
+  if ($types_deleted) {
+    $rows[] = array(array('data' => t('Deleted content types'), 'class' => 'title1', 'colspan' => '2'));
+    foreach ($types_deleted as $type) {
+      $rows[] = array(array('data' => $type->type, 'class' => 'text1'), t('!nodes', array('!nodes' => format_plural($type->count, '1 node', '@count nodes'))));
+      $rows[] = array(array('data' => t('Published'), 'class' => 'text2'), t('!nodes', array('!nodes' => format_plural(db_result(db_query("SELECT COUNT(nid) FROM {node} WHERE type = '%s' AND status = 1", $type->type)), '1 node', '@count nodes'))));
+      $rows[] = array(array('data' => t('Promoted to front page'), 'class' => 'text2'), t('!nodes', array('!nodes' => format_plural(db_result(db_query("SELECT COUNT(nid) FROM {node} WHERE type = '%s' AND promote = 1", $type->type)), '1 node', '@count nodes'))));
+      $rows[] = array(array('data' => t('Sticky at top of lists'), 'class' => 'text2'), t('!nodes', array('!nodes' => format_plural(db_result(db_query("SELECT COUNT(nid) FROM {node} WHERE type = '%s' AND sticky = 1", $type->type)), '1 node', '@count nodes'))));
+    }
+  }
+  $output_fieldset .= theme('table', $header, $rows, array('class' => 'systeminfo systeminfo_width50'));
+
+  $fieldset = array(
+    '#type' => 'fieldset',
+    '#title' => t('Content'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => $output_fieldset,
+  );
+  $output .= theme('fieldset', $fieldset);
+
+
+  // Content types
+  $output_fieldset = '';
+
+  $node_get_types_names = node_get_types('names');
+  foreach ($node_get_types_names as $node_type => $node_name) {
+    $output_fieldset .= '<h4>'. t('Content type: %type', array('%type' => t($node_name))) .'</h4>';
+    $header = array(t('Name'), t('Value'));
+    $rows = array();
+    $rows[] = array(t('Type'), $node_type);
+    $node_options = variable_get('node_options_'. $node_type, array('status', 'promote'));
+    $rows[] = array(t('Published'), in_array('status', $node_options) ? t('Yes') : t('No'));
+    $rows[] = array(t('Promoted to front page'), in_array('promote', $node_options) ? t('Yes') : t('No'));
+    $rows[] = array(t('Sticky at top of lists'), in_array('sticky', $node_options) ? t('Yes') : t('No'));
+    $rows[] = array(t('Create new revision'), in_array('revision', $node_options) ? t('Yes') : t('No'));
+    $node_language = variable_get('language_content_type_'. $node_type, 0);
+    $rows[] = array(t('Multilingual support'), $node_language == 2 ? t('Enabled, with translation') : ($node_language == 1 ? t('Enabled') : t('Disabled')));
+    if (module_exists('comment')) {
+      $node_comment = variable_get('comment_'. $node_type, COMMENT_NODE_READ_WRITE);
+      $rows[] = array(array('data' => t('Comment'), 'class' => 'title1', 'colspan' => '2'));
+      $rows[] = array(array('data' => t('Comment'), 'class' => 'text1'), $node_comment == COMMENT_NODE_READ_WRITE ? t('Read/Write') : ( $node_comment == COMMENT_NODE_READ_ONLY ? t('Read only') : t('Disabled')));
+      if ($node_comment == COMMENT_NODE_READ_WRITE || $node_comment == COMMENT_NODE_READ_ONLY) {
+        $node_comment_mode = variable_get('comment_default_mode_'. $node_type, COMMENT_MODE_THREADED_EXPANDED);
+        $node_comment_modes = _comment_get_modes();
+        $rows[] = array(array('data' => t('Display mode'), 'class' => 'text1'), $node_comment_modes[$node_comment_mode]);
+        $node_comment_order = variable_get('comment_default_order_'. $node_type, COMMENT_ORDER_NEWEST_FIRST);
+        $node_comment_orders = _comment_get_orders();
+        $rows[] = array(array('data' => t('Display order'), 'class' => 'text1'), $node_comment_orders[$node_comment_order]);
+        $rows[] = array(array('data' => t('Comments per page'), 'class' => 'text1'), variable_get('comment_default_per_page_'. $node_type, 50));
+        $node_comment_control = variable_get('comment_controls_'. $node_type, COMMENT_CONTROLS_HIDDEN);
+        $node_comment_controls = array(
+          COMMENT_CONTROLS_ABOVE => t('Display above the comments'),
+          COMMENT_CONTROLS_BELOW => t('Display below the comments'),
+          COMMENT_CONTROLS_ABOVE_BELOW => t('Display above and below the comments'),
+          COMMENT_CONTROLS_HIDDEN => t('Do not display'),
+        );
+        $rows[] = array(array('data' => t('Controls'), 'class' => 'text1'), $node_comment_controls[$node_comment_control]);
+        if (user_access('post comments', drupal_anonymous_user())) {
+          $node_comment_anonymous = variable_get('comment_anonymous_'. $node_type, COMMENT_ANONYMOUS_MAYNOT_CONTACT);
+          $node_comment_anonymous_contact = array(
+            COMMENT_ANONYMOUS_MAYNOT_CONTACT => t('Anonymous posters may not enter their contact information'),
+            COMMENT_ANONYMOUS_MAY_CONTACT => t('Anonymous posters may leave their contact information'),
+            COMMENT_ANONYMOUS_MUST_CONTACT => t('Anonymous posters must leave their contact information'),
+          );
+          $rows[] = array(array('data' => t('Anonymous commenting'), 'class' => 'text1'), $node_comment_anonymous_contact[$node_comment_anonymous]);
+        }
+        $rows[] = array(array('data' => t('Subject field'), 'class' => 'text1'), variable_get('comment_subject_field_'. $node_type, 1) ? t('Enabled') : t('Disabled'));
+        $rows[] = array(array('data' => t('Preview'), 'class' => 'text1'), variable_get('comment_preview_'. $node_type, COMMENT_PREVIEW_REQUIRED) == COMMENT_PREVIEW_OPTIONAL ? t('Optional') : t('Required'));
+        $rows[] = array(array('data' => t('Location of submission form'), 'class' => 'text1'), variable_get('comment_form_location_'. $node_type, COMMENT_FORM_SEPARATE_PAGE) == COMMENT_FORM_SEPARATE_PAGE ? t('Display on separate page') : t('Display below post or comments'));
+      }
+    }
+    if (module_exists('taxonomy')) {
+      $vocabularies = taxonomy_get_vocabularies($node_type);
+      if (!empty($vocabularies)) {
+        $rows[] = array(array('data' => t('Taxonomy'), 'class' => 'title1', 'colspan' => '2'));
+        foreach ($vocabularies as $vocabulary) {
+          $rows[] = array(array('data' => t('Vocabulary'), 'class' => 'text1'), $vocabulary->name);
+        }
+      }
+    }
+    $output_fieldset .= theme('table', $header, $rows, array('class' => 'systeminfo systeminfo_width50'));
+  }
+
+  $fieldset = array(
+    '#type' => 'fieldset',
+    '#title' => t('Content types'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => $output_fieldset,
+  );
+  $output .= theme('fieldset', $fieldset);
+
+
+  // Taxonomy
+  if (module_exists('taxonomy')) {
+    $vocabularies = taxonomy_get_vocabularies();
+    if (count($vocabularies)) {
+      $output_fieldset = '';
+
+      foreach ($vocabularies as $vocabulary) {
+        $output_fieldset .= '<h4>'. t('Vocabulary: %vocabulary', array('%vocabulary' => $vocabulary->name)) .'</h4>';
+        $header = array(t('Name'), t('Value'));
+        $rows = array();
+        $rows[] = array(t('Type'), $vocabulary->hierarchy == 2 ? t('Multiple hierarchy') : ($vocabulary->hierarchy == 1 ? t('Single hierarchy') : t('Flat')));
+        $rows[] = array(t('Total'), t('!terms', array('!terms' => format_plural(db_result(db_query("SELECT COUNT(tid) FROM {term_data} WHERE vid = %d", $vocabulary->vid)), '1 term', '@count terms'))));
+        $types = array();
+        foreach ($vocabulary->nodes as $type) {
+          $node_type = node_get_types('name', $type);
+          $types[] = $node_type ? check_plain($node_type) : check_plain($type);
+        }
+        $rows[] = array(t('Content types'), !empty($types) ? theme('item_list', $types) : '');
+        $rows[] = array(t('Multiple select'), $vocabulary->multiple ? t('On') : t('Off'));
+        $rows[] = array(t('Required'), $vocabulary->required ? t('On') : t('Off'));
+        $rows[] = array(t('Tags'), $vocabulary->tags ? t('On') : t('Off'));
+        $rows[] = array(t('Weight'), $vocabulary->weight);
+        $output_fieldset .= theme('table', $header, $rows, array('class' => 'systeminfo systeminfo_width50'));
+      }
+
+      $fieldset = array(
+        '#type' => 'fieldset',
+        '#title' => t('Taxonomy'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#value' => $output_fieldset,
+      );
+      $output .= theme('fieldset', $fieldset);
+    }
+  }
+
+
+  // Users
+  $output_fieldset = '';
+
+  $header = array(t('Group'), t('Accounts'));
+  $rows = array();
+  $rows[] = array(t('Total'), db_result(db_query("SELECT COUNT(uid) FROM {users} WHERE uid <> 0")));
+  $rows[] = array(array('data' => t('Status'), 'class' => 'title1', 'colspan' => '2'));
+  $rows[] = array(array('data' => t('Active'), 'class' => 'text1'), db_result(db_query("SELECT COUNT(uid) FROM {users} WHERE uid <> 0 AND status = 1")));
+  $rows[] = array(array('data' => t('Already logged in'), 'class' => 'text2'), db_result(db_query("SELECT COUNT(uid) FROM {users} WHERE uid <> 0 AND status = 1 AND login <> 0")));
+  $rows[] = array(array('data' => t('Not yet logged in'), 'class' => 'text2'), db_result(db_query("SELECT COUNT(uid) FROM {users} WHERE uid <> 0 AND status = 1 AND login = 0")));
+  $rows[] = array(array('data' => t('Blocked'), 'class' => 'text1'), db_result(db_query("SELECT COUNT(uid) FROM {users} WHERE uid <> 0 AND status = 0")));
+  $rows[] = array(array('data' => t('Already logged in'), 'class' => 'text2'), db_result(db_query("SELECT COUNT(uid) FROM {users} WHERE uid <> 0 AND status = 0 AND login <> 0")));
+  $rows[] = array(array('data' => t('Not yet logged in'), 'class' => 'text2'), db_result(db_query("SELECT COUNT(uid) FROM {users} WHERE uid <> 0 AND status = 0 AND login = 0")));
+  $rows[] = array(array('data' => t('Roles'), 'class' => 'title1', 'colspan' => '2'));
+  $result = db_query("SELECT rid, name FROM {role} WHERE rid <> %d ORDER BY name", DRUPAL_ANONYMOUS_RID);
+  while ($role = db_fetch_object($result)) {
+    $count = $role->rid != DRUPAL_AUTHENTICATED_RID ? db_result(db_query("SELECT COUNT(uid) FROM {users_roles} WHERE rid = %d", $role->rid)) : db_result(db_query("SELECT COUNT(uid) FROM {users} WHERE uid <> 0"));
+    $rows[] = array(array('data' => t($role->name), 'class' => 'text1'), $count);
+  }
+  $output_fieldset .= theme('table', $header, $rows, array('class' => 'systeminfo systeminfo_width50'));
+
+  $fieldset = array(
+    '#type' => 'fieldset',
+    '#title' => t('Users'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => $output_fieldset,
+  );
+  $output .= theme('fieldset', $fieldset);
+
+
+  // Roles
+  $output_fieldset = '';
+
+  $header = array(t('Name'), t('Permissions'));
+  $rows = array();
+  $result = db_query("SELECT r.name, p.perm FROM {role} r LEFT JOIN {permission} p ON r.rid = p.rid ORDER BY r.name");
+  while ($role = db_fetch_object($result)) {
+    $perms = explode(', ', $role->perm);
+    asort($perms);
+    $rows[] = array(t($role->name), !empty($role->perm) ? theme('item_list', $perms) : '');
+  }
+  $output_fieldset .= theme('table', $header, $rows, array('class' => 'systeminfo systeminfo_width50'));
+
+  $fieldset = array(
+    '#type' => 'fieldset',
+    '#title' => t('Roles'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => $output_fieldset,
+  );
+  $output .= theme('fieldset', $fieldset);
+
+
+  // Modules
+  $output_fieldset = '';
+  $modules_sort = variable_get('systeminfo_drupal_modules_sort', 'name');
+
+  $header = array(t('Name'), t('Version'), t('Date'), t('Filename'), t('Weight'));
+  $rows = array();
+  foreach (module_list() as $module) {
+    $file = db_fetch_object(db_query("SELECT info, filename, weight FROM {system} WHERE type = 'module' AND name = '%s'", $module));
+    $file->info = unserialize($file->info);
+    $key = $modules_sort == 'name' ? $file->info['name'] : $file->filename;
+    $rows[$key] = array($file->info['name'], $file->info['version'], isset($file->info['datestamp']) ? format_date($file->info['datestamp'], 'small') : '', $file->filename, $file->weight);
+  }
+  if ($modules_sort == 'name' || $modules_sort == 'filename') {
+    ksort($rows);
+  }
+  $output_fieldset .= theme('table', $header, $rows, array('class' => 'systeminfo'));
+
+  $fieldset = array(
+    '#type' => 'fieldset',
+    '#title' => t('Modules'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => $output_fieldset,
+  );
+  $output .= theme('fieldset', $fieldset);
+
+
+  // Themes
+  $output_fieldset = '';
+  $themes_sort = variable_get('systeminfo_drupal_themes_sort', 'name');
+
+  $header = array(t('Name'), t('Version'), t('Date'), t('Filename'));
+  $rows = array();
+  foreach (list_themes() as $theme) {
+    if ($theme->status) {
+      $key = $themes_sort == 'name' ? $theme->name : $theme->filename;
+      $rows[$key] = array($theme->info['name'], $theme->info['version'], isset($theme->info['datestamp']) ? format_date($theme->info['datestamp'], 'small') : '', $theme->filename);
+    }
+  }
+  if ($themes_sort == 'name' || $themes_sort == 'filename') {
+    ksort($rows);
+  }
+  $output_fieldset .= theme('table', $header, $rows, array('class' => 'systeminfo'));
+
+  $fieldset = array(
+    '#type' => 'fieldset',
+    '#title' => t('Themes'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => $output_fieldset,
+  );
+  $output .= theme('fieldset', $fieldset);
+
+
+  return $output;
+}
+
+
+/**
+ * Menu callback of page 'PHP'.
+ */
+function systeminfo_display_php() {
+
+  $phpinfo = variable_get('systeminfo_php_phpinfo_parameter', INFO_ALL);
+  phpinfo($phpinfo);
+
+  exit();
+}
+
+
+/**
+ * Menu callback of page 'Database'.
+ */
+function systeminfo_display_database() {
+  global $db_url;
+
+  drupal_add_css(drupal_get_path('module', 'systeminfo') .'/systeminfo.css');
+
+  $output = '<p>'. t('Information about the database server.') .'</p>';
+
+
+  $databases = !is_array($db_url) ? array('default' => $db_url) : $db_url;
+  foreach ($databases as $connection => $database) {
+    db_set_active($connection);
+    $db = parse_url($database);
+
+    $output .= '<h3>'. t('Database connection: %connection', array('%connection' => $connection)) .'</h3>';
+
+
+    // Database tables
+    $tables_display = variable_get('systeminfo_database_tables_display', 'none');
+    if ($tables_display == 'all' || $tables_display == 'except' || $tables_display == 'listed') {
+      $tables_tables = variable_get('systeminfo_database_tables_tables', '');
+      $tables_rows = variable_get('systeminfo_database_tables_rows', 50);
+
+      $header = array(t('Name'), t('Rows'), array('data' => t('Operations'), 'colspan' => '2'));
+      $rows = array();
+      $result = NULL;
+      if ($db['scheme'] == 'mysql' || $db['scheme'] == 'mysqli') {
+        $result = db_query("SHOW TABLES");
+      }
+      elseif ($db['scheme'] == 'pgsql') {
+        $result = db_query("SELECT tablename FROM pg_catalog.pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema', 'pg_toast') ORDER BY tablename");
+      }
+      else {
+        $rows[] = array(array('data' => t('Database type is not supported.'), 'colspan' => '4'));
+      }
+      while ($var = db_fetch_array($result)) {
+        $table_name = current($var);
+        if ($tables_display == 'all') {
+          $display = TRUE;
+        }
+        elseif ($tables_display == 'except') {
+          $pattern = '/^('. preg_replace(array('/(\r\n?|\n)/', '/\\\\\*/'), array('|', '.*'), preg_quote($tables_tables)) .')$/';
+          $display = !preg_match($pattern , $table_name);
+        }
+        elseif ($tables_display == 'listed') {
+          $pattern = '/^('. preg_replace(array('/(\r\n?|\n)/', '/\\\\\*/'), array('|', '.*'), preg_quote($tables_tables)) .')$/';
+          $display = preg_match($pattern , $table_name);
+        }
+        if ($display) {
+          $table_name_link = $table_name;
+          $table_rows = db_result(db_query("SELECT COUNT(*) FROM ". $table_name));
+          $table_content = l(t('View content'), 'admin/reports/systeminfo/database/content/'. $connection .'/'. $table_name);
+          $table_structure = l(t('View structure'), 'admin/reports/systeminfo/database/structure/'. $connection .'/'. $table_name);
+          $rows[] = array($table_name_link, $table_rows, $table_content, $table_structure);
+        }
+      }
+      $fieldset = array(
+        '#type' => 'fieldset',
+        '#title' => t('Database tables'),
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+        '#value' => theme('table', $header, $rows, array('class' => 'systeminfo')),
+      );
+      $output .= theme('fieldset', $fieldset);
+    }
+
+
+    // Statement: SHOW STATUS
+    if (($db['scheme'] == 'mysql' && variable_get('systeminfo_database_mysql_show_status_display', 0)) || ($db['scheme'] == 'mysqli' && variable_get('systeminfo_database_mysqli_show_status_display', 0))) {
+      $rows = array();
+      $result = db_query("SHOW STATUS");
+      while ($var = db_fetch_array($result)) {
+        $header = array();
+        $row = array();
+        foreach ($var as $var_key => $var_value) {
+          $header[] = $var_key;
+          $row[] = $var_value;
+        }
+        $rows[] = $row;
+      }
+      $fieldset = array(
+        '#type' => 'fieldset',
+        '#title' => t('SQL statement: SHOW STATUS'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#value' => theme('table', $header, $rows, array('class' => 'systeminfo systeminfo_width50')),
+      );
+      $output .= theme('fieldset', $fieldset);
+    }
+
+
+    // Statement: SHOW TABLE STATUS
+    if (($db['scheme'] == 'mysql' && variable_get('systeminfo_database_mysql_show_table_status_display', 1)) || ($db['scheme'] == 'mysqli' && variable_get('systeminfo_database_mysqli_show_table_status_display', 1))) {
+      $rows = array();
+      $result = db_query("SHOW TABLE STATUS");
+      while ($var = db_fetch_array($result)) {
+        $header = array();
+        $row = array();
+        foreach ($var as $var_key => $var_value) {
+          $header[] = $var_key;
+          $row[] = $var_value;
+        }
+        $rows[] = $row;
+      }
+      $fieldset = array(
+        '#type' => 'fieldset',
+        '#title' => t('SQL statement: SHOW TABLE STATUS'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#value' => theme('table', $header, $rows, array('class' => 'systeminfo')),
+      );
+      $output .= theme('fieldset', $fieldset);
+    }
+
+
+    // Statement: SHOW VARIABLES
+    if (($db['scheme'] == 'mysql' && variable_get('systeminfo_database_mysql_show_variables_display', 0)) || ($db['scheme'] == 'mysqli' && variable_get('systeminfo_database_mysqli_show_variables_display', 0))) {
+      $rows = array();
+      $result = db_query("SHOW VARIABLES");
+      while ($var = db_fetch_array($result)) {
+        $header = array();
+        $row = array();
+        foreach ($var as $var_key => $var_value) {
+          $header[] = $var_key;
+          $row[] = $var_value;
+        }
+        $rows[] = $row;
+      }
+      $fieldset = array(
+        '#type' => 'fieldset',
+        '#title' => t('SQL statement: SHOW VARIABLES'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#value' => theme('table', $header, $rows, array('class' => 'systeminfo systeminfo_width50')),
+      );
+      $output .= theme('fieldset', $fieldset);
+    }
+
+
+    // Statement: SHOW ALL
+    if ($db['scheme'] == 'pgsql' && variable_get('systeminfo_database_pgsql_show_all_display', 0)) {
+      $rows = array();
+      $result = db_query("SHOW ALL");
+      while ($var = db_fetch_array($result)) {
+        $header = array();
+        $row = array();
+        foreach ($var as $var_key => $var_value) {
+          $header[] = $var_key;
+          $row[] = $var_value;
+        }
+        $rows[] = $row;
+      }
+      $fieldset = array(
+        '#type' => 'fieldset',
+        '#title' => t('SQL statement: SHOW ALL'),
+        '#collapsible' => TRUE,
+        '#collapsed' => TRUE,
+        '#value' => theme('table', $header, $rows, array('class' => 'systeminfo')),
+      );
+      $output .= theme('fieldset', $fieldset);
+    }
+  }
+  db_set_active();
+
+  return $output;
+}
+
+
+function systeminfo_display_database_table_content() {
+  global $db_url;
+
+  $connection = arg(5);
+  $table_name = arg(6);
+
+  if (!$connection || !$table_name) {
+    drupal_goto('admin/reports/systeminfo/database');
+  }
+
+  $databases = !is_array($db_url) ? array('default' => $db_url) : $db_url;
+  if (!isset($databases[$connection])) {
+    drupal_goto('admin/reports/systeminfo/database');
+  }
+
+
+  $database = $databases[$connection];
+  $db = parse_url($database);
+  $database_name = substr($db['path'], 1);
+  $header = array();
+  $rows = array();
+  $limit = variable_get('systeminfo_database_tables_rows', 50);
+
+  db_set_active($connection);
+  $result = pager_query("SELECT * FROM ". db_escape_string($table_name), $limit);
+  while ($row = db_fetch_array($result)) {
+    if (!$header) {
+      $header = array_keys($row);
+    }
+    $row_data = array();
+    foreach ($row as $data) {
+      $row_data[] = !is_null($data) ? check_plain($data) : theme('placeholder', 'NULL');
+    }
+    $rows[] = $row_data;
+  }
+  db_set_active();
+
+
+  drupal_set_title(t('Content of %databasename-tablename', array('%databasename-tablename' => $database_name .'.'. $table_name)));
+
+  $output = '<p>'. t('View <a href="@structure-table">structure of %tablename</a>.', array('@structure-table' => url('admin/reports/systeminfo/database/structure/'. $connection .'/'. $table_name), '%tablename' => $table_name)) .'</p>';
+  if ($rows) {
+    $output .= theme('table', $header, $rows, array('class' => 'systeminfo'));
+    $output .= theme('pager', NULL, $limit);
+  }
+  else {
+    $output .= '<p>'. t('The database table is empty.') .'</p>';
+  }
+
+  return $output;
+}
+
+
+function systeminfo_display_database_table_structure() {
+  global $db_url;
+
+  $connection = arg(5);
+  $table_name = arg(6);
+
+  if (!$connection || !$table_name) {
+    drupal_goto('admin/reports/systeminfo/database');
+  }
+
+  $databases = !is_array($db_url) ? array('default' => $db_url) : $db_url;
+  if (!isset($databases[$connection])) {
+    drupal_goto('admin/reports/systeminfo/database');
+  }
+
+
+  $database = $databases[$connection];
+  $db = parse_url($database);
+  $database_name = substr($db['path'], 1);
+  $header = array();
+  $rows = array();
+
+  db_set_active($connection);
+  if ($db['scheme'] == 'mysql' || $db['scheme'] == 'mysqli') {
+    $result = db_query("DESCRIBE ". db_escape_string($table_name));
+  }
+  elseif ($db['scheme'] == 'pgsql') {
+    $schema_name = db_result(db_query("SELECT schemaname FROM pg_catalog.pg_tables WHERE tablename = '%s' AND schemaname NOT IN ('pg_catalog', 'information_schema', 'pg_toast')", $table_name));
+    $schema_name = $schema_name ? $schema_name : 'public';
+    $result = db_query("SELECT a.attname AS field, pg_catalog.format_type(a.atttypid, a.atttypmod) AS type, CASE a.attnotnull WHEN a.attnotnull IS NULL THEN 'YES' ELSE 'NO' END AS null, adef.adsrc AS default
+                        FROM pg_catalog.pg_attribute a LEFT JOIN pg_catalog.pg_attrdef adef ON a.attrelid = adef.adrelid AND a.attnum = adef.adnum LEFT JOIN pg_catalog.pg_type t ON a.atttypid=t.oid
+                        WHERE a.attrelid = (SELECT oid FROM pg_catalog.pg_class WHERE relname = '%s' AND relnamespace = (SELECT oid FROM pg_catalog.pg_namespace WHERE nspname = '%s')) AND a.attnum > 0 AND NOT a.attisdropped 
+                        ORDER BY a.attnum", $table_name, $schema_name);
+  }
+  while ($row = db_fetch_array($result)) {
+    if (!$header) {
+      $header = array_keys($row);
+    }
+    $row_data = array();
+    foreach ($row as $data) {
+      $row_data[] = !is_null($data) ? $data : theme('placeholder', t('NULL'));
+    }
+    $rows[] = $row_data;
+  }
+  db_set_active();
+
+
+  drupal_set_title(t('Structure of %databasename-tablename', array('%databasename-tablename' => $database_name .'.'. $table_name)));
+
+  $output = '<p>'. t('View <a href="@content-table">content of %tablename</a>.', array('@content-table' => url('admin/reports/systeminfo/database/content/'. $connection .'/'. $table_name), '%tablename' => $table_name)) .'</p>';
+  $output .= theme('table', $header, $rows, array('class' => 'systeminfo'));
+
+  return $output;
+}

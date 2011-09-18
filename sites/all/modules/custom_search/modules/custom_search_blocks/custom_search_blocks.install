@@ -1,0 +1,59 @@
+<?php
+// $Id: custom_search_blocks.install,v 1.1.2.10 2010/11/01 17:07:43 jdanthinne Exp $
+
+/**
+ * @file
+ * Install, update, and uninstall functions for the custom search module.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function custom_search_blocks_install() {
+  db_query("UPDATE {system} SET weight = 99 WHERE name = 'custom_search_blocks'");
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function custom_search_blocks_uninstall() {
+  $blocks = variable_get('custom_search_blocks_number', 1);
+  for ($delta=1 ; $delta<=$blocks ; $delta++) {
+    variable_del('custom_search_blocks_' . $delta . '_label_visibility');
+    variable_del('custom_search_blocks_' . $delta . '_label');
+    variable_del('custom_search_blocks_' . $delta . '_text');
+    variable_del('custom_search_blocks_' . $delta . '_search_box_weight');
+    variable_del('custom_search_blocks_' . $delta . '_content_types_weight');
+    variable_del('custom_search_blocks_' . $delta . '_custom_paths_weight');
+    variable_del('custom_search_blocks_' . $delta . '_submit_button_weight');
+    variable_del('custom_search_blocks_' . $delta . '_search_box_region');
+    variable_del('custom_search_blocks_' . $delta . '_content_types_region');
+    variable_del('custom_search_blocks_' . $delta . '_custom_paths_region');
+    variable_del('custom_search_blocks_' . $delta . '_submit_button_region');
+    variable_del('custom_search_blocks_' . $delta . '_node_types');
+    variable_del('custom_search_blocks_' . $delta . '_node_types_excluded');
+    variable_del('custom_search_blocks_' . $delta . '_other');
+    variable_del('custom_search_blocks_' . $delta . '_type_selector');
+    variable_del('custom_search_blocks_' . $delta . '_type_selector_label_visibility');
+    variable_del('custom_search_blocks_' . $delta . '_type_selector_label');
+    variable_del('custom_search_blocks_' . $delta . '_type_selector_all');
+    variable_del('custom_search_blocks_' . $delta . '_any_restricts');
+    variable_del('custom_search_blocks_' . $delta . '_paths');
+    variable_del('custom_search_blocks_' . $delta . '_paths_selector');
+    variable_del('custom_search_blocks_' . $delta . '_paths_selector_label');
+    variable_del('custom_search_blocks_' . $delta . '_paths_selector_label_visibility');
+    if (module_exists('custom_search_taxonomy')) {
+      $vocabularies = taxonomy_get_vocabularies();
+      foreach ($vocabularies as $voc) {
+        variable_del('custom_search_blocks_' . $delta . '_voc' . $voc->vid . '_selector');
+        variable_del('custom_search_blocks_' . $delta . '_voc' . $voc->vid . '_selector_label_visibility');
+        variable_del('custom_search_blocks_' . $delta . '_voc' . $voc->vid . '_selector_label');
+        variable_del('custom_search_blocks_' . $delta . '_voc' . $voc->vid . '_selector_all');
+        variable_del('custom_search_blocks_' . $delta . '_taxonomy' . $voc->vid . '_weight');
+        variable_del('custom_search_blocks_' . $delta . '_taxonomy' . $voc->vid . '_region');
+      }
+      variable_del('custom_search_blocks_' . $delta . '_paths_terms_separator');
+    }
+  }
+  variable_del('custom_search_blocks_number');
+}

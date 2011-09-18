@@ -1,0 +1,500 @@
+<?php
+// $Id: report.module,v 1.3 2010/07/07 19:19:09 ki Exp $
+
+/**
+ * @file
+ * Keep track of site activities and report
+ */
+
+define('REPORT_PERIOD_DAY', 0);
+define('REPORT_PERIOD_WEEK', 1);
+define('REPORT_PERIOD_MONTH', 2);
+define('REPORT_PERIOD_YEAR', 3);
+
+/**
+ * Implementation of hook_init().
+ */
+function report_init() {
+  drupal_add_css(drupal_get_path('module', 'report') . '/report.css');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function report_menu() {
+  $items['report'] = array(
+    'title' => 'Report',
+    'description' => 'Report',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('report_summary'),
+    'access arguments' => array('access report'),
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 0,
+  );
+  $items['report/summary'] = array(
+    'title' => 'Summary',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+  $items['report/settings'] = array(
+    'title' => 'Settings',
+    'description' => 'Setting report.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('report_settings'),
+    'access arguments' => array('administer report'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 50,
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function report_perm() {
+  return array('administer report', 'access report');
+}
+
+function report_settings() {
+  $form['report'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Settings'),
+    '#collapsible' => TRUE,
+    '#weight' => -10,
+  );
+  $form['report']['report_cron_time'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Time for daily snapshot'),
+    '#default_value' => variable_get('report_cron_time', '1:00am'),
+    '#size' => 10,
+    '#maxlength' => 7,
+    '#description' => t('Daily snapshot will run at the first cron after the specified time. e.g. 11:00pm'),
+  );
+  $form['report']['report_use_chart'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Display chart'),
+    '#default_value' => variable_get('report_use_chart', 1),
+    '#description' => t('If checked, some reports will display charts when appropriate. Requires !chart module.', array('!chart' => l('chart', 'http://drupal.org/project/chart'))),
+  );
+  
+  $response_yes = t('I understand that the existing report data will be lost.');
+  $response_no = t('I do not understand that the existing report data will be lost.');
+  $prompt = t('Are you sure to reset and rebuild the data? Note that you will lose all historically collected data, if any, and replace with ones that are known at this time, which may not be accurate. Type \\\'!response\\\' to confirm. The process will take some time.', array('!response' => $response_yes));
+  $form['report']['reset'] = array(
+    '#type' => 'submit',
+    '#value' => t('Reset Data - Warning'),
+    '#attributes' => array('onclick' => "if (prompt('$prompt', '$response_no') == '$response_yes') return true; else return false;"),
+    '#submit' => array('report_reset_submit'),
+  );
+  
+  return system_settings_form($form);
+}
+
+function report_reset_submit($form, &$form_state) {
+  if ($form_state['clicked_button']['#value'] == t('Reset Data - Warning')) {
+    // Allow to run for several minutes.
+    set_time_limit(1000);
+
+    db_query('TRUNCATE TABLE {report}');
+
+    $date_first = date('Y-m-d', db_result(db_query_range('SELECT created FROM {node} ORDER BY nid', 0, 1)));
+    // Set the last date to be yesterday or the day before depending on the cron time to avoid duplicate rows.
+    if (time() > strtotime(variable_get('report_cron_time', '1:00am'))) {
+      $date_last = date('Y-m-d', time() - 86400);
+    }
+    else {
+      $date_last = date('Y-m-d', time() - 86400 * 2);
+    }
+
+    $date = $date_first;
+
+    /* TEST TEST */
+    //$date = '2009-10-01';
+    //$date_last = '2009-01-03';
+    /* TEST TEST */
+    
+    while ($date <= $date_last) {
+      module_invoke_all('report_cron', $date);
+      
+      $date = date('Y-m-d', strtotime($date . ' +1 day'));
+    }
+    
+    drupal_set_message(t('Resetting data ran successfully.'));
+  }
+}
+
+function report_summary() {
+  // No content. Placeholder for other submodules.
+}
+
+function report_insert_data($realm, $data, $date) {
+  $sql = "INSERT INTO {report} (date, realm, data) VALUES ('%s', '%s', '%s')";
+  db_query($sql, $date, $realm, serialize($data));
+}
+
+function report_chart($report) {
+  $range = isset($_POST['range']) ? $_POST['range'] : variable_get('report_chart_range', '10');
+
+  if (!report_use_chart() || $range > 30) {
+    $out = drupal_get_form('report_chart_form');
+    $out = '<div class="report-chart-wrapper">' . $out . '</div>';
+    
+    return $out;
+  }
+  
+  $chart = array(
+    '#chart_id' => 'report_chart',
+    '#title' => $report['#title'] ? chart_title($report['#title'], '006666', 15) : '',
+    '#type' => CHART_TYPE_LINE,
+    '#size' => chart_size(isset($_POST['width']) ? $_POST['width'] : variable_get('report_chart_width', '800'), isset($_POST['height']) ? $_POST['height'] : variable_get('report_chart_height', '200')),
+    '#adjust_resolution' => TRUE,
+  );
+  
+  // Set minimum to marginal value to avoid broken lines. Goolge chart does not connect lines when value is zero
+  // The marginal value is dependent of the scale.
+  $plot_min = ($report['#y_range_max'] > 1 ? 0.017 : 0.03) * $report['#y_range_max'];
+  foreach ($report['#data'] as $key => $data) {
+    foreach ($data as $value) {
+      if ($value < $plot_min) {
+        $value = $plot_min;
+      }
+      $chart['#data'][$key][] = $value;
+    }
+  }
+  
+  $chart['#legends'] = $report['#legends'];
+  if (isset($report['#data_colors'])) {
+    $chart['#data_colors'] = $report['#data_colors'];
+  }
+  else {
+    $data_colors = array('00ff00', 'ff0000', '0000ff', 'ffff00', '00ffff', 'ff00ff', '333333', '666666', '999999', 'aaaaaa');
+    $chart['#data_colors'] = array_slice($data_colors, 0, count($report['#legends']));
+  }
+  
+  foreach ($report['#x_label'] as $label) {
+    $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][1][] = chart_mixed_axis_label($label);
+  }
+  
+  if (isset($report['#x_label_caption'])) {
+    $chart['#mixed_axis_labels'][CHART_AXIS_X_BOTTOM][2][] = chart_mixed_axis_label($report['#x_label_caption'], 50);
+  }
+
+  $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][0][] = chart_mixed_axis_range_label($report['#y_range_min'], $report['#y_range_max']);
+  if (isset($report['#y_label_caption'])) {
+    $chart['#mixed_axis_labels'][CHART_AXIS_Y_LEFT][1][] = chart_mixed_axis_label($report['#y_label_caption'], 95);
+  }
+
+  $out = drupal_get_form('report_chart_form');
+
+  $out .= chart_render($chart);
+
+  $out = '<div class="report-chart-wrapper">' . $out . '</div>';
+  
+  return $out;
+}
+
+function report_chart_form() {
+  if (report_use_chart()) {
+    $form['width'] = array(
+      '#type' => 'select',
+      '#title' => t('Width'),
+      '#default_value' => isset($_POST['width']) ? $_POST['width'] : variable_get('report_chart_width', '800'),
+      '#options' => array(400 => 400, 500 => 500, 600 => 600, 700 => 700, 800 => 800, 900 => 900, 999 => 1000),
+      '#attributes' => array('onchange' => 'this.form.submit()'),
+      '#weight' => 1,
+    );
+
+    $form['height'] = array(
+      '#type' => 'select',
+      '#title' => t('Height'),
+      '#default_value' => isset($_POST['height']) ? $_POST['height'] : variable_get('report_chart_height', '200'),
+      '#options' => array(100 => 100, 150 => 150, 200 => 200, 250 => 250, 300 => 300),
+      '#attributes' => array('onchange' => 'this.form.submit()'),
+      '#weight' => 2,
+    );
+  }
+  
+  $form['period'] = array(
+    '#type' => 'select',
+    '#title' => t('Period'),
+    '#default_value' => isset($_POST['period']) ? $_POST['period'] : variable_get('report_chart_period', '1'),
+    '#options' => array('Day', 'Week', 'Month', 'Year'),
+    '#attributes' => array('onchange' => 'this.form.submit()'),
+    '#weight' => 3,
+  );
+
+  $form['range'] = array(
+    '#type' => 'select',
+    '#title' => t('Range'),
+    '#default_value' => isset($_POST['range']) ? $_POST['range'] : variable_get('report_chart_range', '10'),
+    '#options' => array(5 => 5, 10 => 10, 20 => 20, 30 => 30, 40 => 40, 50 => 50, 60 => 60, 90 => 90, 120 => 120),
+    '#attributes' => array('onchange' => 'this.form.submit()'),
+    '#weight' => 4,
+  );
+
+  if (report_use_chart()) {
+    $form['info'] = array(
+      '#value' => '<div class="info-wrapper">' . t('Chart supports range up to 30.') . '</div>',
+      '#weight' => 5,
+    );
+  }
+
+  $form['clear'] = array(
+    '#value' => '<div style="clear: both"></div>'
+  );
+  
+  if (isset($_POST['range']) && $_POST['range']) {
+    if (report_use_chart()) {
+      variable_set('report_chart_width', $_POST['width']);
+      variable_set('report_chart_height', $_POST['height']);
+    }
+    variable_set('report_chart_period', $_POST['period']);
+    variable_set('report_chart_range', $_POST['range']);
+  }
+  
+  return $form;
+}
+
+function report_flatten_period($rows, $period) {
+  $size = count($rows[0]['data']);
+
+  switch ($period) {
+  case REPORT_PERIOD_DAY:
+    foreach ($rows as $row) {
+      $out[] = $row['data'];
+    }
+    break;
+
+  case REPORT_PERIOD_WEEK:
+    foreach ($rows as $row) {
+      if ($week != date('W', strtotime($row['data'][0]))) {
+        if ($r) {
+          $out[] = array($week . ' (' . date('Y-m-d', strtotime($row['data'][0] . ' +1 day')) . ')') + $r;
+        }
+        $r = array();
+        $week = date('W', strtotime($row['data'][0]));
+      }
+
+      for ($i = 1; $i < $size; $i++) {
+        $r[$i] += $row['data'][$i];
+      }
+    }
+    // Process left over unfinished days
+    if ($r) {
+      $out[] = array($week . ' ('. date('Y-m-d', strtotime($row['data'][0])) . ')') + $r;
+    }
+    break;
+
+  case REPORT_PERIOD_MONTH:
+    foreach ($rows as $row) {
+      if ($year_month != date('Y-m', strtotime($row['data'][0]))) {
+        if ($r) {
+          $out[] = array(date('M Y', strtotime($row['data'][0] . ' +1 day'))) + $r;
+        }
+        $r = array();
+        $year_month = date('Y-m', strtotime($row['data'][0]));
+      }
+
+      for ($i = 1; $i < $size; $i++) {
+        $r[$i] += $row['data'][$i];
+      }
+    }
+    // Process left over unfinished days
+    if ($r) {
+      $out[] = array(date('M Y', strtotime($row['data'][0]))) + $r;
+    }
+    break;
+
+  case REPORT_PERIOD_YEAR:
+    foreach ($rows as $row) {
+      if ($year != date('Y', strtotime($row['data'][0]))) {
+        if ($r) {
+          $out[] = array(date('Y', strtotime($row['data'][0] . ' +1 year'))) + $r;
+        }
+        $r = array();
+        $year = date('Y', strtotime($row['data'][0]));
+      }
+
+      for ($i = 1; $i < $size; $i++) {
+        $r[$i] += $row['data'][$i];
+      }
+    }
+    // Process left over unfinished days
+    if ($r) {
+      $out[] = array(date('Y', strtotime($row['data'][0]))) + $r;
+    }
+  }
+
+  return $out;
+}
+
+/**
+ * Replacement for core's pager_query() to handle results queried by week, month, year as well as day.
+ */
+function report_pager_query($query, $limit = 10, $period = REPORT_PERIOD_DAY, $element = 0, $count_query = NULL) {
+  global $pager_page_array, $pager_total, $pager_total_items;
+  $page = isset($_GET['page']) ? $_GET['page'] : '';
+  
+  // Reset to first page if period changes to avoid error
+  // where page # is not available for next period when it was for previous period.
+  if (isset($_POST['period']) && $_POST['period'] != variable_get('report_chart_period', '1')) {
+    $page = '';
+  }
+
+  // Substitute in query arguments.
+  $args = func_get_args();
+  $args = array_slice($args, 5);
+  // Alternative syntax for '...'
+  if (isset($args[0]) && is_array($args[0])) {
+    $args = $args[0];
+  }
+
+  // If REPORT_PERIOD_DAY call core's pager_query since no special treatment is needed.
+  if ($period == REPORT_PERIOD_DAY) {
+    return pager_query($query, $limit, $element, $content_query, $args);
+  }
+
+  // Convert comma-separated $page to an array, used by other functions.
+  $pager_page_array = explode(',', $page);
+
+  $first_day = db_result(db_query(preg_replace(array('/SELECT.*?FROM /As', '/ORDER BY .*/'), array('SELECT date FROM ', 'ORDER BY date LIMIT 1'), $query), $args));
+  $last_day = db_result(db_query(preg_replace(array('/SELECT.*?FROM /As', '/ORDER BY .*/'), array('SELECT date FROM ', 'ORDER BY date DESC LIMIT 1'), $query), $args));
+
+  // Custom paging per day, week, month, year.
+  switch ($period) {
+  case REPORT_PERIOD_WEEK:
+    // Get total number of weeks inclusive.
+    $pager_total_items[$element] = report_date_diff($first_day, $last_day, 'week');
+
+    // Get the monday $limit weeks ago.
+    if ($pager_page_array[$element]) {
+      $date_from = date('Y-m-d', strtotime($last_day . ' -' . (date('N', strtotime($last_day)) - 1) . ' day') - 86400 * 7 * ($limit - 1 + $limit * $pager_page_array[$element]) + 10000); // Add 10,000 to cope with possible error due to daylight saving time.
+      $date_to = date('Y-m-d', strtotime($last_day . ' -' . (date('N', strtotime($last_day)) - 1) . ' day') - 86400 * 7 * ($limit - 1 + $limit * ($pager_page_array[$element] - 1)) - 86400 + 10000); // Sunday
+    }
+    else {
+      $date_from = date('Y-m-d', strtotime($last_day . ' -' . (date('N', strtotime($last_day)) - 1) . ' day') - 86400 * 7 * ($limit - 1) + 10000);
+      $date_to = $last_day;
+    }
+    break;
+
+  case REPORT_PERIOD_MONTH:
+    // Get total number of months inclusive.
+    $pager_total_items[$element] = report_date_diff($first_day, $last_day, 'month');
+
+    if ($pager_page_array[$element]) {
+      $date_from = date('Y-m-d', strtotime(drupal_substr($last_day, 0, 8) . '01 -' . ($limit - 1 + $limit * $pager_page_array[$element]) . ' month'));
+      $date_to = date('Y-m-d', strtotime(drupal_substr($last_day, 0, 8) . '01 -' . ($limit - 1 + $limit * ($pager_page_array[$element] - 1)) . ' month') - 86400); // Last day of month
+    }
+    else {
+      $date_from = date('Y-m-d', strtotime(drupal_substr($last_day, 0, 8) . '01 -' . ($limit - 1) . ' month'));
+      $date_to = $last_day;
+    }
+
+    break;
+
+  case REPORT_PERIOD_YEAR:
+    // Get total number of months inclusive.
+    $pager_total_items[$element] = report_date_diff($first_day, $last_day, 'year');
+
+    if ($pager_page_array[$element]) {
+      $date_from = date('Y-m-d', strtotime(drupal_substr($last_day, 0, 5) . '01-01 -' . ($limit - 1 + $limit * $pager_page_array[$element]) . ' year'));
+      $date_to = date('Y-m-d', strtotime(drupal_substr($last_day, 0, 5) . '01-01 -' . ($limit - 1 + $limit * ($pager_page_array[$element] - 1)) . ' year') - 86400); // Last day of month
+    }
+    else {
+      $date_from = date('Y-m-d', strtotime(drupal_substr($last_day, 0, 5) . '01-01 -' . ($limit - 1) . ' year'));
+      $date_to = $last_day;
+    }
+  }
+
+  $main_query = str_replace('WHERE ', "WHERE (date BETWEEN '$date_from' AND '$date_to') AND ", $query);
+
+  $pager_total[$element] = ceil($pager_total_items[$element] / $limit);
+  $pager_page_array[$element] = max(0, min((int)$pager_page_array[$element], ((int)$pager_total[$element]) - 1));
+
+  return db_query($main_query, $args);
+}
+
+/**
+ * Helper function to get the difference between two dates in terms of day, week, month and year.
+ */
+function report_date_diff($start_date, $end_date, $mode = 'day', $inclusive = TRUE) {
+  // Get Y-m-d part only if there was time part.
+  $start_date = date('Y-m-d', strtotime($start_date));
+  $end_date = date('Y-m-d', strtotime($end_date));
+  
+  // Switch if start date is later than end date.
+  if ($start_date > $end_date) {
+    $temp = $start_date;
+    $start_date = $end_date;
+    $end_date = $temp;
+  }
+
+  switch (drupal_strtolower($mode)) {
+  case 'd':
+  case 'day':
+    return round((strtotime($end_date) - strtotime($start_date)) / 86400) + (int)$inclusive; // Round for non-integer due to daylight saving time.
+
+  case 'w':
+  case 'week':
+    // Monday as the first day of the week
+    $monday1 = date('Y-m-d', strtotime($start_date . ' -' . (date('N', strtotime($start_date)) - 1) . ' day'));
+    $monday2 = date('Y-m-d', strtotime($end_date . ' -' . (date('N', strtotime($end_date)) - 1) . ' day'));
+    return round((strtotime($monday2) - strtotime($monday1)) / (86400 * 7)) + (int)$inclusive;
+
+  case 'm':
+  case 'month':
+    return (drupal_substr($end_date, 0, 4) - drupal_substr($start_date, 0, 4)) * 12 + (drupal_substr($end_date, 5, 2) - drupal_substr($start_date, 5, 2)) + (int)$inclusive;
+
+  case 'y':
+  case 'year':
+    return drupal_substr($end_date, 0, 4) - drupal_substr($start_date, 0, 4) + (int)$inclusive;
+  }
+}
+
+function report_period_name($period) {
+  switch ($period) {
+    case REPORT_PERIOD_DAY:   return t('Date');
+    case REPORT_PERIOD_WEEK:  return t('Week');
+    case REPORT_PERIOD_MONTH: return t('Month');
+    case REPORT_PERIOD_YEAR:  return t('Year');
+    default:                  return NULL;
+  }
+}
+
+function report_use_chart() {
+  return variable_get('report_use_chart', 1) && module_exists('chart');
+}
+
+function report_time_for_cron() {
+  return time() >= strtotime(variable_get('report_cron_time', '1:00am'));
+}
+
+/**
+ * Implementation of hook_cron().
+ */
+function report_cron() {
+  $report_last_date = variable_get('report_last_date', '');
+  
+  // It should run only the very first time when 'report_last_date' is not set yet.
+  if (empty($report_last_date)) {
+    $report_last_date = db_result(db_query('SELECT MAX(date) FROM {report}'));
+  }
+
+  $date_for_report = date('Y-m-d', strtotime(date('Y-m-d', time()) . ' -1 day')); // Yesterday
+  
+  if ($date_for_report > $report_last_date && report_time_for_cron()) {
+    $date = date('Y-m-d', strtotime($report_last_date . ' +1 day'));
+    
+    // If cron ran daily successfully, the loop should run only once for the day before.
+    // Otherwise it will iterate until it fills data between last cron date and the day before.
+    while ($date <= $date_for_report) {
+      module_invoke_all('report_cron', $date);
+
+      $date = date('Y-m-d', strtotime($date . ' +1 day'));
+    }
+    
+    watchdog('report', 'Report cron ran successfully.');
+    variable_set('report_last_date', $date_for_report);
+  }
+}

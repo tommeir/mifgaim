@@ -1,0 +1,11 @@
+; $Id: bettermenus.info,v 1.1 2010/06/01 08:32:39 blixxxa Exp $
+name = Better menus
+description = Improves the UI of the create menu item widget.
+core = 6.x
+dependencies[] = jquery_update
+; Information added by drupal.org packaging script on 2010-06-01
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "bettermenus"
+datestamp = "1275381903"
+

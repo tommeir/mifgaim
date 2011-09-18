@@ -1,0 +1,280 @@
+<html>
+<head>
+<style type="text/css">
+.center {
+	text-align: center;
+}
+</style>
+<title>Recommender API README</title>
+
+</head>
+<body>
+<h1>Recommender API -- Developer's Companion</h1>
+(The updated version of this document can be found at
+http://drupal.org/project/recommender)
+
+<h3>Basic idea</h3>
+
+<p>Suppose we have three mice, Alex, Becky and Carol. They all love
+cheese, but different kinds. Alex likes Spanish cheese and Italian
+cheese. Becky also likes Spanish and Italian cheese, but she likes Swiss
+too. Carol, on the other hand, hates Spanish and Italian cheese, but
+loves Cheddar cheese. Now, suppose we also learn Alex hates French
+cheese, can we guess what Becky and Carol would say about French cheese?</p>
+<p>First, based on the fact that both Alex and Becky like Spanish
+and Italian cheese, we can infer that Alex and Becky have similar
+tastes. For the same reason, we can infer that Alex and Carol have quite
+opposite tastes. Then, since we know Alex hates French cheese, we can
+reasonably guess that Becky hates French cheese too because of the
+similar tastes, whereas Carol probably likes French cheese due to their
+opposite tastes.</p>
+
+<p>That is the basic idea of recommender systems. It can be used in
+many applications too. For an online store, we can think of the
+customers as the mice in the mouse-cheese analogy, and the products as
+cheese, then we can generate products recommendations for customers. For
+a taxonomy system, we can think of the nodes to be tagged as the mice,
+and the tags as the cheese, then we can generate similarity scores for
+the nodes from the nodes-tags relationship, and we can also recommend
+terms for other nodes.</p>
+
+<p>The Recommender API module provides a set of APIs to calculate
+similarities among the mice, and then predict how each mouse would
+evaluate each cheese based on the evaluation from other mice, and
+finally generate a list of recommended cheese to each mouse. To use the
+APIs, you just need to have the mouse-cheese relationship stored in a
+table, and then select the right algorithm to do the calculation.
+Different algorithms will be explained below.</p>
+
+
+<h3>Algorithms</h3>
+
+<h4>Classical</h4>
+<p>This is the classical family of collaborative filtering
+algorithms based on correlation coefficients. The most famous examples
+include the User-User algorithm, and the Item-Item algorithm. <strong>If
+you are not sure which algorithm to use, just use this one</strong> because it
+performs well in most cases, and is widely used in many applications.</p>
+<p>More readings:</p>
+<ul>
+	<li>Resnick, P., Iacovou, N., Sushak, M., Bergstrom, P., &amp;
+	Riedl, J. (1994). GroupLens: An open architecture for collaborative
+	filtering of netnews. Paper presented at the Proceedings of the 1994
+	Computer Supported Collaborative Work Conference.</li>
+	<li>Linden, G., Smith, B., &amp; York, J. (2003). Amazon.com
+	recommendations: item-to-item collaborative filtering. Internet
+	Computing, IEEE, 7(1), 76-80.</li>
+</ul>
+
+<h4>Slope-One</h4>
+<p>This algorithm has much better performance. In some cases, it
+generates better results too (see the reading below). But it's not
+widely studied in the academia or widely appied to many real world
+practices. Another drawback is that it cannot compute similarities among
+the mice, but can only predict mouse-cheese scores.&nbsp;</p>
+<p>More readings:</p>
+<ul>
+	<li>http://en.wikipedia.org/wiki/Slope_One</li>
+	<li>Lemire, D., &amp; Maclachlan, A. (2005). Slope One Predictors
+	for Online Rating-Based Collaborative Filtering. Paper presented at the
+	SIAM Data Mining (SDM'05).</li>
+</ul>
+
+<h4>Co-ocurrences</h4>
+<p>This is a very simple and high performance algorithm. It only
+calculates similarities among the mice by how many cheese they share.
+For example, if mouse A and mouse B like 4 types of cheese in common,
+then the similarity score between A and B would be 4. This is the
+algorithm used in the "Similar By Terms" module. However, this algorithm
+has one major drawback -- suppose a mouse simply loves all cheese, then
+that mouse would have the highest similarity score with all other mice,
+which is obviously not correct.</p>
+
+<h4>PageRank</h4>
+<p><em>To be developed.</em> More readings:
+http://en.wikipedia.org/wiki/PageRank</p>
+
+<h4>SVD</h4>
+<p><em>To be developed.</em> More readings:
+http://en.wikipedia.org/wiki/Singular_value_decomposition</p>
+
+<h4>PCA</h4>
+<p><em>To be developed.</em> More readings:
+http://en.wikipedia.org/wiki/Principal_components_analysis</p>
+
+<h4>Influence Limiter</h4>
+<p><em>To be developed.</em> This algorithm is supposed to prevent
+manipulation of the recommender system. More readings:</p>
+<ul>
+	<li>Resnick, P., &amp; Sami, R. (2007). The influence limiter:
+	provably manipulation-resistant recommender systems. Paper presented at
+	the Proceedings of the 2007 ACM conference on Recommender systems.</li>
+</ul>
+
+
+<h3>Comparison of algorithms</h3>
+
+<table border='1' style="empty-cells: show;">
+	<tbody>
+		<tr>
+			<td></td>
+			<th>Similarity</th>
+			<th>Prediction</th>
+			<th>Incremental update</th>
+			<th>In-memory calculation</th>
+			<th>Missing data auto append</th>
+			<th>0-1 Weight field</th>
+			<th>Performance</th>
+			<th>Accuracy</th>
+		</tr>
+		<tr>
+			<th>Classical</th>
+			<td>X</td>
+			<td>X</td>
+			<td></td>
+			<td>Partial</td>
+			<td>X</td>
+			<td>X</td>
+			<td>poor</td>
+			<td>high</td>
+		</tr>
+		<tr>
+			<th>Slope-one</th>
+			<td></td>
+			<td>X</td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td>medium</td>
+			<td>medium</td>
+		</tr>
+		<tr>
+			<th>Coocurrence</th>
+			<td>X</td>
+			<td></td>
+			<td>X</td>
+			<td></td>
+			<td></td>
+			<td>X</td>
+			<td>high</td>
+			<td>poor</td>
+		</tr>
+		<tr>
+			<td class="center"><em>PageRank (TBD)</em></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td class="center"><em>SVD (TBD)</em></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td class="center"><em>PCA (TBD)</em></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+		<tr>
+			<td class="center"><em>Inflence Limiter (TBD)</em></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+			<td></td>
+		</tr>
+	</tbody>
+</table>
+
+<ul>
+	<li>Similarity: whether it supports calculation of similarity
+	scores among the mice.</li>
+	<li>Prediction: whether it upports calculation of predictions
+	scores for the mouse-cheese pair.</li>
+	<li>Incremental update: whether it supports incremental update, or
+	each time it rebuilds the whole index again</li>
+	<li>In-memory calculation: whether it supports in-memory
+	calculation (usually it's in database calculation)</li>
+	<li>Missing data auto append: When a mouse doesn't rate a cheese,
+	by default we treat it as missing data. However, we can ask the
+	algorithm to automatically treat the missing data as 0.</li>
+	<li>0-1 weight field: whether the &quot;weight&quot; field of the
+	mouse-cheese pair can be only 0s and 1s.</li>
+	<li>Performance: whether it is computation intensive.</li>
+	<li>Accuracy: whether the result has a high quality.</li>
+</ul>
+
+<h3>How to use the APIs</h3>
+
+<p>The APIs usually require these parameters:</p>
+<ul>
+	<li>$app_name: The name of your application that calls the API.
+	This is used to identify different applications that uses Recommender
+	API.</li>
+	<li>$table_name: The name of the table that saves the mouse-cheese
+	rating. Recommender API will do all the calculations based on the
+	mouse-cheese relationships stored in the table.</li>
+	<li>$field_mouse: The field of the mouse_id in $table_name to
+	identify different mice.</li>
+	<li>$field_cheese: The field of the cheese_id in $table_name to
+	identify different cheese.</li>
+	<li>$field_weight: The field of mouse-cheese rating, or weight, in
+	$table_name. It signifies how strong is the relationship between a
+	mouse and a cheese.</li>
+	<li>$options: This is an array of options passed to the API, for
+	example, whether to use the 'basic' or 'weighted' extensions of
+	SlopeOne algorithm.</li>
+</ul>
+
+<p>To use the APIs, you need to have the mouse-cheese table that
+stores records like &quot;Mouse A rated Cheese X as 5&quot;, or
+&quot;Mouse B dislikes Cheese Y&quot;. That table might be part of an
+existing table. In that case, you might want to create a view from the
+existing table, or create a table and insert mouse-cheese records into
+that table. Then pass the view name or table name as $table_name to the
+APIs.</p>
+
+<p>Also, please be noted that the calculation might take a long time
+to finish due to the complexity nature of the task. The calling function
+should provide a user-friendly interface such as a progress bar. Also,
+you might want to consider providing a <a
+	href="http://drupal.org/project/drush">drush</a> or drupal.sh interface
+to do the calculation offline.
+<p>In the recommender.module file, functions like
+recommender_similarity_*() are to calculate similarity scores for the
+mice. Functions like recommender_prediction_*() are to calculate
+prediction scores for the mice-cheese pairs. Functions starts with the
+underscore are private functions, not public APIs, and are subject to
+change. Other functions are helper functions.</p>
+
+<p>Please refer to the comments in recommender.module for more
+details. You can also look at the code of the <a
+	href="http://drupal.org/project/uurec">User-to-user Recommendation</a>
+module as an example of how to use the APIs.</p>
+
+<p>For support or other questions, please submit your request to the
+issue queue. Thanks.</p>
+
+</body>
+</html>

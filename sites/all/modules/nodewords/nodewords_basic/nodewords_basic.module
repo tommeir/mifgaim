@@ -1,0 +1,32 @@
+<?php
+// $Id: nodewords_basic.module,v 1.1.2.74 2010/02/14 11:22:23 kiam Exp $
+
+/**
+ * @file
+ * Define basic meta tags for Drupal pages.
+ */
+
+/**
+ * Implements hook_nodewords_api().
+ */
+function nodewords_basic_nodewords_api() {
+  return array(
+    'api' => '1.12',
+    'path' => '',
+  );
+}
+
+/**
+ * Implements hook_perm().
+ */
+function nodewords_basic_perm() {
+  return array(
+    'edit meta tag ABSTRACT',
+    'edit canonical URL meta tag',
+    'edit meta tag COPYRIGHT',
+    'edit meta tag DESCRIPTION',
+    'edit meta tag KEYWORDS',
+    'edit meta tag REVISIT-AFTER',
+    'edit meta tag ROBOTS',
+  );
+}

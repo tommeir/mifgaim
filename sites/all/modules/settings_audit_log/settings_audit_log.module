@@ -1,0 +1,75 @@
+<?php
+
+/**
+ * Implementation of hook_init().
+ */
+function settings_audit_log_init() { 
+  settings_audit_log_set_connection_id();
+}
+
+/**
+ * Set the connection id for the current request.
+ */
+function settings_audit_log_set_connection_id() {
+  global $user, $db_type;
+  
+  switch ($db_type) {
+    case 'mysql':
+    case 'mysqli':
+      $connection_id_sql = 'SELECT connection_id()';
+      break;
+
+    case 'pgsql':
+      $connection_id_sql = 'SELECT to_hex(EXTRACT(EPOCH FROM backend_start)::integer) || \'.\' || to_hex(procpid) FROM pg_stat_activity WHERE procpid = pg_backend_pid()';
+      break;
+  }
+  
+  if ($connection_id = db_result(db_query($connection_id_sql))) {
+    $params = array($user->uid, $connection_id);
+    $select_sql = "SELECT uid FROM {settings_audit_log_user_db_connection} WHERE uid = %d AND connection_id = '%s'";
+    if (!db_result(db_query($select_sql, $params))) {
+      array_unshift($params, $_SERVER['REQUEST_TIME']);
+      $insert_sql = "INSERT INTO {settings_audit_log_user_db_connection} (log_timestamp, uid, connection_id) VALUES (%d, %d, '%s')";
+      db_query($insert_sql, $params);
+    }
+  }
+}
+
+/**
+ * Implementation of hook_cron(). 
+ */
+function settings_audit_log_cron() { 
+  settings_audit_log_clean_user_db_connection_table();
+}
+
+/**
+ * Clean out old rows from {settings_audit_log_user_db_connection}.
+ */
+function settings_audit_log_clean_user_db_connection_table() {
+  $log_timestamp = $_SERVER['REQUEST_TIME'] - variable_get('settings_audit_log_user_db_connection_ttl', 3600);
+  db_query('DELETE FROM {settings_audit_log_user_db_connection} WHERE log_timestamp < %d', $log_timestamp);
+}
+
+/**
+ * Implementation of hook_views_api(). 
+ */
+function settings_audit_log_views_api() {
+  return array('api' => '2');
+}
+
+/**
+ * Implementation of hook_views_handlers().
+ */
+function settings_audit_log_views_handlers() {
+  return array(
+    'info' => array(
+      'path' => drupal_get_path('module', 'settings_audit_log') . '/handlers',
+    ),
+    'handlers' => array(
+      'settings_audit_log_handler_field_variable_value' => array(
+        'parent' => 'views_handler_field',
+      ),
+    ),
+  );
+}
+

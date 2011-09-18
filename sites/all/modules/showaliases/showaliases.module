@@ -1,0 +1,71 @@
+<?php
+// $Id: showaliases.module,v 1.1.2.2 2009/11/27 01:28:20 agaric Exp $
+
+/**
+ * @file
+ * Enables privileged users to see all url aliases (paths) assigned to a node.
+ *
+ * Currently it does this from within the node edit page and with minimal
+ * configuration options (automatically shown to all "administer url aliases"
+ * or "see aliases" permissioned users).
+ */
+
+/**
+ * Implements hook_perm().
+ */
+function showaliases_perm() {
+  return array('see aliases');
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function showaliases_form_alter(&$form, $form_state, $form_id) {
+  if (substr($form_id, -10) == '_node_form') {
+    // We are adding or editing a node.
+    if (isset($form['#node']->nid)) {
+      // We are editing a node.
+      if (user_access('administer url aliases') || user_access('see aliases')) {
+        // The person editing the node can handle seeing this information.
+        $paths = showaliases_get_paths('node/' . $form['#node']->nid);
+        if ($paths) {
+          $o = ''; // Initialize output.
+          $list = array(); // initialize items list array.
+          foreach ($paths as $pid => $path) {
+            $item = $path;
+            if (user_access('administer url aliases')) {
+              $item .= ' <small>';
+              $dest = '?destination=node/' . $form['#node']->nid . '/edit';
+              $item .= l('edit', 'admin/build/path/edit/' . $pid . $dest);
+              $item .= ' | ';
+              $item .= l('del', 'admin/build/path/delete/' . $pid . $dest);
+              $item .= '</small>';
+            }
+            $list[] = $item;
+          }
+          $o .= theme('item_list', $list, 'Existing aliases', 'ul');
+          $form['path']['showaliases'] = array(
+            '#weight' => -10, // @TODO make available through CCK ui?
+            '#type' => 'markup',
+            '#value' => $o,
+          );
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Get all paths for a given Drupal internal path.
+ */
+function showaliases_get_paths($internal) {
+  $paths = array();
+  // @TODO if we never use the PID, pull it out of everything below.
+  $sql = "SELECT pid, dst FROM {url_alias} WHERE src = '%s'";
+  $result = db_query($sql, $internal);
+  while ($alias = db_fetch_object($result)) {
+    $paths[$alias->pid] = $alias->dst;
+  }
+  return $paths;
+}
+

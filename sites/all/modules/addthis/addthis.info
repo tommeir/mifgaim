@@ -1,0 +1,12 @@
+; $Id: addthis.info,v 1.4.2.1.2.2 2010/12/13 07:26:29 lesmana Exp $
+name = AddThis
+description = A bookmarking and sharing widget from AddThis.com.
+core = 6.x
+
+
+; Information added by drupal.org packaging script on January 1, 1970 - 00:00
+version = "6.x-3.0-beta1"
+core = "6.x"
+project = "addthis"
+datestamp = "1296446193"
+

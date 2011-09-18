@@ -1,0 +1,10 @@
+name = Node Edit Protection
+description = Protect the user against navigating away from a node edit form before saving their changes.
+core = 6.x
+
+; Information added by drupal.org packaging script on 2008-12-05
+version = "6.x-1.0"
+core = "6.x"
+project = "node_edit_protection"
+datestamp = "1228508431"
+

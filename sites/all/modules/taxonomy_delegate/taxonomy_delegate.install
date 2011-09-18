@@ -1,0 +1,50 @@
+<?php
+// $Id: taxonomy_delegate.install,v 1.1.4.5 2008/06/06 20:08:07 nancyw Exp $ 
+
+/**
+ * @file
+ * Allows delegating taxonomy maintenance.
+ */
+
+/**
+ * Implementation of hook_install().
+ **/
+function taxonomy_delegate_schema() {
+  $schema['taxonomy_delegate'] = array(
+    'description' => 'Maps delegation of vocabulary administation',
+    'fields' => array(
+      'vid' => array(
+        'description' => 'Vocabulary identifier',
+        'type' => 'int',
+        'not null' => TRUE,
+        'disp-width' => '10',
+        ),
+      'rid' => array(
+        'description' => 'Role identifier',
+        'type' => 'int',
+        'not null' => TRUE,
+        'disp-width' => '10',
+        ),
+      ),
+    'primary key' => array('vid', 'rid'),
+    );
+  return $schema;
+}
+
+/**
+ * Implementation of hook_install().
+ **/
+function taxonomy_delegate_install() {
+  drupal_install_schema('taxonomy_delegate');
+  drupal_set_message(t('taxonomy_delegate module installed.'));
+}
+
+/**
+ * Implementation of hook_uninstall().
+ **/
+function taxonomy_delegate_uninstall() {
+  drupal_uninstall_schema('taxonomy_delegate');
+  variable_del('taxonomy_delegate_hides');
+  variable_del('taxonomy_delegate_menu');
+  drupal_set_message(t('taxonomy_delegate module uninstalled.'));
+}

@@ -1,0 +1,10 @@
+; $Id: ckeditor_link.info,v 1.2 2010/07/21 16:12:46 anrikun Exp $
+name = CKEditor Link
+description = Easily create links to Drupal internal paths through CKEditor.
+core = 6.x
+; Information added by drupal.org packaging script on 2010-07-21
+version = "6.x-1.0"
+core = "6.x"
+project = "ckeditor_link"
+datestamp = "1279729209"
+

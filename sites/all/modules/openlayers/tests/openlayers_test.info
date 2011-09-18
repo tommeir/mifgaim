@@ -1,0 +1,12 @@
+
+name = OpenLayers Tests
+description = OpenLayers test module.  There is no reason to install this.
+core = 6.x
+package = OpenLayers
+
+; Information added by drupal.org packaging script on 2011-03-11
+version = "6.x-2.x-dev"
+core = "6.x"
+project = "openlayers"
+datestamp = "1299802615"
+

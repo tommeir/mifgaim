@@ -1,0 +1,40 @@
+/* $Id: systeminfo.css,v 1.4.2.2.2.2 2010/04/08 21:04:40 flanker Exp $ */
+/* $Name: DRUPAL-6--2-0 $ */
+
+table.systeminfo_width50 td {
+  width: 50%;
+}
+
+table.systeminfo td.header1 {
+  font-weight: bold;
+}
+table.systeminfo td.title1 {
+  font-style: italic;
+}
+table.systeminfo td.text1 {
+  padding-left: 1.5em;
+}
+
+table.systeminfo td.header2 {
+  padding-left: 1.5em;
+  font-weight: bold;
+}
+table.systeminfo td.title2 {
+  padding-left: 1.5em;
+  font-style: italic;
+}
+table.systeminfo td.text2 {
+  padding-left: 3em;
+}
+
+table.systeminfo td.header3 {
+  padding-left: 3em;
+  font-weight: bold;
+}
+table.systeminfo td.title3 {
+  padding-left: 3em;
+  font-style: italic;
+}
+table.systeminfo td.text3 {
+  padding-left: 4.5em;
+}

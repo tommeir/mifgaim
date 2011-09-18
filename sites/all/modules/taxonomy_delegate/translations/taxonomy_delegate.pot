@@ -1,0 +1,183 @@
+# $Id: taxonomy_delegate.pot,v 1.1.2.4 2008/06/20 16:21:24 nancyw Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  taxonomy_delegate.admin.inc,v 1.1.2.5 2008/06/06 20:08:07 nancyw
+#  taxonomy_delegate.module,v 1.1.4.11 2008/06/06 20:08:07 nancyw
+#  taxonomy_delegate.info,v 1.1.4.2 2008/02/26 02:28:08 nancyw
+#  taxonomy_delegate.install,v 1.1.4.5 2008/06/06 20:08:07 nancyw
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2008-06-20 12:18-0400\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: taxonomy_delegate.admin.inc:16
+msgid "Parents"
+msgstr ""
+
+#: taxonomy_delegate.admin.inc:17
+msgid "Synonyms"
+msgstr ""
+
+#: taxonomy_delegate.admin.inc:18
+msgid "Weight"
+msgstr ""
+
+#: taxonomy_delegate.admin.inc:19
+msgid "Related terms"
+msgstr ""
+
+#: taxonomy_delegate.admin.inc:25
+msgid "Hide these fields from the administrator-delegate"
+msgstr ""
+
+#: taxonomy_delegate.admin.inc:27
+msgid "The selected fields will be hidden on the term add/edit page. Users with \"administer taxonomy\" permission will always see them."
+msgstr ""
+
+#: taxonomy_delegate.admin.inc:34
+msgid "Menu text"
+msgstr ""
+
+#: taxonomy_delegate.admin.inc:35;45 taxonomy_delegate.module:49
+msgid "Administer My Categories"
+msgstr ""
+
+#: taxonomy_delegate.admin.inc:36
+msgid "This text will be shown in the user's menu. No translation will be performed."
+msgstr ""
+
+#: taxonomy_delegate.module:15
+msgid "The taxonomy_delegate module allows the administrator to delegate the maintenance of selected vocabularies without the need to grant \"access taxonomy\" permission. Delegation is done on the <a href=\"!link\">Category Delegate</a> tab of the Categories administration page."
+msgstr ""
+
+#: taxonomy_delegate.module:17
+msgid "Note that forum containers and topics are a vocabulary, so you may delegate their maintenance to a specific role without giving full forums administration permission."
+msgstr ""
+
+#: taxonomy_delegate.module:22
+msgid "This is an overview of the current delegation of authority to administer categories. Setting of the delegation is done on the vocabulary edit page."
+msgstr ""
+
+#: taxonomy_delegate.module:97;37
+msgid "Delegation"
+msgstr ""
+
+#: taxonomy_delegate.module:98
+msgid "Use this section to delegate authority to maintain this vocabulary to a specific role."
+msgstr ""
+
+#: taxonomy_delegate.module:106;242
+msgid "Choose the role(s) that may administer this vocabulary"
+msgstr ""
+
+#: taxonomy_delegate.module:192;381;398
+msgid "edit"
+msgstr ""
+
+#: taxonomy_delegate.module:196
+msgid "Vocabulary"
+msgstr ""
+
+#: taxonomy_delegate.module:196
+msgid "Roles"
+msgstr ""
+
+#: taxonomy_delegate.module:196
+msgid "Op"
+msgstr ""
+
+#: taxonomy_delegate.module:246
+msgid "You may choose more than one by using the CTRL key."
+msgstr ""
+
+#: taxonomy_delegate.module:251
+msgid "Update"
+msgstr ""
+
+#: taxonomy_delegate.module:259
+msgid "Delete"
+msgstr ""
+
+#: taxonomy_delegate.module:340
+msgid "List terms"
+msgstr ""
+
+#: taxonomy_delegate.module:341
+msgid "Add terms"
+msgstr ""
+
+#: taxonomy_delegate.module:345
+msgid "Category"
+msgstr ""
+
+#: taxonomy_delegate.module:346;408
+msgid "Operations"
+msgstr ""
+
+#: taxonomy_delegate.module:368
+msgid "Terms for "
+msgstr ""
+
+#: taxonomy_delegate.module:372
+msgid "This is a freetagging vocabulary."
+msgstr ""
+
+#: taxonomy_delegate.module:404
+msgid "No terms available."
+msgstr ""
+
+#: taxonomy_delegate.module:407
+msgid "Image"
+msgstr ""
+
+#: taxonomy_delegate.module:408
+msgid "Name"
+msgstr ""
+
+#: taxonomy_delegate.module:408
+msgid "Description"
+msgstr ""
+
+#: taxonomy_delegate.module:40
+msgid "Current delegation overview"
+msgstr ""
+
+#: taxonomy_delegate.module:48
+msgid "@name"
+msgstr ""
+
+#: taxonomy_delegate.module:57 taxonomy_delegate.info:0
+msgid "Taxonomy Delegate"
+msgstr ""
+
+#: taxonomy_delegate.module:61
+msgid "Set up Taxonomy_delegate."
+msgstr ""
+
+#: taxonomy_delegate.module:0
+msgid "taxonomy_delegate"
+msgstr ""
+
+#: taxonomy_delegate.install:39
+msgid "taxonomy_delegate module installed."
+msgstr ""
+
+#: taxonomy_delegate.install:49
+msgid "taxonomy_delegate module uninstalled."
+msgstr ""
+
+#: taxonomy_delegate.info:0
+msgid "Allows delegating vocabulary maintenance."
+msgstr ""
+

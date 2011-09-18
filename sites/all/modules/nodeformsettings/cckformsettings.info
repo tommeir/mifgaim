@@ -1,0 +1,10 @@
+; $Id$
+name = CCK Form Settings
+description = "Hides the Input Format fieldset in CCK Textareas for better usability."
+core = 6.x
+; Information added by drupal.org packaging script on 2010-03-02
+version = "6.x-1.5"
+core = "6.x"
+project = "nodeformsettings"
+datestamp = "1267563624"
+

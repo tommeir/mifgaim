@@ -1,0 +1,471 @@
+<?php
+// $Id: report_user.module,v 1.4 2010/07/07 19:19:09 ki Exp $
+
+/**
+ * @file
+ * Report for users
+ */
+
+define('REPORT_USER_ROLE_ALL', 2); // Same as role [authenticated].
+
+/**
+ * Implementation of hook_init().
+ */
+function report_user_init() {
+  drupal_add_css(drupal_get_path('module', 'report_user') . '/report_user.css');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function report_user_menu() {
+  $items['report/user'] = array(
+    'title' => 'Users',
+    'description' => 'User report.',
+    'page callback' => 'report_user_page',
+    'access arguments' => array('access report'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+  );
+  $items['report/user_active'] = array(
+    'title' => 'User Activity',
+    'description' => 'User activity report.',
+    'page callback' => 'report_user_activity_page',
+    'access arguments' => array('access report'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter() in report module.
+ */
+function report_user_form_report_summary_alter(&$form, &$form_state) {
+  $form['report_user'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Users'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => 'report-summary-user'),
+    '#weight' => 1,
+  );
+
+  $form['report_user']['summary'] = array(
+    '#value' => report_user_summary(),
+    '#suffix' => '<div style="clear:both"></div>',
+  );
+
+  $form['report_user']['top_domain'] = array(
+    '#value' => report_user_top_domain(),
+  );
+}
+
+function report_user_summary() {
+  $user_count_all = db_result(db_query('SELECT COUNT(uid) FROM {users}'));
+  $user_count_active = db_result(db_query('SELECT COUNT(uid) FROM {users} WHERE status = 1'));
+
+  $out .= '<div class="report-field">
+      <div class="report-field-label">Current user counts (' . number_format($user_count_all) . ' total):</div>
+      <div class="report-field-data">' .
+      'Active = ' . number_format($user_count_active) . ' (' . round($user_count_active / $user_count_all * 100) . '%)&nbsp;&nbsp; ' .
+      'Blocked = ' . number_format($user_count_all - $user_count_active) . ' (' . round(($user_count_all - $user_count_active) / $user_count_all * 100) . '%)' .
+      '</div></div>';
+
+  $user_count_login = db_result(db_query('SELECT COUNT(uid) FROM {users} WHERE login > 0'));
+
+  $out .= '<div class="report-field">
+      <div class="report-field-label">&nbsp;</div>
+      <div class="report-field-data">' .
+      'Login = ' . number_format($user_count_login) . ' (' . round($user_count_login / $user_count_all * 100) . '%)&nbsp;&nbsp; ' .
+      'Never login = ' . number_format($user_count_all - $user_count_login) . ' (' . round(($user_count_all - $user_count_login) / $user_count_all * 100) . '%)' .
+      '</div></div>';
+
+  $user_count_login_week = db_result(db_query('SELECT COUNT(uid) FROM {users} WHERE login >= %d', time() - 86400 * 7));
+  $user_count_login_month = db_result(db_query('SELECT COUNT(uid) FROM {users} WHERE login >= %d', time() - 86400 * 30.4)); // 30.4 days = Average month
+  $user_count_login_year = db_result(db_query('SELECT COUNT(uid) FROM {users} WHERE login >= %d', time() - 86400 * 365));
+  
+  $out .= '<div class="report-field">
+      <div class="report-field-label">Logged in accounts:</div>
+      <div class="report-field-data">' .
+      'Last week = ' . number_format($user_count_login_week) . '&nbsp;&nbsp; ' .
+      'Last month = ' . number_format($user_count_login_month) . '&nbsp;&nbsp; ' .
+      'Last year = ' . number_format($user_count_login_year) . '&nbsp;&nbsp; ' .
+      'Over a year = ' . number_format($user_count_login - $user_count_login_year) . '&nbsp;&nbsp; ' .
+      '</div></div>';
+
+  return $out;
+}
+
+function report_user_top_domain() {
+  $header = array(t('Count'), t('Domain'), t('Count'), t('Domain'), t('Count'), t('Domain'), t('Count'), t('Domain'));
+
+  $result = db_query_range("SELECT COUNT(uid) count, SUBSTR(mail, LOCATE('@', mail) + 1) AS domain FROM {users} WHERE LENGTH(mail) > 0 AND SUBSTR(mail, 1, 1) <> '#' AND status = 1 GROUP BY SUBSTR(mail, LOCATE('@', mail) + 1) ORDER BY COUNT(uid) DESC", 0, 40);
+  $index = $iter = 0;
+  while ($row = db_fetch_object($result)) {
+    $rows[$index][] = $row->count;
+    $rows[$index][] = array('data' => $row->domain, 'style' => ($iter > 2 ? '' : 'border-right: 1px solid #CCC'));
+
+    $index = ++$index % 10;
+    $iter = $index == 0 ? $iter + 1 : $iter;
+  }
+  
+  $out .= theme('table', $header, $rows, array('class' => 'report-user-top-domain'), '<h3>&laquo; ' . t('Top domains by user email') . ' &raquo;</h3>');
+
+  $result = db_query_range("SELECT COUNT(uid) count, SUBSTR(mail, LOCATE('@', mail) + 1) AS domain FROM {users} WHERE access > %d AND LENGTH(mail) > 0 AND SUBSTR(mail, 1, 1) <> '#' AND status = 1 GROUP BY SUBSTR(mail, LOCATE('@', mail) + 1) ORDER BY COUNT(uid) DESC", 0, 40, time() - 86400 * 30);
+  $index = $iter = 0;
+  $rows = array();
+  while ($row = db_fetch_object($result)) {
+    $rows[$index][] = $row->count;
+    $rows[$index][] = array('data' => $row->domain, 'style' => ($iter > 2 ? '' : 'border-right: 1px solid #CCC'));
+
+    $index = ++$index % 10;
+    $iter = $index == 0 ? $iter + 1 : $iter;
+  }
+  
+  $out .= theme('table', $header, $rows, array('class' => 'report-user-top-domain'), '<h3>&laquo; ' . t('Top domains by user email from "active" accounts (access last month)') . ' &raquo;</h3>');
+
+  return $out;
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter() in report module.
+ */
+function report_user_form_report_settings_alter(&$form, &$form_state) {
+  $form['report_user'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Users'),
+    '#collapsible' => TRUE,
+    '#weight' => -9,
+  );
+  
+  $types = node_get_types();
+  foreach ($types as $type) {
+    $options[$type->type] = $type->name;
+  }
+  asort($options);
+  
+  $form['report_user']['report_user_active_exclude_type'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Content types to exclude for user activity'),
+    '#default_value' => variable_get('report_user_active_exclude_type', array()),
+    '#options' => $options,
+    '#description' => t('Excluded types will not be considered when getting user counts that created new contents'),
+  );
+  
+  $form['report_user']['report_user_log_op'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('User operation to log'),
+    '#default_value' => variable_get('report_user_log_op', array()),
+    '#options' => array('created' => t('Register'), 'login' => t('Log in'), 'access' => t('Access')),
+    '#description' => t('Selecting no choices is considered same as choosing all.'),
+  );
+  
+  if ($role_options = report_user_roles()) {
+    $form['report_user']['report_user_role'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Roles'),
+      '#default_value' => variable_get('report_user_role', array()),
+      '#options' => $role_options,
+      '#description' => t('Choose roles to get stats for. Total for all roles will be recorded regardless of choice.'),
+    );
+  }
+}
+
+function report_user_page() {
+  $opnames = array('created' => t('Register'), 'login' => t('Log in'), 'access' => t('Access'));
+
+  $ops = variable_get('report_user_log_op', array());
+  $ops = array_filter($ops) ? $ops : array('created', 'login', 'access');
+  
+  $rnames = report_user_roles();
+  $rnames[2] = 'All';
+
+  $roles = variable_get('report_user_role', array());
+  $roles = array(2 => 2) + $roles;
+  
+  $limit = isset($_POST['range']) ? $_POST['range'] : variable_get('report_chart_range', '10');
+  $period = isset($_POST['period']) ? $_POST['period'] : variable_get('report_chart_period', '1');
+
+  $header[] = report_period_name($period);
+
+  foreach ($ops as $op) {
+    foreach ($roles as $role_id) {
+      if ($op && $role_id) {
+        $header[] = $chart['#legends'][] = t($opnames[$op] . ' (' . $rnames[$role_id] . ')');
+      }
+    }
+  }
+
+  $result = report_pager_query("SELECT date, data FROM {report} WHERE realm = 'user' ORDER BY date DESC", $limit, $period);
+  
+  while ($row = db_fetch_object($result)) {
+    $data = unserialize($row->data);
+    
+    $r = array();
+    $r['data'][] = $row->date;
+    
+    foreach ($ops as $op) {
+      foreach ($roles as $role_id) {
+        if ($op && $role_id) {
+          $r['data'][] = $data[$op][$role_id];
+        }
+      }
+    }
+    $rows[] = $r;
+  }
+
+  $rows = report_flatten_period($rows, $period);
+
+  $size = count($rows[0]);
+  foreach ($rows as $row) {
+    switch ($period) {
+    case REPORT_PERIOD_DAY:
+      $chart['#x_label'][] = drupal_substr($row[0], 5);        break;
+    case REPORT_PERIOD_WEEK:
+      $chart['#x_label'][] = drupal_substr($row[0], 0, 2);     break;
+    case REPORT_PERIOD_MONTH:
+      $chart['#x_label'][] = drupal_substr($row[0], 0, 3);     break;
+    case REPORT_PERIOD_YEAR:
+      $chart['#x_label'][] = $row[0];
+    }
+    
+    for ($i = 1; $i < $size; $i++) {
+      $chart['#data'][$i][] = $row[$i];
+
+      if ($row[$i] > $max) {
+        $max = $row[$i];
+      }
+    }
+  }
+
+  // Reverse to ascending order
+  foreach ($chart['#data'] as $key => $data) {
+    $chart['#data'][$key] = array_reverse($data);
+  }
+  $chart['#x_label'] = array_reverse($chart['#x_label']);
+  $chart['#data_colors'] = array_slice(
+                            array('ff0000', 'ff6600', 'ffaa00', '009900', '66cc00', 'aacc00', '0000aa', '3366cc', '11ccff',
+                              '333333', '666666', '999999', 'aaaaaa', 'cccccc'),
+                            0, count($chart['#legends']));
+  
+  $chart['#y_range_min'] = 0;
+  $chart['#y_range_max'] = $max;
+  
+  $out = report_chart($chart);
+  
+  //$out .= theme('table', $header, $rows);
+  $out .= theme('table', $header, $rows, array(), '<div style="color:#666; font-size:0.8em; margin-bottom:1em;">' . t('Note: Views by week, month, and year are summed up from daily view, which means counts for login and access may include same accounts from different days.') . '</div>');
+  $out .= theme('pager', array(), $limit);
+  
+  return $out;
+}
+
+function report_user_activity_page() {
+  $limit = isset($_POST['range']) ? $_POST['range'] : variable_get('report_chart_range', '10');
+  $period = isset($_POST['period']) ? $_POST['period'] : variable_get('report_chart_period', '1');
+
+  $header = array(report_period_name($period), t('Post'), t('Comment'));
+  $chart['#legends'] = array(t('Post'), t('Comment'));
+
+  $result = report_pager_query("SELECT date, data FROM {report} WHERE realm = 'user-content' ORDER BY date DESC", $limit, $period);
+
+  while ($row = db_fetch_object($result)) {
+    $data = unserialize($row->data);
+    
+    $r = array();
+    switch ($period) {
+    case REPORT_PERIOD_DAY:
+      $r['data'] = array($row->date, $data['Day']['Post'], $data['Day']['Comment']);
+      $chart['#x_label'][] = drupal_substr($row->date, 5);
+      
+      $chart['#data']['Post'][] = $data['Day']['Post'];
+      $chart['#data']['Comment'][] = $data['Day']['Comment'];
+      if ($data['Day']['Post'] > $max) {
+        $max = $data['Day']['Post'];
+      }
+      if ($data['Day']['Comment'] > $max) {
+        $max = $data['Day']['Comment'];
+      }
+
+      break;
+
+    case REPORT_PERIOD_WEEK:
+      if (empty($first_row) || date('N', strtotime($row->date)) == 7) { // Sunday == 7
+        if (empty($first_row)) {
+          $first_row = TRUE;
+          $monday = strtotime($row->date . ' -' . (date('N', strtotime($row->date)) - 1) . ' day');
+        }
+        else {
+          $monday = strtotime($row->date . ' -6 days');
+        }
+
+        $r['data'] = array(date('W', $monday) . ' (' . date('Y-m-d', $monday) . ')', $data['Week']['Post'], $data['Week']['Comment']);
+        $chart['#x_label'][] = date('W', $monday);
+
+        $chart['#data']['Post'][] = $data['Week']['Post'];
+        $chart['#data']['Comment'][] = $data['Week']['Comment'];
+        if ($data['Week']['Post'] > $max) {
+          $max = $data['Week']['Post'];
+        }
+        if ($data['Week']['Comment'] > $max) {
+          $max = $data['Week']['Comment'];
+        }
+      }
+      break;
+
+    case REPORT_PERIOD_MONTH:
+      $time = strtotime($row->date);
+      if (empty($first_row) || $row->date == date('Y-m-', $time) . date('t', $time)) {
+        if (empty($first_row)) {
+          $first_row = TRUE;
+        }
+        
+        $r['data'] = array(date('M Y', $time), $data['Month']['Post'], $data['Month']['Comment']);
+        $chart['#x_label'][] = date('M', $time);
+        
+        $chart['#data']['Post'][] = $data['Month']['Post'];
+        $chart['#data']['Comment'][] = $data['Month']['Comment'];
+        if ($data['Month']['Post'] > $max) {
+          $max = $data['Month']['Post'];
+        }
+        if ($data['Month']['Comment'] > $max) {
+          $max = $data['Month']['Comment'];
+        }
+      }
+      break;
+
+    case REPORT_PERIOD_YEAR:
+      $time = strtotime($row->date);
+      if (empty($first_row) || $row->date == date('Y-', $time) . '12-31') {
+        if (empty($first_row)) {
+          $first_row = TRUE;
+        }
+        
+        $r['data'] = array(date('Y', $time), $data['Year']['Post'], $data['Year']['Comment']);
+        $chart['#x_label'][] = date('Y', $time);
+        
+        $chart['#data']['Post'][] = $data['Year']['Post'];
+        $chart['#data']['Comment'][] = $data['Year']['Comment'];
+        if ($data['Year']['Post'] > $max) {
+          $max = $data['Year']['Post'];
+        }
+        if ($data['Year']['Comment'] > $max) {
+          $max = $data['Year']['Comment'];
+        }
+      }
+    }
+    $rows[] = $r;
+  }
+  
+  // Reverse to ascending order
+  foreach ($chart['#data'] as $key => $data) {
+    $chart['#data'][$key] = array_reverse($data);
+  }
+  $chart['#x_label'] = array_reverse($chart['#x_label']);
+  $chart['#data_colors'] = array('ff0000', 'ffaa00');
+  
+  $chart['#y_range_min'] = 0;
+  $chart['#y_range_max'] = $max;
+
+  $out = report_chart($chart);
+  $out .= theme('table', $header, $rows, array(), '<h3>' . t('Number of users who posted and commented') . '</h3>');
+  $out .= theme('pager', array(), $limit);
+  return $out;
+}
+
+/**
+ * Implementation of custom hook_report_cron().
+ */
+function report_user_report_cron($date) {
+  // Stats for user register, login, access.
+  $ops = variable_get('report_user_log_op', array());
+  $ops = array_filter($ops);
+  if (!$ops) {
+    $ops = array('created', 'login', 'access'); // No choice is same as all choices.
+  }
+  
+  $roles = variable_get('report_user_role', array());
+  $roles = array(2 => 2) + $roles;
+
+  $data = array();
+  
+  foreach ($ops as $op) {
+    foreach ($roles as $role_id) {
+      if ($op && $role_id) {
+        $data[$op][$role_id] = report_user_get_count($op, $role_id, $date);
+      }
+    }
+  }
+
+  report_insert_data('user', $data, $date);
+  
+  // Stats for user activity for posts and comments
+  $data = report_user_get_count_activity($date);
+  report_insert_data('user-content', $data, $date);
+}
+
+function report_user_get_count($op, $role_id, $date) {
+  static $midnight;
+
+  if (!$midnight) {
+    $midnight = strtotime(($date ? "$date " : '') . '00:00:00');
+  }
+
+  if ($role_id != REPORT_USER_ROLE_ALL) {
+    $with_role = "INNER JOIN {users_roles} ur ON u.uid = ur.uid AND ur.rid = $role_id";
+  }
+
+  return db_result(db_query("SELECT COUNT(u.uid) FROM {users} u $with_role WHERE u.$op BETWEEN %d AND %d", $midnight, $midnight + 86399));
+}
+
+function report_user_get_count_activity($date) {
+  static $midnight, $_date;
+
+  if (!$midnight || $_date != $date) {
+    $_date = $date;
+    $midnight = strtotime(($date ? "$date " : '') . '00:00:00');
+  }
+
+  $exclude = variable_get('report_user_active_exclude_type', array());
+  $exclude = array_filter($exclude);
+
+  $counts['Day']['Post'] = db_result(db_query("SELECT COUNT(DISTINCT uid) AS count FROM {node} WHERE uid > 0 AND type NOT IN ('". implode("','", $exclude) ."') AND created BETWEEN %d AND %d", $midnight, $midnight + 86399)); // Not including the last second; it belongs to the next day.
+
+  $counts['Day']['Comment'] = db_result(db_query("SELECT COUNT(DISTINCT uid) AS count FROM {comments} WHERE uid > 0 AND timestamp BETWEEN %d AND %d", $midnight, $midnight + 86399));
+
+  // Get last monday to calculate for the week.
+  $last_monday_stamp = strtotime($date . ' -' . (date('N', strtotime($date)) - 1) . ' day');
+  
+  $counts['Week']['Post'] = db_result(db_query("SELECT COUNT(DISTINCT uid) AS count FROM {node} WHERE uid > 0 AND type NOT IN ('". implode("','", $exclude) ."') AND created BETWEEN %d AND %d", $last_monday_stamp, $midnight + 86399)); // From last monday
+
+  $counts['Week']['Comment'] = db_result(db_query("SELECT COUNT(DISTINCT uid) AS count FROM {comments} WHERE uid > 0 AND timestamp BETWEEN %d AND %d", $last_monday_stamp, $midnight + 86399));
+
+  // Get first day of month to calculate for the month.
+  $firstday_month_stamp = strtotime(drupal_substr($date, 0, 7) . '-01');
+  
+  $counts['Month']['Post'] = db_result(db_query("SELECT COUNT(DISTINCT uid) AS count FROM {node} WHERE uid > 0 AND type NOT IN ('". implode("','", $exclude) ."') AND created BETWEEN %d AND %d", $firstday_month_stamp, $midnight + 86399)); // From the first day of the month.
+
+  $counts['Month']['Comment'] = db_result(db_query("SELECT COUNT(DISTINCT uid) AS count FROM {comments} WHERE uid > 0 AND timestamp BETWEEN %d AND %d", $firstday_month_stamp, $midnight + 86399));
+
+  // Get first day of year to calculate for the year.
+  $firstday_year_stamp = strtotime(drupal_substr($date, 0, 4) . '-01-01');
+
+  $counts['Year']['Post'] = db_result(db_query("SELECT COUNT(DISTINCT uid) AS count FROM {node} WHERE uid > 0 AND type NOT IN ('". implode("','", $exclude) ."') AND created BETWEEN %d AND %d", $firstday_year_stamp, $midnight + 86399)); // From the first day of the year.
+  
+  $counts['Year']['Comment'] = db_result(db_query("SELECT COUNT(DISTINCT uid) AS count FROM {comments} WHERE uid > 0 AND timestamp BETWEEN %d AND %d", $firstday_year_stamp, $midnight + 86399));
+
+  return $counts;
+}
+
+/**
+ * Return user defined roles.
+ */
+function report_user_roles() {
+  $roles = user_roles(TRUE);
+  ksort($roles);
+  unset($roles[2]);
+
+  return $roles;
+}

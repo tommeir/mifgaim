@@ -1,0 +1,12 @@
+; $Id: user_settings_access.info,v 1.1 2010/08/28 14:31:35 tchurch Exp $
+name = User Settings Access
+description = Additional permission for more granular control of user settings and users.
+core = 6.x
+package = "Administration"
+
+; Information added by drupal.org packaging script on 2010-09-25
+version = "6.x-1.1"
+core = "6.x"
+project = "user_settings_access"
+datestamp = "1285421466"
+

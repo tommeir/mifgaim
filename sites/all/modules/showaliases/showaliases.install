@@ -1,0 +1,21 @@
+<?php
+// $Id: showaliases.install,v 1.1.2.1 2009/11/27 00:54:35 agaric Exp $
+
+/**
+ * @file
+ * Installation file for Show aliases module.
+ */
+
+/**
+ * Implements hook_install().
+ */
+function showaliases_install() {
+  drupal_set_message(t('Show aliases installed successfully.'));
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function showaliases_uninstall() {
+  drupal_set_message(t('Uninstalled Show aliases module.'));
+}

@@ -1,0 +1,16 @@
+name = Clean Folio
+version = VERSION
+core = 6.x
+engine = phptemplate
+stylesheets[all][] = style.css
+
+regions[slash] = Slash
+regions[leftside] = Leftside Bar
+regions[rightside] = Rightside Bar
+
+; Information added by drupal.org packaging script on 2010-01-19
+version = "6.x-2.5"
+core = "6.x"
+project = "cleanfolio"
+datestamp = "1263912908"
+

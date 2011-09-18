@@ -1,0 +1,15 @@
+<?php
+// $Id: report_user.install,v 1.1 2009/11/02 18:06:28 ki Exp $
+/**
+ * @file
+ * Report User installation file.
+ */
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function report_user_uninstall() {
+  variable_del('report_user_active_exclude_type');
+  variable_del('report_user_log_op');
+  variable_del('report_user_role');
+}

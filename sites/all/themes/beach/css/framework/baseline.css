@@ -1,0 +1,136 @@
+/* $Id: baseline.css,v 1.6 2009/05/12 21:55:31 gibbozer Exp $ */
+
+/**
+ * You may not need to edit this file!
+ * If you really want to override default layout and style
+ * you can add your style in the "custom.css" file
+ * then activate it in the theme settings page.
+ */
+
+/**
+ * HTML Elements
+ */
+hr {
+  border: 0 solid #ccc;
+  border-top-width: 1px;
+  clear: both;
+  height: 0;
+}
+
+p, dl, hr, ol, ul, form,
+pre, table, address, fieldset {
+  margin-bottom: 20px;
+}
+
+li {
+  margin: 0.5em 0;
+}
+
+ol {
+  list-style: decimal;
+  padding-left: 1.5em; /* LTR */
+  margin-left: 0.5em; /* LTR */
+}
+
+ul {
+  list-style: circle;
+  padding-left: 1.5em; /* LTR */
+}
+
+ol ol,
+ul ol {
+  list-style: upper-alpha;
+}
+
+ul ol,
+ul ul {
+  list-style: square;
+}
+
+ol ol ol,
+ol ul ol,
+ul ol ol,
+ul ul ol {
+  list-style: lower-roman;
+}
+
+ol ol ul
+ol ul ul
+ul ol ul,
+ul ul ul {
+  list-style: disc;
+}
+
+li ol,
+li ul {
+  margin-bottom: 0;
+}
+
+dd {
+  margin-left: 3em;
+  margin-bottom: 1.5em;
+}
+
+fieldset {
+  margin-bottom: 1em;
+  padding: 0.25em 1.5em 0.5em 1.5em;
+  border: 1px dotted #ccc;
+}
+
+fieldset .action {
+  padding: 1em 0;
+}
+
+legend {
+  padding: 0.25em 0.5em;
+}
+
+table {
+  width: 100%;
+}
+
+th, td {
+  padding: 5px 10px;
+  vertical-align: top;
+}
+
+thead th {
+  border-bottom: 3px solid #ccc;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  margin-bottom: 0.25em;
+}
+
+/* Heading */
+h1 {
+  font-size: 2em;
+}
+
+h2 {
+  font-size: 1.5em;
+}
+
+h3 {
+  font-size: 1.2em;
+}
+
+h4, h5, h6 {
+  font-size: 1em;
+}
+
+/* Generic Elements */
+input, select {
+  font-size: 1em;
+}
+
+code, pre {
+  font-family: Ayuthaya, Monaco, Courier, "Courier New", "Andale Mono", monospace;
+}
+
+blockquote {
+  font-weight: normal;
+  font-size: 1em;
+  line-height: 1.6em;
+  font-style: italic;
+}

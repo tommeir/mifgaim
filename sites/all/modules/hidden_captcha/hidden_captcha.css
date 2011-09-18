@@ -1,0 +1,5 @@
+/* $Id: hidden_captcha.css,v 1.1.2.2 2010/09/04 08:41:27 alexiswilke Exp $ */
+.hidden-captcha,
+.container-inline div.hidden-captcha {
+  display: none;
+}

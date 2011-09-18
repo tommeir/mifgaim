@@ -1,0 +1,15 @@
+; $Id: patch_manager.info,v 1.1.2.3 2010/08/23 08:37:02 aidan Exp $
+name = Patch manager
+description = Provides developer tools for patch management of core and contributed modules.
+core = 6.x
+dependencies[] = views
+dependencies[] = content
+dependencies[] = text
+dependencies[] = filefield
+package = Development
+; Information added by drupal.org packaging script on 2010-09-12
+version = "6.x-1.2"
+core = "6.x"
+project = "patch_manager"
+datestamp = "1284310307"
+

@@ -1,0 +1,94 @@
+<?php
+// $Id: systemmask.module,v 1.5 2009/01/13 23:07:32 robinmonks Exp $
+
+/**
+ * @file
+ * Enables the requiring and hiding of designated modules at admin/modules.
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function systemmask_help($path, $arg) {
+  switch ($path) {
+    case 'admin/build/modules#description':
+      return t('Enable the requiring and hiding of designated modules at admin/build/modules.');
+  }
+}
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function systemmask_form_alter(&$form, &$form_state, $form_id) {
+  global $user;
+  $masked = variable_get('systemmask_system', array());
+
+  if ($masked['uid1'] && $user->uid == 1) {
+    return;
+  }
+
+  switch ($form_id) {
+    // Prevent certain modules from displaying in the system modules listing.
+    case 'system_modules':
+      // We ALWAYS disable display of ourselves.
+      unset($form['name']['systemmask'], $form['version']['systemmask'], $form['description']['systemmask'], $form['throttle']['systemmask'], $form['throttle']['#options']['systemmask']);
+      $form['status']['systemmask'] = array('#type' => 'hidden', '#value' => 1);
+      foreach (element_children($form['name']) as $module) {
+        // If module is required, mark it as such.
+        if (is_array($masked['modules']) && is_array($masked['modules']['required']) && in_array($module, $masked['modules']['required'])) {
+          $form['status'][$module] = array('#type' => 'hidden', '#value' => 1, '#suffix' => t('required'));
+          unset($form['throttle'][$module], $form['throttle']['#options'][$module]);
+        }
+        // If module is hidden, pass it as a value and hide it.
+        elseif (is_array($masked['modules']) && is_array($masked['modules']['hidden']) && in_array($module, $masked['modules']['hidden'])) {
+          $form['status'][$module] = array('#type' => 'hidden', '#value' => $form['status'][$module]['#value']);
+          foreach (array('name', 'version', 'description', 'throttle') as $key) {
+            unset($form[$key][$module]);
+          }
+          unset($form['throttle']['#options'][$module]);
+        }
+      }
+      break;
+    case 'user_admin_perm':
+      if (is_array($masked['modules']) && is_array($masked['modules']['hidden'])) {
+        // Determine which modules implement perms.
+        $perm_modules = array_intersect(module_implements('perm'), $masked['modules']['hidden']);
+        // Iterate through the permission elements, unsetting modules.
+        foreach (element_children($form['permission']) as $key) {
+          // Don't take form control structures.
+          // Act only on module names, which have numeric keys.
+          if (is_array($form['permission'][$key]) && is_numeric($key)) {
+            foreach ($perm_modules as $module) {
+              if ($form['permission'][$key]['#value'] == t('!module', array('!module' => $module))) {
+                unset($form['permission'][$key]);
+              }
+            }
+          }
+        }
+        // Unset the permissions.
+        foreach ($perm_modules as $module) {
+          $perms = module_invoke($module, 'perm');
+          foreach ($perms as $perm) {
+            unset($form['permission'][$perm]);
+            
+            foreach (array_keys($form['checkboxes']) as $rid) {
+              $form[$rid] = array(
+                '#tree' => TRUE,
+              );
+              unset($form['checkboxes'][$rid]['#options'][$perm]);
+              
+              if (is_array($form['checkboxes'][$rid]['#default_value']) && in_array($perm, $form['checkboxes'][$rid]['#default_value'])) {
+                unset($form['checkboxes'][$rid]['#default_value'][array_search($perm, $form['checkboxes'][$rid]['#default_value'])]);
+                // Pass the existing value as a #value so that it can be registered.
+                $form['checkboxes'][$rid][$perm] = array(
+                  '#type' => 'value',
+                  '#value' => TRUE,
+                );
+              }
+            }
+          }
+        }
+      }
+      break;
+  }
+}

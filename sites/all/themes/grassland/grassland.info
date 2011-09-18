@@ -1,0 +1,23 @@
+name = Grassland
+description = a ecological theme.
+screenshot = images/screenshot.png
+core = 6.x
+engine = phptemplate
+features[] = name
+features[] = slogan
+features[] = search
+features[] = favicon
+features[] = primary_links
+features[] = secondary_links
+stylesheets[all][] = style.css
+regions[right] = Right sidebar
+regions[left] = Left sidebar
+regions[footer] = Footer
+regions[content_top] = Content Top
+regions[content_bottom] = Content Bottom
+; Information added by drupal.org packaging script on 2009-11-17
+version = "6.x-1.1-beta4"
+core = "6.x"
+project = "grassland"
+datestamp = "1258481797"
+

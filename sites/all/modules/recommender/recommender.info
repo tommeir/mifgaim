@@ -1,0 +1,12 @@
+; $Id: recommender.info,v 1.4 2009/06/29 21:55:22 danithaca Exp $
+name = Recommender API
+description = Generic purpose recommender system algorithms
+package = Recommendation
+core = 6.x
+
+; Information added by drupal.org packaging script on 2010-01-06
+version = "6.x-2.0-beta4"
+core = "6.x"
+project = "recommender"
+datestamp = "1262803506"
+

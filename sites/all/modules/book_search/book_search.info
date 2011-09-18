@@ -1,0 +1,15 @@
+; $Id: book_search.info,v 1.1 2009/03/19 01:39:49 rszrama Exp $
+name = Book Search
+description = Adds a page to the search interface that lets users do a simple search within a specific or all books.
+dependencies[] = book
+dependencies[] = search
+core = 6.x
+php = 5.0
+
+
+; Information added by drupal.org packaging script on 2009-03-19
+version = "6.x-1.0"
+core = "6.x"
+project = "book_search"
+datestamp = "1237427113"
+

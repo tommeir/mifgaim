@@ -1,0 +1,377 @@
+<?php
+// $Id: agreement.module,v 1.1.2.2 2009/11/13 02:03:50 yuriybabenko Exp $
+
+/**
+ * @file
+ * agreement.module - Agreement module code
+ * 
+ * Module allows the administrator to force a user role to accept an agreement
+ * before accessing any site content.
+ */
+
+/*********************************************************************
+  CONFIG
+*********************************************************************/
+
+define('AGREEMENT_PAGE_URL',       'agreement');
+define('AGREEMENT_PAGE_TITLE',      t('Our Agreement'));
+define('AGREEMENT_MESSAGE_SUCCESS', t('Thank you for accepting our agreement!'));
+define('AGREEMENT_MESSAGE_FAILURE', t('You must accept our agreement to continue!'));
+define('AGREEMENT_CHECKBOX_TEXT',   t('I agree.'));
+define('AGREEMENT_SUBMIT_TEXT',     t('Submit'));
+
+/*********************************************************************
+  DRUPAL HOOKS
+*********************************************************************/
+
+/**
+ * Implementation of hook_init().
+ */
+function agreement_init() {
+  // If the user hasn't already agreed, lets trap them on the agreement page.
+  global $user;
+  
+  // Get the user role the agreement is restricted to.
+  $role = check_plain(variable_get('agreement_role', -1));
+
+  // Check to make sure the user belongs to the above role.
+  if (array_key_exists($role, $user->roles)) {
+    $account = _agreement_user($user->uid);
+  
+    // We will not redirect to the agreement page from these URLs.
+    $exceptions = array(
+      check_plain(variable_get('agreement_page_url', AGREEMENT_PAGE_URL)),
+      check_plain(variable_get('site_frontpage', 'node')),
+      'logout',
+    );
+
+    if ((!isset($account->agreed) || !$account->agreed) && !in_array($_GET['q'], $exceptions)) {
+      // Check for enforceable URLs.
+      $enforceable = check_plain(variable_get('agreement_enforceable_pages', ''));	
+	
+	  // Flag to enable or disable the agreement restriction.	
+	  $restrict = FALSE;	
+
+	  // We check the current page URI against those in the enforceable URIs list; if no match we disable the restriction
+      if(!empty($enforceable)) {
+	  	$enforceable = array_map('trim', explode("\n", $enforceable));	
+		
+		$get_q = explode('/', $_GET['q']);
+
+		// Wildcard matching. TODO: REGEX-ify this
+		foreach($enforceable as $uri) {
+		  $uri_parts 		= explode('/', $uri);
+		  $restrict_parts = array();
+
+		  if(sizeof($get_q) >= sizeof($uri_parts)) {			  
+			foreach($uri_parts as $key => $part) {
+			  if($part != $get_q[$key] && $part != '*') {
+				$restrict_parts[] = 0;
+				break;
+			  }
+			  else {
+				$restrict_parts[] = 1;
+			  }
+			}
+	      }
+			
+		  if(!empty($restrict_parts) && !in_array(0, $restrict_parts)) {
+			$restrict = TRUE;	
+		  }
+		}
+  	  }
+
+	  if($restrict) {
+	  	drupal_goto(check_plain(variable_get('agreement_page_url', AGREEMENT_PAGE_URL)));
+        exit();
+	  }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function agreement_menu() {
+  $items = array();
+    
+  $items['admin/settings/agreement'] = array(
+    'access arguments' => array('access administration pages'),
+    'description' => 'Configure settings for the Agreement module.',
+    'page arguments' => array('agreement_settings'),
+    'page callback' => 'drupal_get_form',
+    'title' => 'Agreement Settings',
+    'type' => MENU_NORMAL_ITEM,
+  );
+    
+  $items[check_plain(variable_get('agreement_page_url', AGREEMENT_PAGE_URL))] = array(
+    'access arguments' => array('access content'),
+    'description' => 'The agreement page.',
+    'page callback' => 'agreement_page',
+    'title' => check_plain(variable_get('agreement_page_title', AGREEMENT_PAGE_TITLE)),
+    'type' => MENU_CALLBACK,
+  );
+    
+  return $items;
+}
+
+/**
+ * Implementation of hook_user.
+ */
+function agreement_user($op, &$edit, &$account, $category = NULL) {
+  if ($op == 'login') {
+    $role = check_plain(variable_get('agreement_role', -1));
+
+    if (array_key_exists($role, $account->roles)) {
+      $user = _agreement_user();
+      
+      if (!isset($user->agreed) || !$user->agreed) {
+        // drupal_goto() may not always work.
+        header('Location: '.check_plain(variable_get('agreement_page_url', AGREEMENT_PAGE_URL)));
+        exit();
+      }
+    }
+  }
+}
+
+/**
+ * Implementation of hook_theme.
+ */
+function agreement_theme($existing, $type, $theme, $path) {
+  return array(
+    'agreement_page' => array(
+      'arguments' => array(
+        'form' => NULL, 
+      ),
+    ),
+    'function' => array('theme_agreement_page'),
+  );
+}
+
+/*********************************************************************
+  CALLBACKS
+*********************************************************************/
+
+/**
+ * Callback for admin/settings/agreement
+ * Defines the settings form using FAPI.
+ */
+function agreement_settings() {
+  // When a user changes the URL of the page the menu will need to be rebuilt.
+  // Submitting the form lands the user right back here.
+  menu_rebuild();
+  
+  $form = array();
+  
+  $roles = array_merge(array(-1 => ''), user_roles());
+  unset($roles[1]);
+  
+  $form['agreement_role'] = array(
+    '#description' => t('To users of which role should this agreement be displayed?'),
+    '#default_value' => variable_get('agreement_role', -1),
+    '#options' => $roles,
+    '#required' => TRUE,
+    '#title' => t('User role'),
+    '#type' => 'select',
+  );
+  
+  $form['agreement_text'] = array(
+    '#default_value' => variable_get('agreement_text', ''),
+    '#description' => t('This is the agreement text.'),
+    '#title' => t('Agreement Text'),
+    '#type' => 'textarea',
+  );
+  
+  $form['agreement_page_title'] = array(
+    '#default_value' => variable_get('agreement_page_title', AGREEMENT_PAGE_TITLE),
+    '#description' => t('What should the title of the agreement page be?'),
+    '#title' => t('Agreement Page Title'),
+    '#type' => 'textfield',
+  );
+  
+  $form['agreement_page_url'] = array(
+    '#default_value' => variable_get('agreement_page_url', AGREEMENT_PAGE_URL),
+    '#description' => t('At what URL should the agreement page be located? Relative to site root. No leading or trailing slashes.'),
+    '#required' => TRUE,
+    '#title' => t('Agreement Page URL'),
+    '#type' => 'textfield',
+  );
+  
+  $form['agreement_message_success'] = array(
+    '#default_value' => variable_get('agreement_message_success', AGREEMENT_MESSAGE_SUCCESS),
+    '#description' => t('What message should be displayed to the users once they accept to the agreement?'),
+    '#title' => t('Agreement Success Message'),
+    '#type' => 'textfield',
+  );
+  
+  $form['agreement_message_failure'] = array(
+    '#default_value' => variable_get('agreement_message_failure', AGREEMENT_MESSAGE_FAILURE),
+    '#description' => t('What message should be displayed to the users if they do not accept the agreement?'),
+    '#title' => t('Agreement Failure Message'),
+    '#type' => 'textfield',
+  );
+    
+  $form['agreement_checkbox_text'] = array(
+    '#default_value' => variable_get('agreement_checkbox_text', AGREEMENT_CHECKBOX_TEXT),
+    '#description' => t('This text will be displayed next to the "I agree" checkbox.'),
+    '#required' => TRUE,
+    '#title' => t('Agreement Checkbox Text'),
+    '#type' => 'textfield',
+  );
+  
+  $form['agreement_submit_text'] = array(
+    '#default_value' => variable_get('agreement_submit_text', AGREEMENT_SUBMIT_TEXT),
+    '#description' => t('This text will be displayed on the "Submit" button.'),
+    '#required' => TRUE,
+    '#title' => t('Agreement Submit Text'),
+    '#type' => 'textfield',
+  );
+  
+  $form['agreement_enforceable_pages'] = array(
+    '#default_value' => variable_get('agreement_enforceable_pages', ''),
+    '#description' => t('Enter relative paths (one per line) on which you wish the agreement to show up. Leave blank to have the agreement show up on all pages. The front page, logout page, and the Agreement module\'s settings page are always excluded.'),
+    '#required' => FALSE,
+    '#title' => t('Enforceable Pages'),
+    '#type' => 'textarea',
+  );
+  
+  return system_settings_form($form);
+}
+
+/**
+ * Callback for agreement URL
+ */
+function agreement_page() {
+  global $user;
+  
+  // Redirect anonymous users to the home page.
+  if (!$user->uid) {
+    drupal_goto('<front>');
+  }
+  
+  $account = _agreement_user();
+  
+  $text = check_plain(variable_get('agreement_text', ''));
+  $data = drupal_get_form('agreement_form', $text, $account->agreed, $account->uid);
+  
+  $output = theme('agreement_page', $data);
+  return $output;
+}
+
+/*********************************************************************
+  THEMING
+*********************************************************************/
+
+/**
+ * Format the agreement page.
+ * 
+ * @ingroup themeable
+ */
+function theme_agreement_page($form) {
+  $output = $form;
+  return $output;
+}
+
+/*********************************************************************
+  FORMS
+*********************************************************************/
+
+/**
+ * FAPI definition for the agreement form.
+ * 
+ * @ingroup forms
+ * @see agreement_form_validate()
+ * @see agreement_form_submit()
+ */
+function agreement_form($form, $text, $status = 0, $uid = -1) {
+  $form = array();
+  
+  $form['agreement_terms'] = array(
+    '#default_value' => $text,
+    '#disabled' => TRUE,
+    '#rows' => 20,
+    '#type' => 'textarea',
+  );
+  
+  $form['uid'] = array(
+    '#value' => $uid,
+    '#type' => 'hidden',
+  );
+  
+  if (!$status) {
+    $form['agree'] = array(
+      '#default_value' => $status,
+      '#title' => check_plain(t(variable_get('agreement_checkbox_text', AGREEMENT_CHECKBOX_TEXT))),
+      '#type' => 'checkbox',    
+    );
+    
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => check_plain(t(variable_get('agreement_submit_text', AGREEMENT_SUBMIT_TEXT))),
+    );
+  }
+  
+  return $form;
+}
+
+/**
+ * Validation handler for agreement_form()
+ * 
+ * @ingroup forms
+ * @see agreement_form()
+ * @see agreement_form_submit()
+ */
+function agreement_form_validate($form, &$form_state) {
+  if (!$form_state['values']['agree']) {
+    form_set_error('agree', t(AGREEMENT_MESSAGE_FAILURE));
+  }
+}
+
+/**
+ * Submit handler for agreement_form()
+ * 
+ * @ingroup forms
+ * @see agreement_form()
+ * @see agreement_form_validate()
+ */
+function agreement_form_submit($form, &$form_state) {
+  $uid = $form_state['values']['uid'];
+  $agree = $form_state['values']['agree'];
+  
+  db_query("DELETE FROM {agreement} WHERE uid='%d'", $uid);
+  db_query("INSERT INTO {agreement} (uid, agreed) VALUES (%d, %d)", $uid, $agree);
+  
+  drupal_set_message(AGREEMENT_MESSAGE_SUCCESS);
+  
+  drupal_goto('<front>');
+}
+
+/*********************************************************************
+  INTERNAL
+*********************************************************************/
+
+/**
+ * Internal function to get the user's "agreement status".
+ * @return Database row from the agreement table as an object.
+ * @param object $uid[optional] - UID for which the status should be checked. Defaults to current user.
+ */
+function _agreement_user($uid = NULL) {
+  // If the UID is not specified, use the current user.
+  if (empty($uid)) {
+    global $user;
+    $uid = $user->uid;  
+  }
+  
+  $query = "SELECT agreed FROM {agreement} WHERE uid='%d'";
+  $result = db_query_range($query, $uid, 0, 1);
+
+  while ($data = db_fetch_object($result)) {  	
+    return $data;
+    break;
+  }
+
+  // Default to current user in case there are no results.
+  $default->uid = $uid;
+  
+  return $default;
+}

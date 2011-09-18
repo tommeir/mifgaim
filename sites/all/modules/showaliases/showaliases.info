@@ -1,0 +1,12 @@
+; $Id: showaliases.info,v 1.1.2.1 2009/11/27 00:54:35 agaric Exp $
+name = Show aliases
+description = "[showaliases] Show aliases module shows people all url aliases (paths) assigned to a node from within the node edit page."
+package = Administration
+core = 6.x
+
+; Information added by drupal.org packaging script on 2009-11-27
+version = "6.x-1.0"
+core = "6.x"
+project = "showaliases"
+datestamp = "1259285751"
+

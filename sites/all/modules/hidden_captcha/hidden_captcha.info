@@ -1,0 +1,13 @@
+; $Id: hidden_captcha.info,v 1.1.2.1 2010/06/29 05:55:33 alexiswilke Exp $
+name = "Hidden CAPTCHA"
+description = "The hidden CAPTCHA creates a hidden box (requires CSS) that the user must NOT fill. This is useful only to block robots."
+package = "Spam control"
+dependencies[] = captcha
+core = 6.x
+
+; Information added by drupal.org packaging script on 2010-10-11
+version = "6.x-1.1"
+core = "6.x"
+project = "hidden_captcha"
+datestamp = "1286836866"
+

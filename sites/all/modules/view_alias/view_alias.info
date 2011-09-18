@@ -1,0 +1,13 @@
+name = ViewAlias
+description = enhance pathauto to create path alias based on views and term arguments.
+core = 6.x
+package = Other
+dependencies[] = pathauto
+dependencies[] = views 
+
+; Information added by drupal.org packaging script on 2010-02-26
+version = "6.x-2.1"
+core = "6.x"
+project = "view_alias"
+datestamp = "1267199415"
+

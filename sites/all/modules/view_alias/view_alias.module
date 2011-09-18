@@ -1,0 +1,223 @@
+<?php
+
+/**
+ * @file
+ * Hook implementations for view alias module integration.
+ *
+ * @ingroup pathauto
+ */
+
+/**
+ * Implementation of hook_pathauto().
+ */
+function view_alias_pathauto($op) {
+  switch ($op) {
+    case 'settings':
+      $settings = array();
+      $settings['module'] = 'view_alias';
+      $settings['token_type'] = 'view_alias';
+      $settings['groupheader'] = t('View Alias settings');
+      $settings['patterndescr'] = t('Default View Alias pattern (applies to all views with a term argument and page display)');
+      $settings['patterndefault'] = t('');
+      $settings['bulkname'] = t('Bulk generate aliases for views with term arguments that are not aliased');
+      $settings['bulkdescr'] = t('Generate aliases for all existing views with term arguments which do not already have aliases.');
+      
+      // left out patterns since we dont use them.
+      $settings['placeholders'] = array( t('[cat-raw]'), t('The View argument taxonomy name'));
+      
+      $settings['patternitems'] = array();
+      return (object) $settings;
+
+    default:
+      break;
+  }
+}
+
+/**
+ * 
+ * Do the bulk updating for view aliases
+ *
+ */
+function view_alias_pathauto_bulkupdate() {
+  $aliasable = _get_aliasable_displays();
+  foreach ($aliasable as $alias) {
+    if (variable_get("pathauto_view_alias_{$alias->path}", FALSE)) {
+      $terms = taxonomy_get_tree($alias->varg);
+      foreach ($terms as $term) {
+        view_alias_create_alias($term, $alias, 'bulkupdate');
+      }
+    }
+  }
+}
+
+/**
+ *
+ * Implementation of hook_path_alais_types from pathauto
+ * allows me to hook into the bulk delete
+ *
+ */
+function view_alias_path_alias_types() {
+  $aliasable = _get_aliasable_displays();
+  foreach($aliasable as $alias) {
+    $objects["$alias->path"] = t("View page displays having a path of '$alias->path'");
+  }
+
+  return $objects;  
+}
+
+/**
+ *
+ * Implementation of hook_form_alter
+ * remove the default form settings and add our own since view alias are different from the regular
+ * alaises
+ *
+ */
+function view_alias_form_alter(&$form, $form_state, $form_id) {
+  if($form_id == 'pathauto_admin_settings') {
+    
+    unset($form['view_alias']['pathauto_view_alias_pattern']);
+    unset($form['view_alias']['token_help']);
+    $form['view_alias']['views_to_alias'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Views available for aliasing'),
+      '#description' => t('Check the views for which aliases should be bulk generated.'),
+      '#weight' => -1,
+    );
+
+    $aliasable = _get_aliasable_displays();
+    foreach($aliasable as $alias) {
+      $voc = taxonomy_vocabulary_load($alias->varg);
+      $form['view_alias']['views_to_alias']["pathauto_view_alias_{$alias->path}"] = array(
+        '#type' => 'checkbox',
+        '#title' => t("View $alias->view_name, display $alias->display_name, on path $alias->path, with $voc->name arguments."),
+        '#weight' => -1,
+        '#default_value' => variable_get("pathauto_view_alias_{$alias->path}", 0),
+      );
+    }
+  }
+}
+
+/**
+ * Implementation of hook_taxonomy().
+ */
+function view_alias_taxonomy($op, $type, $array = NULL) {
+  if ($type == 'term') {
+    $term = (object) $array;
+    $aliasable = _get_aliasable_displays();
+    foreach ($aliasable as $alias) {
+      if ($alias->varg == $term->vid) {
+        if ($op == 'delete') {
+          view_alias_delete_alias($term, $alias);
+        }
+        else {
+          view_alias_create_alias($term, $alias, $op);
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Given a term, generate its view aliases.
+ */
+function view_alias_create_alias($term, $alias, $op) {
+  module_load_include('inc', 'pathauto');
+  
+  // switch around the pattern based on if the term id is contained within the new alias
+  if (strpos($alias->path, '%') === FALSE) {    
+    $source = "$alias->path/$term->tid";
+    $GLOBALS['conf']['pathauto_view_alias_pattern'] = $alias->path."/[cat-raw]";
+  }
+  else {
+    $source = str_replace('%', $term->tid, $alias->path);
+    $GLOBALS['conf']['pathauto_view_alias_pattern'] = str_replace('%', '[cat-raw]', $alias->path);
+  }
+  
+  $placeholders = array(
+    'tokens' => array(t('[cat-raw]')),
+    'values' => array(pathauto_cleanstring($term->name)),
+  );
+  
+  $alias_path = pathauto_create_alias('view_alias', $op, $placeholders, $source, $alias->path);
+  unset($GLOBALS['conf']['pathauto_view_alias_pattern']);
+  return $alias_path;
+}
+
+/**
+ * Delete an alias set by View Alias.
+ */
+function view_alias_delete_alias($term, $alias) {
+  $alias_path = view_alias_create_alias($term, $alias, 'update');
+  path_set_alias(NULL, $alias_path);
+}
+
+/**
+ *
+ * find the views that can be aliased.
+ * that means have a path url and use a term id as an argument
+ * build and array of objects, keyed with the view name, having the view path, and the vocab id for the terms used
+ * array(
+ *   0 => 
+ *     object ( 
+ *       'view_name' -> 'viewname'
+ *       'display_name' -> 'display name'
+ *       'path' -> 'view url path'
+ *       'varg' -> 'vocabulary id'
+ *     ) 
+ * )
+ */
+function _get_aliasable_displays() {
+  $aliasable_views = array();
+
+  $sql = "SELECT DISTINCT(vv.name) FROM {views_view} vv JOIN {views_display} vd ";
+  $sql .= "ON vv.vid = vd.vid where vd.display_plugin = 'page'";
+  
+  $result = db_query($sql);
+  while($row = db_fetch_object($result)) {
+    $aview = views_get_view($row->name);
+    $alias = NULL;
+    $alias->view_name = $row->name;
+    $default_vocab_arg;
+    
+    foreach($aview->display as $key => $display) {
+      // check default for args and save for later
+      $alias->display_name = $key;
+      
+      if($key == 'default') {
+        $alias->varg = _find_view_arguments($display);
+        continue;
+      }
+      // its some sort of page cause the query says so.
+      else {
+        //dpr($display);
+        // add the page and replace overridden args.
+        $alias->path = $display->display_options['path'];       
+        $overridden = _find_view_arguments($display);
+        if($overridden) { 
+          $alias->varg = $overridden;
+        }
+      }
+      if(!empty($alias->path) && !empty($alias->varg))   
+        $aliasable_views[] = drupal_clone($alias);
+    }
+
+  }
+
+  return $aliasable_views;
+}
+
+/**
+ * helper to dig out the view arguments.
+ */
+function _find_view_arguments($display) {
+  $dis_args = $display->display_options['arguments']['tid'];
+  // array_sum is used since if no vocabularies are selected, the sum of the argumets will be 0
+  // and we need to make sure there is a vocabular set.
+
+  if($dis_args['validate_argument_type'] == 'tid' && array_sum($dis_args['validate_argument_vocabulary']) > 0) {
+    // remove zero entries
+    $no_zeroes = array_diff($dis_args['validate_argument_vocabulary'], array(0));
+    return implode(",", $no_zeroes);
+  }
+  return FALSE; 
+}

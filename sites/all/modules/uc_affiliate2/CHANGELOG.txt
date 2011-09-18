@@ -1,0 +1,61 @@
+CHANGELOG for the uc_affiliate2 module
+
+Version 2.5
+*************
+2009/05/13
+-- disabled the "Upline" page by default (you can enable it in Settings if you want)
+-- removed subdomain support (see drupal.org/project/domain for the right way to do this)
+-- the cookie tracking settings are now general, no longer per role
+-- removed the "switch after" setting for cookied roles. It was unused and confusing.
+
+-- functionality for admin's to appy/remove commission from an order.
+-- separate tab to view the commissions on an order (with functionality to edit or remove specific commission)
+-- add optional feature to allow subsequent orders for a member to credit the commissions back to the previous affiliate.
+-- add CA support [trigger: commission_applied], [conditions: has_affiliate, check_commission, check_level], [actions: override_commission, send_affiliate_email]
+-- add token support for the affiliate email
+-- add 'level' field to the commission table
+-- add an advanced rule based product commissions options for defining commission structures
+-- support fixed commissions as well as percentage
+
+-- separate the code for applying the commissions from the hook_order() function
+-- split functionality from *.module to a *.user.inc and *.admin.inc files
+-- separate affiliate settings page into 3 tabs for banners, commissions and settings.
+
+-- fixed reporting so that users in different timezone will all see the same result
+-- optimized the affiliate/links page. Added pagination to the HTML export.
+-- many small fixes
+
+Version 2.5rc1
+**************
+-- translation updates (some strings weren't translatable)
+-- Reimplemented the uc_affiliate2_clicks function. 
+-- updated the commission removal routines, we don't try to remove commissions that aren't there anymore :)
+-- simplified the admin_users form code ( for amounts paid to the affiliate). Thanks to freakalis for the tip
+-- we are now compatible with PostgreSQL. Thanks to Chris (cjscullyca) for his query fixes.
+-- fixes to the code we use to generate timestamps and get records from the db. Should be problem free now.
+-- the affiliate url now uses user id's instead of names. Old urls still supported, of course. Thanks to lonehorseend.
+-- add support for customizable affiliate URL schemes (by jjeff)
+-- use prices with VAT / taxes. Thanks to kenwen/longwave
+-- support for disabling commission for certain payment methods (which means we work with uc_free_order in the mix).
+-- added support for "ignoring" a product (exclude from generated links, calculated commission) by setting it's commission to 0.
+-- fix for "affiliate code generation user issue" (allow generating links for users other than the current one)
+-- fixed error in Downline when ordering by Level (disabled, not possible for now)
+-- fixed error in admin/store/manage (remove option to sort by clicks, users, orders, not possible for now)
+
+Version 2.0
+***********
+2009/05/06
+Rewrites & cleanups all over the place.
+-- port to drupal6/ubercart2.
+-- rewrote menu code.
+-- rewrote code that used tapir to use the drupal table api.
+-- rewrote the dashboard code (counters were incorrect, code was ugly)
+-- new date&time handling code, fixes issues on some configurations.
+-- removed old timezone handling code. Handling it the drupal way.
+-- reworked the monthly_report admin_users functions. They were ugly & slow (N+1 queries problem)
+-- you can now select multiple statuses for which to award commissions.
+-- cancelling an order ( or changing from an "award" status) will now remove the commission.
+-- removed the counts table, running live queries now. Less bug-prone.
+-- added the "all orders" tab to the affiliate dashboard. Shows all orders by status created with the affiliate's id.
+-- added a more detailed unique clicks view, displaying user ip, if the cookie was set, etc.
+-- many bugfixes and smaller changes.

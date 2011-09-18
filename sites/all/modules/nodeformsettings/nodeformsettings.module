@@ -1,0 +1,368 @@
+<?php
+// $Id$
+
+/**
+ * @file
+ *
+ * main file, only one hook_form_alter
+ * to change several settings
+ *
+ * TODO: Divide everything in individual functions
+ * for easier maintainance
+ */
+
+/**
+ * Implementation of hook_form_alter()
+ * 
+ * Some code taken from http://drupal.org/node/225955
+ */
+function nodeformsettings_form_alter(&$form, $form_state, $form_id) {
+	//$form['form_array'] = array('#value' => '<pre>'. print_r($form, 1) . '</pre>');
+	if ($form_id == 'node_type_form') {
+		
+		// To set height of body textarea (1 for textfield)
+		$form['submission']['submission_body_rows'] = array(
+			'#title' => t("Body field size"),
+			'#type' => 'textfield',
+			'#size' => 5,
+			'#default_value' => variable_get('submission_body_rows_'. $form['#node_type']->type, '20'),
+			'#description' => t("Amount of rows to determine the height of the body field. Enter 1 to get a textfield instead of a textarea.")
+		);
+		
+		// Option to hide the node title
+		$form['workflow']['hidetitle'] = array(
+			'#type' => 'radios',
+			'#title' => t("Hide the node title"),
+			'#options' => array(0 => t("Show the node title"), 1 => t("Hide the node title")),
+			'#description' => t("This setting controlls wether or not the node title is displayed when viewing the node. The title field is going to appear on the 'create node' form regardless of these settings. To avoid its display and automatically create nodetitles ou can use the module !url", array('!url' => l(t('Automatic Nodetitles'), 'http://drupal.org/project/auto_nodetitle', $options = array('attributes' => array('target' => '_blank'))))),
+			'#default_value' => variable_get('hidetitle_'. $form['#node_type']->type, 0),
+		);
+		
+		// Comments form Settings
+		if (isset($form['identity']['type'])) {
+			$form['comment']['commentformsettings_author'] = array(
+				'#type' => 'radios',
+				'#title' => t("Comment author name"),
+				'#options' => array(1 => t("Disabled"),0 => t("Enabled")),
+				'#default_value' => variable_get('commentformsettings_author_'. $form['#node_type']->type, 0),
+			);
+			$form['comment']['commentformsettings_preview'] = array(
+				'#type' => 'radios',
+				'#title' => t("Preview button"),
+				'#options' => array(1 => t("Disabled"),0 => t("Enabled")),
+				'#default_value' => variable_get('commentformsettings_preview_'. $form['#node_type']->type, 0),
+				'#description' => t("Important: If you set the Preview button to <em>Required</em> you need to show the button here"),
+			);
+			$form['comment']['commentformsettings_title'] = array(
+				'#type' => 'radios',
+				'#title' => t("Hide the word 'Comment'"),
+				'#options' => array(1 => t("Disabled"),0 => t("Enabled")),
+				'#default_value' => variable_get('commentformsettings_title_'. $form['#node_type']->type, 0),
+			);
+			$form['comment']['commentformsettings_inputformat'] = array(
+				'#type' => 'radios',
+				'#title' => t("Input Format Fieldset"),
+				'#options' => array(1 => t("Disabled"),0 => t("Enabled")),
+				'#default_value' => variable_get('commentformsettings_inputformat_'. $form['#node_type']->type, 0),
+			);
+			$form['comment']['commentformsettings_size'] = array(
+				'#type' => 'textfield',
+				'#title' => t("Size of the comment textarea"),
+				'#default_value' => variable_get('commentformsettings_size_'. $form['#node_type']->type, 15),
+			);
+			$form['comment']['commentformsettings_submit'] = array(
+				'#type' => 'textfield',
+				'#title' => t("Submit button title"),
+				'#default_value' => t(variable_get('commentformsettings_submit_'. $form['#node_type']->type, "Save")),
+			);
+			
+			// Anonymous comments settings		
+			$form['comment']['commentformsettings_anonymousname'] = array(
+				'#type' => 'radios',
+				'#title' => t("Anonymous comment Name field"),
+				'#options' => array(1 => t("Disabled"),0 => t("Enabled")),
+				'#default_value' => variable_get('commentformsettings_anonymousname_'. $form['#node_type']->type, 0),
+				'#description' => t("If disabled, the Comment Form for anonymous users will not show the Name field. You should use this with caution, because you might have comments without knowing who posted them"),
+			);
+			$form['comment']['commentformsettings_anonymousmail'] = array(
+				'#type' => 'radios',
+				'#title' => t("Anonymous comment E-mail field"),
+				'#options' => array(1 => t("Disabled"),0 => t("Enabled")),
+				'#default_value' => variable_get('commentformsettings_anonymousmail_'. $form['#node_type']->type, 0),
+				'#description' => t("If disabled, the Comment Form for anonymous users will not show the E-mail field."),
+			);
+			$form['comment']['commentformsettings_anonymoushomepage'] = array(
+				'#type' => 'radios',
+				'#title' => t("Anonymous comment Homepage field"),
+				'#options' => array(1 => t("Disabled"),0 => t("Enabled")),
+				'#default_value' => variable_get('commentformsettings_anonymoushomepage_'. $form['#node_type']->type, 0),
+				'#description' => t("If disabled, the Comment Form for anonymous users will not show the Homepage field."),
+			);
+		}
+		
+		// Node Form Settings
+		$form['nodeformsettings'] = array(
+			'#type' => 'fieldset',
+			'#title' => t("Node form settings"),
+			'#collapsible' => TRUE,
+			'#collapsed' => TRUE,
+			'#group' => 'nodeformsettings',
+		);
+		$form['nodeformsettings']['nodeformsettings_splitsummary'] = array(
+			'#title' => t("Split Summary Button"),
+			'#type' => 'radios',
+			'#options' => array(1 => t("Disabled"),0 => t("Enabled")),
+			'#default_value' => variable_get('nodeformsettings_splitsummary_'.  $form['#node_type']->type, 0),
+		);
+		$form['nodeformsettings']['nodeformsettings_inputformat'] = array(
+			'#title' => t("Input Form Fieldset"),
+			'#type' => 'radios',
+			'#options' => array(1 => t("Disabled"),0 => t("Enabled")),
+			'#default_value' => variable_get('nodeformsettings_inputformat_'. $form['#node_type']->type, 0),
+		);
+		$form['nodeformsettings']['nodeformsettings_revisionlog'] = array(
+			'#title' => t("Revision log message field"),
+			'#type' => 'radios',
+			'#options' => array(
+			  '0' => t("Enabled (if revisions are enabled)"), 
+			  '1' => t("Only show when user has <a href=\"!url\">View Revisions permission</a>", array('!url' => url('admin/user/permissions', array('fragment' => 'edit-1-view-revisions-wrapper')))), 
+			  '2' => t("Disabled (for all users)")),
+			'#default_value' => variable_get('nodeformsettings_revisionlog_'. $form['#node_type']->type, 0),
+		);
+		$form['nodeformsettings']['nodeformsettings_preview'] = array(
+			'#title' => t("Preview Button"),
+			'#type' => 'radios',
+			'#options' => array(1 => t("Disabled"),0 => t("Enabled")),
+			'#default_value' => variable_get('nodeformsettings_preview_'. $form['#node_type']->type, ''),
+			'#disabled' => FALSE,
+		);
+		if(variable_get('node_preview', 1)) {
+			variable_set('nodeformsettings_preview_'. $form['#node_type']->type, 0);
+			$form['nodeformsettings']['nodeformsettings_preview']['#disabled'] = TRUE;
+			$form['nodeformsettings']['nodeformsettings_preview']['#description'] = t('If you want to disable the Preview button, go to !url and change the "Preview Post" option to "Optional"', array('!url' => l(t('Post settings'), 'admin/content/node-settings')));
+		}
+		$form['nodeformsettings']['nodeformsettings_cancel'] = array(
+			'#title' => t("Show a Cancel Button"),
+			'#type' => 'radios',
+			'#options' => array(1 => t("Disabled"),0 => t("Enabled")),
+			'#default_value' => variable_get('nodeformsettings_cancel_'. $form['#node_type']->type, 1),
+		);
+		$form['nodeformsettings']['nodeformsettings_submit'] = array(
+			'#title' => t("Submit button title"),
+			'#type' => 'textfield',
+			'#default_value' => t(variable_get('nodeformsettings_submit_'. $form['#node_type']->type, 'Save')),
+		);
+		
+		// jQuery effect for hidding/showing options dynamically
+		// We do this to hide the anonymous options if the radio is not set to users 'might leave their information'
+		drupal_add_js(drupal_get_path('module', 'nodeformsettings') .'/nodeformsettings.js');
+		
+		$form['comment']['comment_anonymous']['#prefix'] = '<div class="nodeformsettings-radios">';
+		$form['comment']['comment_anonymous']['#suffix'] = '</div>';
+		$css_class .= 'nodeformsettings-show-settings';
+		if(user_access('post comments', drupal_anonymous_user())) {
+			$can_comment = variable_get('comment_anonymous_' . $form['#node_type']->type, COMMENT_ANONYMOUS_MAYNOT_CONTACT);
+			if(!$can_comment) {
+				$css_class .= ' js-hide';
+			}
+			if($form['comment']['comment_anonymous']['#default_value'] == $can_comment) {
+				$form['comment']['commentformsettings_anonymousname']['#prefix'] = '<div class="' . $css_class . '">';
+				$form['comment']['commentformsettings_anonymousname']['#suffix'] = '</div>';
+				$form['comment']['commentformsettings_anonymousmail']['#prefix'] = '<div class="' . $css_class . '">';
+				$form['comment']['commentformsettings_anonymousmail']['#suffix'] = '</div>';
+				$form['comment']['commentformsettings_anonymoushomepage']['#prefix'] = '<div class="' . $css_class . '">';
+				$form['comment']['commentformsettings_anonymoushomepage']['#suffix'] = '</div>';
+			}
+		}
+		else {
+			$css_class .= ' js-hide';
+			$form['comment']['commentformsettings_anonymousname']['#prefix'] = '<div class="' . $css_class . '">';
+			$form['comment']['commentformsettings_anonymousname']['#suffix'] = '</div>';
+			$form['comment']['commentformsettings_anonymousmail']['#prefix'] = '<div class="' . $css_class . '">';
+			$form['comment']['commentformsettings_anonymousmail']['#suffix'] = '</div>';
+			$form['comment']['commentformsettings_anonymoushomepage']['#prefix'] = '<div class="' . $css_class . '">';
+			$form['comment']['commentformsettings_anonymoushomepage']['#suffix'] = '</div>';
+		}
+		
+		// For node preview options		
+		$form['comment']['comment_preview']['#prefix'] = '<div class="nodeformsettings-radios-preview">';
+		$form['comment']['comment_preview']['#suffix'] = '</div>';
+		$css_class_preview .= 'nodeformsettings-show-preview';
+		$preview = variable_get('comment_preview_' . $form['#node_type']->type, COMMENT_PREVIEW_REQUIRED);
+		if(!$preview) {
+			$css_class_preview .= ' js-hide';
+		}
+		if($form['comment']['comment_preview']['#default_value'] == $preview) {
+			$form['comment']['commentformsettings_preview']['#prefix'] = '<div class="' . $css_class_preview . '">';
+			$form['comment']['commentformsettings_preview']['#suffix'] = '</div>';
+		}
+		else {
+			$css_class_preview = 'nodeformsettings-show-preview';
+			$form['comment']['commentformsettings_preview']['#prefix'] = '<div class="' . $css_class_preview . '">';
+			$form['comment']['commentformsettings_preview']['#suffix'] = '</div>';
+		}
+		
+		// We do this to order all the options, if we don't do this, the options make no sense
+		$form['comment']['comment']['#weight'] = 0;
+		$form['comment']['comment_default_mode']['#weight'] = 1;
+		$form['comment']['comment_default_order']['#weight'] = 2;
+		$form['comment']['comment_default_per_page']['#weight'] = 3;
+		$form['comment']['comment_controls']['#weight'] = 4;
+		$form['comment']['comment_anonymous']['#weight'] = 5;
+		$form['comment']['commentformsettings_anonymousname']['#weight'] = 6;
+		$form['comment']['commentformsettings_anonymousmail']['#weight'] = 7;
+		$form['comment']['commentformsettings_anonymoushomepage']['#weight'] = 8;
+		$form['comment']['comment_subject_field']['#weight'] = 9;
+		$form['comment']['commentformsettings_author']['#weight'] = 10;
+		$form['comment']['comment_preview']['#weight'] = 11;
+		$form['comment']['commentformsettings_preview']['#weight'] = 12;
+		$form['comment']['comment_form_location']['#weight'] = 13;
+		$form['comment']['commentformsettings_title']['#weight'] = 14;
+		$form['comment']['commentformsettings_inputformat']['#weight'] = 15;
+		$form['comment']['commentformsettings_size']['#weight'] = 16;
+		$form['comment']['commentformsettings_submit']['#weight'] = 17;
+	}
+	
+	if($form_id == 'node_configure') {
+		if(variable_get('node_preview', '') == 0) {
+			$form['node_preview']['#description'] = t("If you change this setting to Required, the Preview button of all your content types will be set to Enabled");
+		}
+		if(variable_get('node_preview', '') == 1) {
+			$types = node_get_types();
+			foreach($types as $type => $value) {
+				variable_set("nodeformsettings_preview_$type", 0);
+			}
+		}
+	}
+	
+	if(isset($form['type']) && isset($form['#node']) && $form['type']['#value'] . '_node_form' == $form_id) {
+		$node = $form['#node'];
+		
+		// Change the default height of the body field
+    if(1 == variable_get('submission_body_rows_'. $node->type, '') && $form['body_field']['body']) {
+      $form['body_field']['body']['#type'] = 'textfield';
+    }
+    else if(variable_get('submission_body_rows_'. $node->type, '') && $form['body_field']['body']) {
+      $form['body_field']['body']['#rows'] = variable_get('submission_body_rows_'. $node->type, '');
+    }
+    
+		// Node settings
+		// Hide the 'Split Summary at Cursor' button
+		if(variable_get('nodeformsettings_splitsummary_'. $node->type, '') == 1) {
+			$form['body_field']['teaser_include'] = array(
+				'#type' => 'value',
+				'#value' => TRUE,
+			);
+		}
+		// Hide the Input Format Fieldset
+		if(variable_get('nodeformsettings_inputformat_'. $node->type, '') == 1) {
+			unset($form['body_field']['format']);
+		}
+		
+	  // Hide the Revision log message field
+		if(variable_get('nodeformsettings_revisionlog_'. $node->type, '') == 1) {
+		  $form['revision_information']['#access'] = user_access('view revisions');
+		}
+		elseif(variable_get('nodeformsettings_revisionlog_'. $node->type, '') == 2) {
+		  $form['revision_information']['#access'] = FALSE;
+		}
+		
+		// Hide the preview button
+		if(variable_get('nodeformsettings_preview_'. $node->type, '') == 1) {
+			unset($form['buttons']['preview']);
+		}
+		// Change the default value for the submit button
+		if(variable_get('nodeformsettings_submit_'. $node->type, '')) {
+			$form['buttons']['submit']['#value'] = t(variable_get('nodeformsettings_submit_'. $node->type, ''));
+		}
+		
+		// Show a Cancel link
+		// Patch from http://drupal.org/node/116939
+		// Thanks to rkerr http://drupal.org/user/20129 and quicksketch (http://drupal.org/user/35821)
+		if(!variable_get('nodeformsettings_cancel_'. $node->type, '')) {
+			// Generate a URL for the cancel link.
+			if (!isset($_REQUEST['destination']) || $_REQUEST['destination'] == $_GET['q']) {
+				$url['path'] = !empty($node->nid) ? 'node/'. $node->nid : '<front>';
+			}
+			else {
+			  // parse url to split it up to its components
+			  $url = parse_url(urldecode($_REQUEST['destination']));
+			}
+			
+			$form['buttons']['cancel'] = array(
+				'#type' => 'markup',
+				'#value' => l(t('Cancel'), $url['path'], array('query' => $url['query'], 'fragment' => $url['fragment'], 'attributes' => array('class' => 'form-button form-button-cancel'))),
+				'#weight' => 51
+			);
+		}
+	}
+	
+	if('comment_form' == $form_id) {
+			// on comment_form there's no $form['#node'] so we can't load the $node->type
+			// we just take the argument
+			// since we don't have node/nid when creating a comment on a separate form
+			// we have to filter the two cases to check what argument to take and load
+			// the node
+			// TODO: find a better way to do this
+			
+			if(arg(0) == 'node' && is_numeric(arg(1))) {
+				$node = node_load(arg(1));
+			}
+			if(arg(0) == 'comment' && arg(1) == 'reply' && is_numeric(arg(2))) {
+				$node = node_load(arg(2));
+			}
+			// User profile (When using content profile)
+			if(module_exists('content_profile')) {
+				if(arg(0) == 'user' && is_numeric(arg(1))) {
+					$content = array();
+					foreach (content_profile_get_types('names') as $type => $type_name) {
+						$node = content_profile_load($type, arg(1));
+						if($node){ break; }
+					}
+				}
+			}
+
+			// Comments settings
+			if(variable_get('commentformsettings_author_'. $node->type, '') == 1) {
+				unset($form['_author']);	
+			}
+			if(variable_get('commentformsettings_preview_'. $node->type, '') == 1) {
+				unset($form['preview']);
+			}
+			if(variable_get('commentformsettings_title_'. $node->type, '') == 1) {
+				unset($form['comment_filter']['comment']['#title']);
+			}
+			if(variable_get('commentformsettings_inputformat_'. $node->type, '') == 1) {
+				unset($form['comment_filter']['format']);
+			}
+			
+			// For anonymous comments
+			if(variable_get('commentformsettings_anonymousname_'. $node->type, '') == 1) {
+				unset($form['name']);
+			}
+			if(variable_get('commentformsettings_anonymousmail_'. $node->type, '') == 1) {
+				unset($form['mail']);
+			}
+			if(variable_get('commentformsettings_anonymoushomepage_'. $node->type, '') == 1) {
+				unset($form['homepage']);
+			}
+			if(variable_get('comment_preview_'. $node->type, 1) == 0) {
+				$form['submit']['#value'] = t(variable_get('commentformsettings_submit_'. $node->type, "Save"));
+			}
+			$form['comment_filter']['comment']['#rows'] = variable_get('commentformsettings_size_'. $node->type, 15);
+	}
+	
+}
+
+/**
+ * From http://drupal.org/node/426482
+ */
+function nodeformsettings_preprocess_page(&$vars) {
+  // Titles are ignored by content type when they are not desired in the design.
+  $vars['original_title'] = $vars['title'];
+  if(variable_get('hidetitle_'. $vars['node']->type, '') == 1) {
+    $vars['title'] = '';
+  }
+
+}
+

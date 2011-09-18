@@ -1,0 +1,26 @@
+<?php
+// $Id: admin_hover.install,v 1.1.4.2 2009/01/02 18:32:44 conortm Exp $
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function admin_hover_uninstall() {
+  // Delete variables.
+  global $conf;
+  db_query("DELETE FROM {variable} WHERE name LIKE 'admin_hover%%'");
+  cache_clear_all('variables', 'cache');
+  unset($conf[$name]);
+}
+
+/**
+ * Check for Token module. Rebuild menu.
+ */
+function admin_hover_update_6100() {
+  $ret = array();
+  if (!module_exists('token')) {
+    module_disable(array('admin_hover'));
+    drupal_set_message(t('Admin:hover now depends on the <a href="@url">Token module</a>. Please download and install Token before re-enabling Admin:hover. Thanks!', array('@url' => 'http://www.drupal.org/project/token')), 'error');
+  }
+  menu_rebuild();
+  return $ret;
+}

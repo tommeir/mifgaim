@@ -1,0 +1,118 @@
+<?php
+// $Id: recommender.install,v 1.6 2009/06/05 23:20:56 danithaca Exp $
+
+/**
+ * @file
+ * Installation file for the Recommender API module.
+ */
+
+function recommender_schema() {
+  
+  // This is the main table to save similarity data. See fields description for details
+  $schema['recommender_similarity'] = array(
+    'description' => t('This is the main table to save similarity data'),
+    'fields' => array(
+         'pair_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10',
+              'description' => t('Unique index for each similarity pair')),
+         'app_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10',
+              'description' => t('This field distinguishes different applications.')),
+         'mouse1_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10',
+              'description' => t('The first mouse_id')),
+         'mouse2_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10',
+              'description' => t('The second mouse_id')),
+         'similarity' => array('type' => 'float', 'size' => 'big', 'not null' => FALSE, 
+              'description' => t('Similarity score. The bigger, the more similar')),
+         'created' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '11',
+              'description' => t('Created timestamp'))),
+    'primary key' => array('pair_id'),
+    'indexes' => array(
+         'index_key' => array('app_id', 'mouse1_id', 'mouse2_id')),
+  );
+  
+  // This is the main table to save prediction data. See fields descriptions for details
+  $schema['recommender_prediction'] = array(
+    'description' => t('This is the main table to save similarity data'),
+    'fields' => array(
+         'link_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10',
+              'description' => t('Unique index for each prediction link')),
+         'app_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10',
+              'description' => t('This field distinguishes different applications.')),
+         'mouse_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10',
+              'description' => t('The mouse_id for which the prediction is generated')),
+         'cheese_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10',
+              'description' => t('The cheese_id for which the prediction is generated')),
+         'prediction' => array('type' => 'float', 'size' => 'big', 'not null' => FALSE, 
+              'description' => t('The prediction score')),
+         'created' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '11',
+              'description' => t('Created timestamp'))),
+    'primary key' => array('link_id'),
+    'indexes' => array(
+         'index_key' => array('app_id', 'mouse_id', 'cheese_id')),
+  );
+  
+  // Application name-id mapping.
+  $schema['recommender_app_map'] = array(
+    'description' => t('Map between application name and id'),
+    'fields' => array(
+         'app_id' => array('type' => 'serial', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10'),
+         'app_name' => array('type' => 'varchar', 'length' => '50', 'not null' => TRUE)),
+    'primary key' => array('app_id'),
+    'unique keys' => array(
+         'index_app_name' => array('app_name')),
+  );
+  
+  // Table used for the slope-one algorithm
+  $schema['recommender_slopeone_dev'] = array(
+    'description' => t('Table used for the slope-one algorithm'),
+    'fields' => array(
+         'app_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10'),
+         'cheese1_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10'),
+         'cheese2_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10'),
+         'count' => array('type' => 'float', 'size' => 'big', 'not null' => FALSE),
+         'dev' => array('type' => 'float', 'size' => 'big', 'not null' => FALSE)),
+    'indexes' => array(
+         'index_key' => array('app_id', 'cheese1_id', 'cheese2_id')),
+  );
+  
+  // Helper table for internal use. Store temporary input data. Similar structure to {recommender_helper_matrix}
+  $schema['recommender_helper_staging'] = array(
+    'description' => t('Temporary storage for mouse-cheese links. Used for input'),
+    'fields' => array(
+         'mouse_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10'),
+         'cheese_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10'),
+         'weight' => array('type' => 'float', 'size' => 'big', 'not null' => TRUE)),
+    'primary key' => array('mouse_id', 'cheese_id'),
+  );
+  
+  return $schema;
+}
+
+function recommender_install() {
+  drupal_install_schema('recommender');
+}
+
+function recommender_uninstall() {
+  drupal_uninstall_schema('recommender');
+}
+
+// [#394794], [#481940]
+function recommender_update_6100() {
+  // Helper table for internal use. Store temporary input data. Similar structure to {recommender_helper_matrix}
+  $schema['recommender_helper_staging'] = array(
+    'description' => t('Temporary storage for mouse-cheese links. Used for input'),
+    'fields' => array(
+         'mouse_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10'),
+         'cheese_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10'),
+         'weight' => array('type' => 'float', 'size' => 'big', 'not null' => TRUE)),
+    'primary key' => array('mouse_id', 'cheese_id'),
+  );
+  
+  $ret = array();
+  db_create_table($ret, 'recommender_helper_staging', $schema['recommender_helper_staging']);
+  @db_drop_table($ret, 'recommender_updated_queue');
+  @db_drop_table($ret, 'recommender_helper_single_stat');
+  @db_drop_table($ret, 'recommender_helper_pair_stat');
+  @db_drop_table($ret, 'recommender_helper_matrix');
+  
+  return $ret;
+}

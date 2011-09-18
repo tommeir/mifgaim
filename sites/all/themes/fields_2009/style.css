@@ -1,0 +1,533 @@
+body{
+  background-color:#79a742;
+  border:0;
+  margin:0;
+  padding:0;
+  color:#255B7A;
+  font: 12px Arial, Verdana, Helvetica, sans-serif;
+  line-height:1.5em;
+  text-align:center;
+  background-image: url(img/body_bg.jpg);
+  background-repeat:repeat-x;
+  background-position:top center;
+}
+
+
+#wrapper{
+  background-image: url(img/body.jpg);
+  background-repeat:no-repeat;
+  background-position:top center;
+}
+
+a, a:link, a:visited, a:active{
+  color:#4CA921;
+  text-decoration:none;
+}
+
+a:hover{
+  text-decoration:underline; 
+}
+
+.clean{
+  width:100%;
+  clear:both;
+  line-height:0;
+  font-size:0;
+  height:0;
+}
+
+tbody{
+  border:0;
+}
+
+
+/****************/
+/* START LAYOUT */
+/****************/
+
+#column994{
+  width:994px;
+  margin:0 auto;
+  text-align:center;
+}
+
+#column950{
+  width:950px;
+  margin:0 auto;
+}
+
+#column950 *{
+  text-align:left;
+}
+
+  /* layout - header */
+
+#header{
+  display:block;
+  width:994px;
+  height:245px;
+}
+
+#header *{
+  margin:0;
+  padding:0;
+  border:0;
+}
+
+#header img{
+  margin-left:22px;
+}
+
+#logo{
+  display:block;
+  float:left;
+  width:497px;
+  height:168px;
+  margin-top:20px;
+}
+
+#primary{
+  display:block;
+  height:59px;
+  width:994px;
+  background-image:url(img/primary.png);
+  background-position:top center;
+  background-repeat:no-repeat;
+}
+
+#header_block{
+  display:block;
+  height:170px;
+  width:950px;
+  margin:0 auto;
+}
+  /* layout - container */
+
+#container{
+  background-image:url(img/container.png);
+  background-position:top center;
+  background-repeat:repeat-y;
+}
+
+#middle_blocks{
+  background-image:url(img/home-middle-bg.png);
+  background-position:top center;
+  background-repeat:repeat-y;
+}
+
+#middle_blocks *{
+  margin:0;
+  padding:0;
+  border:0;
+}
+
+#middle_left{
+  display:block;
+  float:left;
+  width:316px;
+}
+
+#middle_center{
+  display:block;
+  float:left;
+  width:318px;
+}
+
+#middle_right{
+  display:block;
+  float:right;
+  width:316px;
+}
+
+#middle_blocks_bottom{
+  background-image:url(img/home-middle-bottom.png);
+  background-position:bottom center;
+  background-repeat:no-repeat;
+  display:block;
+  width:950px;
+/*   padding-bottom:40px; */
+}
+
+#main{
+  background-image:url(img/home-main-bottom.png);
+  background-position:bottom center;
+  background-repeat:no-repeat;
+  display:block;
+  width:950px;
+  padding-bottom:40px;
+}
+
+#main.full{
+  background-image:url(img/home-main-bottom_full.png);
+}
+
+#top_shadow{
+  background-image:url(img/hdr_shadow.png);
+  background-position:top center;
+  background-repeat:no-repeat;
+  display:block;
+  height:22px;
+  width:950px;
+}
+
+#content{
+  display:block;
+  float:left;
+  width:630px;
+}
+
+#sidebar{
+  display:block;
+  float:right;
+  width:316px;
+
+  text-align:right;
+}
+
+  /* layout - footer */
+
+#footer{
+  display:block;
+  width:994px;
+  height:130px;
+  margin-bottom:0px;
+  background-image:url(img/footer.png);
+  background-position:top center;
+  background-repeat:no-repeat;
+  padding-top:70px;
+}
+
+#footer *{
+  margin:0;
+  padding:0;
+  border:0;
+  color:white;
+}
+
+#secondary a{
+  color:white;
+  padding:0 10px 0 10px;
+}
+
+#footer_contact{
+  padding:20px 0 0 0;
+  font-size:10px;
+}
+
+
+/**************/
+/* END LAYOUT */
+/**************/
+
+
+/***********************/
+/* START BLOCK & NODES */
+/***********************/
+
+.node,
+#sidebar .block,
+#middle_blocks .node{
+  padding:12px;
+  clear:both;
+}
+
+
+#middle_blocks .block-block .content{
+  padding-top:15px;
+}
+
+#middle_blocks .block-block{
+  padding:10px 8px 30px 8px
+}
+
+/*********************/
+/* END BLOCK & NODES */
+/*********************/
+
+
+/******************/
+/* START HEADINGS */
+/******************/
+
+  /* headings - general */
+
+
+
+h1, h2, h3, h4, h5{
+  margin-top:5px;
+  margin-bottom:10px;
+  font-weight:normal;
+}
+
+h1{
+  font-size:1.4em;
+  padding:12px 12px 0 12px;
+  font-weight:bold;
+  color:#246c21;
+}
+
+h1, h2{
+  font-size:18px;
+  line-height:26px;
+}
+
+h3{
+  font-size:18px;
+  line-height:22px;
+  color:#246c21;
+}
+
+h4{
+  font-size:16px;
+  line-height:20px;
+}
+
+h2{
+  margin-bottom:0px;
+}
+
+
+  /* headings - middle_blocks */
+
+#middle_blocks h1, #middle_blocks h2, #middle_blocks h3, #middle_blocks h4, #middle_blocks h5, .view-id-Servizi h2
+{
+  margin-top:5px;
+  margin-bottom:10px;
+}
+
+
+
+
+#middle_blocks h2{
+  background-image:url(img/middle_bullet.png);
+  background-position:50% left;
+  background-repeat:no-repeat;
+  padding-left:40px;
+  color:#4CA921;
+  font-weight:bold;
+}
+
+
+/****************/
+/* END HEADINGS */
+/****************/
+
+
+/***********************/
+/* START PRIMARY LINKS */
+/***********************/
+
+#primary ul{
+  margin:0 0 0 40px;
+  font-size:16px;
+  font-weight:normal;
+}
+
+#primary ul li{
+  display:block;
+  height:41px;
+  float:left;
+}
+
+#primary ul li.first{
+  padding-left:0;
+}
+
+#primary a{
+  color:#0093e8;
+  display:block;
+  height:41px;
+  line-height:41px;
+  text-align:center;
+}
+
+#primary a.active,
+#primary a:hover{
+  background-image:url(img/primary_label.png);
+  background-position:top left;
+  background-repeat:no-repeat;
+  color:white;
+  text-decoration:none;
+}
+
+#primary a.active span,
+#primary a:hover span{
+  background-image:url(img/primary_label_right.png);
+  background-position:top right;
+  background-repeat:no-repeat;
+}
+
+
+#primary a span{
+  padding-left:10px;
+  padding-right:10px;
+  height:41px;
+  display:block;
+}
+
+/*********************/
+/* END PRIMARY LINKS */
+/*********************/
+
+
+
+
+
+
+/****************/
+/* START COLORI */
+/****************/
+
+a,
+h1,
+h2{
+  color:#4CA921;
+}
+
+
+
+
+.block-block h2{
+  background-image:url(img/bullet_trasparente.png);
+  background-position:50% left;
+  background-repeat:no-repeat;
+  padding-left:40px;
+}
+
+/**************/
+/* END COLORI */
+/**************/
+
+
+/*****************/
+/* START CONTACT */
+/*****************/
+
+#contact-mail-page {
+  padding:12px;
+}
+
+/***************/
+/* END CONTACT */
+/***************/
+
+/************************/
+/* START PAGINE SERVIZI */
+/************************/
+
+.full #content{
+  width:950px;
+}
+
+.servizio-image{
+  float:right;
+  width:240px;
+  height:240px;
+  display:block;
+}
+/*
+.Arancione .servizio-image{
+  border:2px solid #FF6000;
+}
+
+.Blu .servizio-image{
+  border:2px solid #1760B9;
+}
+
+.Verde .servizio-image{
+  border:2px solid #4CA921;
+}*/
+
+.servizio-text{
+  float:left;
+  width:610px;
+}
+
+
+
+/**********************/
+/* END PAGINE SERVIZI */
+/**********************/
+
+
+
+/*********************/
+/* START CONTACT US  */
+/*********************/
+
+input,
+select,
+textarea{
+  border:1px solid #cccccc;
+  background-color: #fcfcfc;
+}
+
+form#contact-mail-page label{
+  font-weight:normal;
+}
+
+
+/*******************/
+/* END CONTACT US  */
+/*******************/
+
+
+
+
+
+
+/***************/
+/* START NODES */
+/***************/
+
+.submitted{
+  font-size:10px;
+}
+
+.node_infos{
+  font-size:12px;
+}
+
+.node p{
+  margin-top:5px;
+}
+
+#attachments thead{
+  display:none;
+}
+
+#attachments tr.odd,
+#attachments tr.even{
+  background-color:transparent;
+  border-bottom:none;
+}
+
+td{
+  padding:5px 5px 5px 0;
+}
+
+/*************/
+/* END NODES */
+/*************/
+
+
+#simplemenu{
+  position: absolute;
+}
+
+
+.block-block h2{
+  color:#255B7A;
+  font-size:16px;
+  line-height:24px
+}
+
+
+.view-header{
+  padding-left:12px;
+}
+
+
+ul.pager a{
+  color:#79a742;
+}

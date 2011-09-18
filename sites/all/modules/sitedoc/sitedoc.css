@@ -1,0 +1,90 @@
+/* $Id: sitedoc.css,v 1.6.4.1 2008/05/13 19:45:18 nancyw Exp $ */
+
+/* Site Documentation CSS */
+/* Overall wrapper */
+.site-documentation {
+  font-size: 0.9em;
+}
+
+.site-documentation h3 {
+  font-size: 120%;
+  color: #ffffff;
+	background-color: #666666;
+}
+
+/* Table alignment */
+.sitedoc_right {
+  text-align: right;
+}
+
+.site-documentation th {
+  text-align: center;
+}
+
+/* settings page stuff */
+.sitedoc_options label {
+  font-weight: normal;
+}
+
+.sitedoc_sections_block {
+  position: relative;
+  float: left;
+}
+
+.sitedoc_settings {
+  position: relative;
+  width:100%;
+  clear: both;
+  margin-top: 1.0em;
+}
+
+.sitedoc_archive_block {
+  position: relative;
+  float: left;
+}
+
+.sitedoc_archive {
+  position: relative;
+  width:100%;
+  clear: both;
+  margin-top: 1.0em;
+}
+
+.sitedoc_options_block .description {
+  margin-left: 1.0em;
+}
+
+.sitedoc_sections_block .form-item {
+  position: relative;
+  width:100%;
+  clear: both;
+}
+
+.sitedoc_sections_block .form-item label {
+  position: relative;
+  float: left;
+}
+
+.sitedoc_sections_block .form-item .description {
+  position: relative;
+  float: left;
+  padding: 0.5em 0px 0px 1.0em;
+}
+
+/* used to indent settings section options */
+.sitedoc_sections .sitedoc_options {
+  margin-left: 2.0em;
+}
+
+.sitedoc_options input, select {
+  margin-left: 1.0em;
+}
+
+#edit-archive-frequency {
+  margin-left: 0em;
+}
+
+/* used for the profile section */
+.sitedoc_profile_fields td, .sitedoc_profile_fields th {
+  font-size: 0.8em;
+}

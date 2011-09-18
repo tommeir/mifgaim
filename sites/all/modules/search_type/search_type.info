@@ -1,0 +1,11 @@
+; $Id: search_type.info,v 1.2 2009/09/27 21:27:24 nedjo Exp $
+name = Search Type
+description = Adds a type selector to search blocks to limit searches by content type or to search users.
+dependencies[] = search
+core = 6.x
+; Information added by drupal.org packaging script on 2009-09-27
+version = "6.x-1.0"
+core = "6.x"
+project = "search_type"
+datestamp = "1254087369"
+

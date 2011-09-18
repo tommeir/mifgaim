@@ -1,0 +1,46 @@
+<?php
+// $Id: user_settings_access.module,v 1.3 2010/08/28 16:16:23 tchurch Exp $
+
+/**
+* Implementation of hook_menu().
+*/
+
+function user_settings_access_menu(){
+
+  $items['admin/user/settings'] = array(
+    'title' => 'User settings',
+    'description' => 'Configure default behavior of users, including registration requirements, e-mails, and user pictures.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('user_admin_settings'),
+    'access arguments' => array('User Settings'),
+    'file' => 'user.admin.inc',
+    'file path' => drupal_get_path('module', 'user'),
+  );      
+
+  return $items;
+} 
+
+/**
+* Implements hook_perm()
+*/
+function user_settings_access_perm() {
+  return array(
+    'User Settings',
+  );
+}
+
+/**
+* Implementation of hook_help()
+*/
+
+function user_settings_access_help($path, $arg) {
+  if ($path == 'admin/help#user_settings_access') {    
+    $txt = 'Out of the box drupal have just one permissions adminster users which controls both user settings and users ';
+    $txt .= 'So the super user can either grant both privileges to other user or none of them. ';    
+    $txt .= 'This mini module provides additional permission for user Settings.';
+    $txt .= 'This allows now the super user to grant either user settings or users or even both privileges if wanted';
+    $txt .= 'Sometime it could even helpfull to allow others to manage users but restrict the general users settings only to ';
+    $txt .= 'drupal admin.';
+    return '<p>'. t($txt) .'</p>';
+  }
+}

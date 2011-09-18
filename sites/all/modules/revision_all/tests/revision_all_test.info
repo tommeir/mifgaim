@@ -1,0 +1,13 @@
+; $Id: revision_all_test.info,v 1.1.2.1 2010/06/08 15:28:34 alexj Exp $
+name = Revision All Test
+description = "Enables centralized revisioning of content"
+core = 6.x
+files[] = revision_all_test.module
+hidden = TRUE
+
+; Information added by drupal.org packaging script on 2010-06-08
+version = "6.x-1.2"
+core = "6.x"
+project = "revision_all"
+datestamp = "1276011308"
+

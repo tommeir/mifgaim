@@ -1,0 +1,319 @@
+<?php
+// $Id: views_ui_basic.module,v 1.2 2010/02/20 20:09:45 jonahellison Exp $
+
+/**
+ * @file views_ui_basic.module
+ * User interface to edit basic settings of views.
+ */ 
+ 
+/**
+ * Return list of editable fields
+ */ 
+function _views_ui_basic_fields() {  
+  return array( // Views form name => label
+    'header' => t('Header'),
+    'footer' => t('Footer'),
+    'title'  => t('Title'),
+    'empty'  => t('Empty text'),
+    'items_per_page' => t('Items per page'),
+  );
+}
+
+/**
+ * Implements hook_menu()
+ */
+function views_ui_basic_menu() {
+  $items = array();
+
+  $items['admin/content/views_ui_basic'] = array(
+    'title' => t('Edit views'),
+    'page callback' => 'views_ui_basic_list_page',
+    'access arguments' => array('edit views basic settings'),
+    'type' => MENU_NORMAL_ITEM
+  );
+  $items['views_ui_basic'] = array( // different URI to support rich text editors
+    'title' => t('Edit basic settings'),
+    'page callback' => 'views_ui_basic_edit_page',
+    'page arguments' => array(1, 2, 3),
+    'access arguments' => array('edit views basic settings'),
+    'type' => MENU_CALLBACK
+  );
+  $items['admin/build/views/views_ui_basic'] = array(
+    'title' => t('Editable basic settings'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('views_ui_basic_admin_form'),
+    'access arguments' => array('administer views'),
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'views_ui_basic.admin.inc',
+    'weight' => 50,
+  );
+  
+  // Generate local tasks (menu tabs) for View pages
+  _views_ui_basic_define_menu($items);
+
+  return $items;
+}
+
+/**
+ * Implements hook_perm().
+ */ 
+function views_ui_basic_perm() {
+  return array('edit views basic settings');
+}
+
+/**
+ * Implements hook_form_alter().
+ */ 
+function views_ui_basic_form_alter(&$form, $form_state, $form_id) {  
+  if ((arg(0) == 'views_ui_basic' || _views_ui_basic_is_tab()) && $form_id == 'views_ui_edit_display_form') {
+
+    // WYSIWYG support
+    if (module_exists('wysiwyg')) {
+      $form_rename = array(); // Format key must be renamed and same key order maintained
+      foreach ($form as $key => $value) {
+        if (strpos($key, '_format') !== FALSE) { // e.g., 'header_format' to 'format'
+          $key = 'format';
+        }
+        $form_rename[$key] = $value;
+      }
+      $form = $form_rename;      
+    } 
+    
+    unset($form['buttons']['cancel']);
+    unset($form['override']);
+    $form['buttons']['submit']['#submit'] = array('views_ui_basic_save'); // override submit handler
+  }  
+}
+
+/**
+ * Views save/submit handler (overrides Views UI)
+ * Redirects afer save.
+ * @see views_ui_basic_form_alter()
+ */ 
+function views_ui_basic_save($form, &$form_state) {
+
+  $display = &$form_state['view']->display[$form_state['display_id']];
+  $display->handler->options_submit($form, $form_state);
+  //print_r($form_state['section']);
+
+  $form_state['view']->save();
+  drupal_set_message(t('The !section has been updated.', array('!section' => str_replace('_', ' ', $form_state['section']))));
+
+  // Make sure menu items get rebuilt as neces
+  menu_rebuild();
+
+  // Clear the views cache.
+  cache_clear_all('*', 'cache_views');
+
+  // Clear the page cache.
+  cache_clear_all();
+
+  // Remove this view from cache so we can edit it properly.
+  views_object_cache_clear('view', $form_state['view']->name);
+
+  // Redirect back to view page or admin page
+  if (_views_ui_basic_is_tab()) {
+    $menuitem = menu_get_item();
+    drupal_goto($menuitem['tab_root']);  
+  }
+  else {
+    drupal_goto("admin/content/views_ui_basic");
+  } 
+}
+
+/**
+ * Edit a View's setting (e.g., header/footer/empty text, etc)
+ * @return string (rendered views UI form).
+ * @see views_ui_basic_form_alter() for form tweaks
+ */
+function views_ui_basic_edit_page($view_name, $display_name, $area) {
+  
+  $fields = variable_get('views_ui_basic_fields', array());
+  if (!isset($fields[$area])) {
+    return FALSE;    
+  }
+  
+  $path = drupal_get_path('module', 'views_ui');
+  require_once "$path/includes/admin.inc"; 
+  
+  $view = views_get_view($view_name);
+
+  return views_ui_ajax_form(false, 'display', $view, $display_name, $area);  
+}
+
+
+/**
+ * List Views that site administer has selected.
+ * @return string (HTML)
+ */
+function views_ui_basic_list_page() {
+  $fields = _views_ui_basic_fields();
+  $fields_allowed = variable_get('views_ui_basic_fields', array());
+  
+  $views = views_get_all_views();
+  $items = array(); // for theme_item_list
+
+  $allowed = variable_get('views_ui_basic', array());
+
+  foreach ($views as $view_key => $view_object) {
+    if (isset($allowed[$view_key])) {
+      $title = (isset($view_object->display['page'])) ? l($view_key, $view_object->display['page']->display_options['path']) : $view_key;
+      
+      $items[$view_key][] = "<h4>$title</h4>";
+      foreach ($view_object->display as $display_key => $views_display) {
+        if (in_array($display_key, $allowed[$view_key])) {
+          $editlink = array();
+          foreach ($fields_allowed as $field) {
+            $defaults = isset($views_display->display_options['defaults']) ? $views_display->display_options['defaults'] : array();
+            if (!isset($defaults[$field])) {
+              $value = isset($view_object->display['default']->display_options[$field]) ? substr(strip_tags($view_object->display['default']->display_options[$field]), 0, 100) : '';
+            }
+            else {
+              $value = isset($views_display->display_options[$field]) ? substr(strip_tags($views_display->display_options[$field]), 0, 100) : '';
+            }
+            $editlink[] = l("$fields[$field]", "views_ui_basic/$view_key/$display_key/$field", array('attributes' => array('title' => $value)));
+          }
+          
+          $item = "$display_key ($views_display->display_title) Edit: " . implode(' | ', $editlink);
+          /*
+          //print_r($views_display);
+          $item =
+            "$display_key ($views_display->display_title) " .
+            l("edit header", "views_ui_basic/$view_key/$display_key/header") . ' | ' .
+            l("edit footer", "views_ui_basic/$view_key/$display_key/footer");
+          */
+          
+          if ($header = node_teaser($views_display->display_options['header'], 1)) {
+            $header = check_markup($header, $views_display->display_options['header_format']);
+            $item .= "<fieldset><legend>" . l("Header", "views_ui_basic/$view_key/$display_key/header") . "</legend>$header</fieldset>";
+          }
+
+          if ($footer = node_teaser($views_display->display_options['footer'], 1)) {
+            $footer = check_markup($footer, $views_display->display_options['footer_format']);
+            $item .= "<fieldset><legend>" . l("Footer", "views_ui_basic/$view_key/$display_key/footer") . "</legend>$footer</fieldset>";
+          }
+
+          $items[$view_key]['children'][$display_key][] = $item;
+        }
+      }  
+    }
+  }
+  
+  if (!empty($items)) {
+    return theme('item_list', $items);
+  }
+  else {
+    return 'No Views configured. Please ' . l('select the views', 'admin/build/views/views_ui_basic') . ' you wish to use.';
+  }
+}
+
+//
+// Internal helper functions
+//
+
+/**
+ * Retrieve Views pages
+ * @todo if default selected, check if overriden view is also selected
+ */ 
+function _views_ui_basic_get_pages() {
+  $views = views_get_all_views();
+  $allowed = variable_get('views_ui_basic', array());
+  
+  $items = array();
+
+  foreach ($views as $view_key => $view_object) {
+    if (isset($allowed[$view_key])) {
+      
+      foreach ($view_object->display as $display_key => $view_display) {
+        // If default selected, return all pages
+        if(
+          $view_display->display_plugin == 'page' &&
+          (in_array($display_key, $allowed[$view_key]) || ($allowed[$view_key][0] == 'default')) 
+          ) {
+ 
+          $items[$view_display->display_options['path']] = array(
+            'view_name' => $view_key,
+            'display_name' => $display_key,
+          );
+          
+        }
+      }
+    }
+  }
+  
+  return $items;
+  
+}
+
+/**
+ * Is the current page the edit form with a tab (local task)?
+ * @return boolen
+ */ 
+function _views_ui_basic_is_tab() {
+  $menuitem = menu_get_item(); // accessed via our edit tab?
+  return (arg(0) != 'views_ui_basic' && isset($menuitem['page_callback']) && $menuitem['page_callback'] == 'views_ui_basic_edit_page');
+}
+
+
+/**
+ * Generate local tasks (menu tabs) for View pages
+ */ 
+function _views_ui_basic_define_menu(&$items) {
+  // Determine tabs
+  $fields = _views_ui_basic_fields();
+  foreach (variable_get('views_ui_basic_fields', array()) as $field) {
+    $tabs[$field] = $fields[$field];
+  }
+  
+  if (!isset($tabs)) {
+    return;
+  }
+  
+  $first_field = key($tabs);
+  
+  $weight = 10;
+   
+  $views_pages = _views_ui_basic_get_pages();
+  
+  foreach ($views_pages as $path => $viewinfo) {
+
+    // View/Edit tabs
+    $items["$path/view_ui_view"] = array(
+      'title' => t('View'),
+      'type' => MENU_DEFAULT_LOCAL_TASK,
+      'weight' => -10,
+    );
+    $items["$path/views_ui_edit"] = array(
+      'title' => t('Edit'),
+      'page callback' => 'views_ui_basic_edit_page',
+      'page arguments' => array($viewinfo['view_name'], $viewinfo['display_name'], $first_field),
+      'type' => MENU_LOCAL_TASK,
+      'weight' => ++$weight,
+      'access arguments' => array('edit views basic settings'),
+    );
+    
+    
+    // Sub tabs
+    foreach ($tabs as $field => $label) {
+      if($field == $first_field) {
+        $items["$path/views_ui_edit/$first_field"] = array(
+          'title' => $label,
+          'type' => MENU_DEFAULT_LOCAL_TASK,
+          'weight' => -10,
+          'access arguments' => array('edit views basic settings'),
+        );        
+      } 
+      else {
+        $items["$path/views_ui_edit/$field"] = array(
+          'title' => $label,
+          'page callback' => 'views_ui_basic_edit_page',
+          'page arguments' => array($viewinfo['view_name'], $viewinfo['display_name'], $field),
+          'access arguments' => array('edit views basic settings'),
+          'type' => MENU_LOCAL_TASK,
+          'weight' => ++$weight,
+        );
+        
+      }      
+    }    
+  }    
+}

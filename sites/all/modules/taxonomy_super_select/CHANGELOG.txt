@@ -1,0 +1,11 @@
+CHANGELOG for Taxonomy Super Select 1 for Drupal 6
+
+TSS 6.x-1.4
+  - #735756 by dboulet | A2E: Fixed RTL alignment.
+  - #992494 by ducdebreme: Fixed Expand *all* parent fieldsets of selected terms (Reopened).
+  - #1066572: Fixed Multi level terms are not collapsible.
+  - #703020: Compatibility with vocabulary permission control-per-role modules
+  - #436742 by Magnus: Imported translations to localization server and removed CVS files.
+  - #388242 by arski: Taxonomy Image integration not working
+  - #934952: flexible styling: use form_clean_id()
+  - #940642: Display help text in compact mode

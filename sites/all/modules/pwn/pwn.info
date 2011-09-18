@@ -1,0 +1,12 @@
+; $Id: pwn.info,v 1.2 2010/02/23 20:10:04 ceardach Exp $
+name = Permit own permissions
+description = "[pwn] Users privileged to 'share permissions' can grant to (or revoke from) any role any permission they possess."
+package = Administration
+core = 6.x
+
+; Information added by drupal.org packaging script on 2010-07-11
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "pwn"
+datestamp = "1278835428"
+

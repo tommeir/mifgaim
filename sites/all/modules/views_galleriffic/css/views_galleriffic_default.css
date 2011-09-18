@@ -1,0 +1,159 @@
+/* $Id: views_galleriffic_default.css,v 1.1.2.2 2009/11/09 13:21:09 acouch Exp $ */
+
+/* Views Galleriffic default css
+ * Based off of css from original: http://www.twospy.com/galleriffic/index.html
+ */
+
+#galleriffic {
+  width: 705px;
+}
+
+#galleriffic .content {
+  float: right;
+  width: 500px;
+}
+#galleriffic .content a, #galleriffic .navigation a {
+  text-decoration: none;
+  color: #777;
+}
+#galleriffic .content  a:focus, #galleriffic .content  a:hover, #galleriffic .content  a:active {
+  text-decoration: underline;
+}
+#galleriffic .controls {
+  margin-top: 5px;
+  height: 23px;
+}
+#galleriffic .controls a {
+  padding: 5px;
+}
+#galleriffic .ss-controls {
+  float: left;
+}
+#galleriffic .nav-controls {
+  float: right;
+}
+
+#galleriffic .loader {
+        background-image: url('loader.gif');
+        background-repeat: no-repeat;
+        background-position: center;
+        width: 550px;
+        height: 350px
+}
+#galleriffic .slideshow {
+        clear: both;
+}
+#galleriffic .slideshow span.image-wrapper {
+        float: left;
+        padding-bottom: 12px;
+}
+#galleriffic .slideshow a.advance-link {
+        padding: 2px;
+        display: block;
+        border: 1px solid #ccc;
+}
+#galleriffic .slideshow img {
+        border: none;
+        display: block;
+}
+#galleriffic .download {
+        float: right;
+}
+#galleriffic .embox {
+        clear: both;
+        border: 1px solid #ccc;
+        background-color: #eee;
+        padding: 12px;
+}
+#galleriffic .image-title {
+        font-weight: bold;
+        font-size: 1.4em;
+}
+
+#galleriffic .image-desc {
+        line-height: 1.3em;
+        padding-top: 12px;
+}
+
+#galleriffic #thumbs {
+  float: left;
+  width: 190px;
+}
+
+#galleriffic ul.thumbs {
+        clear: both;
+        margin: 0;
+        padding: 0;
+}
+#galleriffic ul.thumbs li {
+        float: left;
+        padding: 0;
+        margin: 5px 10px 5px 0;
+        list-style: none;
+}
+#galleriffic a.thumb {
+        padding: 2px;
+        display: block;
+        border: 1px solid #ccc;
+}
+#galleriffic ul.thumbs li.selected a.thumb {
+        background: #000;
+}
+#galleriffic a.thumb:focus {
+        outline: none;
+}
+#galleriffic ul.thumbs img {
+        border: none;
+        display: block;
+}
+#galleriffic .pagination {
+  clear: both;
+  height: 23px;
+}
+#galleriffic .navigation.top {
+        margin-bottom: 12px;
+        height: 11px;
+}
+#galleriffic .navigation.bottom {
+        margin-top: 12px;
+}
+#galleriffic .pagination a, #galleriffic .pagination span.current {
+        display: block;
+        float: left;
+        margin-right: 2px;
+        padding: 4px 7px 2px 7px;
+        border: 1px solid #ccc;
+}
+#galleriffic .pagination a:hover {
+        background-color: #eee;
+        text-decoration: none;
+}
+#galleriffic .pagination span.current {
+        font-weight: bold;
+        background-color: #000;
+        border-color: #000;
+        color: #fff;
+}
+
+/* Minimal Gallery Styles 
+#thumbs-min ul.thumbs li {
+        float: none;
+        padding: 0;
+        margin: 0;
+        list-style: none;
+}
+
+#thumbs-min a.thumb {
+        padding: 0px;
+        display: inline;
+        border: none;
+}
+
+#thumbs-min ul.thumbs li.selected a.thumb {
+  background: inherit;
+  color: #000;
+  font-weight: bold;
+}
+
+*/
+

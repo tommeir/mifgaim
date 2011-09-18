@@ -1,0 +1,23 @@
+/* IE HACK */
+
+
+#primary a, 
+#primary span{
+  display:block;
+  float:left;
+  cursor: pointer;
+}
+
+
+.view-id-Servizi .Verde h2{
+  background-image:url(img/ie/bullet_trasparente.png);
+}
+
+#content{
+  width:625px;
+}
+
+#top_shadow{
+  position:relative;
+  top:-5px;
+}

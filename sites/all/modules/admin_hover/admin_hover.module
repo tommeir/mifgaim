@@ -1,0 +1,647 @@
+<?php
+// $Id: admin_hover.module,v 1.4.2.5 2009/01/10 15:53:21 conortm Exp $
+
+/**
+ * @file
+ * Provides administrative links for nodes and blocks on mouse hover.
+ */
+
+/**
+ * Implementation of hook_help().
+ */
+function admin_hover_help($path, $arg) {
+  switch ($path) {
+    case 'admin/help#admin_hover':
+      return '<p>'. t("Admin:hover adds administrative links to nodes and blocks for users with permission to carry out those actions.  To grant users permission to access these links, visit the 'Permissions' page below.") .'</p>';
+    case 'admin/settings/admin_hover':
+      return '<p>'. t("Admin:hover adds administrative links to nodes and blocks for users with permission to carry out those actions.") .'</p>';
+  }
+}
+
+/**
+ * Implementation of hook_menu().
+ *
+ * Ads menu callbacks for ajax call and 'actions' calls.
+ */
+function admin_hover_menu() {
+  $items = array();
+  $items['admin_hover/js/%'] = array(
+    'page callback' => 'admin_hover_js',
+    'page arguments' => array(2),
+    'access arguments' => array('access admin_hover'),
+    'type' => MENU_CALLBACK,
+  );
+  $items['node/%/admin_hover/%'] = array(
+    'page callback' => 'admin_hover_node_action',
+    'page arguments' => array(1, 3),
+    'access callback' => 'admin_hover_access',
+    'type' => MENU_CALLBACK,
+  );
+  $items['admin/settings/admin_hover'] = array(
+    'title' => 'Admin:hover',
+    'description' => 'Configure Admin:hover settings.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('admin_hover_settings'),
+    'access arguments' => array('administer site configuration'),
+  );
+  return $items;
+}
+
+/**
+ * Access callback for admin_hover_node_action menu callback.
+ */
+function admin_hover_access() {
+  return (user_access('access admin_hover') && user_access('administer nodes'));
+}
+
+/**
+ * Admin settings form.
+ */
+function admin_hover_settings() {
+  $form = array();
+  $objects = admin_hover_get_objects();
+  $admin_hover = admin_hover_build();
+  $form['admin_hover_active_links'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Active links'),
+    '#collapsible' => FALSE,
+    '#description' => t('Select links that you would like to appear for the types of content below:'),
+  );
+  foreach ($objects as $object) {
+    $options = array();
+    $links = array_filter($admin_hover, '_admin_hover_filter_'. $object);
+    foreach ($links as $link) {
+      $options[urlencode($link['href'])] = $link['description'] ? $link['description'] : $link['title'];
+    }
+    $form['admin_hover_active_links']['admin_hover_active_links_'. $object] = array(
+      '#type' => 'checkboxes',
+      '#title' => t(ucwords($object) .' links'),
+      '#options' => $options,
+      '#default_value' => admin_hover_active_links($object, TRUE),
+    );
+  }
+  return system_settings_form($form);
+}
+
+/**
+ * Implementation of hook_init().
+ *
+ * Add css+js.
+ */
+function admin_hover_init() {
+  // add scripts and styles if user has access
+  if (user_access('access admin_hover')) {
+    $path = drupal_get_path('module', 'admin_hover');
+    // styles
+    drupal_add_css($path .'/admin_hover.css', 'module', 'all', FALSE);
+    // scripts
+    drupal_add_js($path .'/admin_hover.js', 'module', 'header', TRUE);
+    $objects = admin_hover_get_objects();
+    $settings = array(
+      'base_path' => base_path(),
+      'destination' => drupal_get_destination(),
+      'objects' => $objects,
+    );
+    drupal_add_js(array('admin_hover' => $settings), 'setting');
+  }
+}
+
+/**
+ * Implementation of hook_perm().
+ *
+ * Only users with permission to 'access admin_hover' will possibly see administrative
+ * links on hover, and which links appear will depend on the user's other perms.
+ */
+function admin_hover_perm() {
+  return array('access admin_hover');
+}
+
+/**
+ * Implementation of hook_theme().
+ *
+ * Register theme_admin_hover_links().
+ */
+function admin_hover_theme($existing, $type, $theme, $path) {
+  return array(
+    'admin_hover_links' => array(
+      'arguments' => array('links' => NULL, 'attributes' => NULL),
+    ),
+  );
+}
+
+/**
+ * Implementation of hook_token_values().
+ */
+function admin_hover_token_values($type, $object = NULL, $options = array()) {
+  $values = array();
+  switch ($type) {
+    case 'node':
+      $node = $object;
+      $values['type-path'] = str_replace('_', '-', $node->type);
+    break;
+  }
+  return $values;
+}
+
+/**
+ * Implementation of hook_token_list().
+ */
+function admin_hover_token_list($type = 'all') {
+  if ($type == 'node' || $type == 'all') {
+    $tokens['node']['type-path'] = t('Node type (url-friendly version)');
+  }
+}
+
+/**
+ * Menu callback for node actions.
+ *
+ * @param string $nid
+ *   The nid of the current node being operated on.
+ * @param string $action
+ *   The name of the action to be carried out.
+ */
+function admin_hover_node_action($nid, $action) {
+  $destination = $_GET['destination'] ? $_GET['destination'] : '';
+  $undo = array(
+    'publish' => 'unpublish',
+    'unpublish' => 'publish',
+    'promote' => 'unpromote',
+    'unpromote' => 'promote',
+    'make_sticky' => 'make_unsticky',
+    'make_unsticky' => 'make_sticky',
+  );
+  if (is_numeric($nid) && isset($undo[$action])) {
+    $node = node_load($nid);
+    $function = 'node_'. $action .'_action';
+    $function($node);
+    node_save($node);
+    $undo_url = url('node/'. $nid .'/admin_hover/'. $undo[$action], array('query' => 'destination='. $destination));
+    drupal_set_message(t('The action "@action" has been performed on "@title". [<a href="@undo_url">Undo</a>]', array('@action' => str_replace('_', ' ', ucwords($action)), '@title' => $node->title, '@undo_url' => $undo_url)));
+  }
+  else {
+    // unknown action
+    drupal_set_message(t('Sorry, unknown action.'), 'error');
+  }
+  drupal_goto($destination);
+  exit;
+}
+
+/**
+ * Menu callback used by AJAX to get admin_hover links.
+ *
+ * @param string $object
+ *   The object name (node or block) of the items to which admin_hover links will be appended.
+ */
+function admin_hover_js($object) {
+  // register variables
+  $ids = explode(';', trim($_POST['ids'], ';'));
+  $destination = filter_xss($_POST['destination']);
+  // populate data array
+  $data = array();
+  if (count($ids)) {
+    $admin_hover = admin_hover_build();
+    foreach ($ids as $i => $id) {
+      $admin_hover_links = admin_hover_links($admin_hover, $object, $id, $destination);
+      if (count($admin_hover_links)) {
+        $data[$i]['id'] = $id;
+        $attributes = array(
+          'id' => $id .'-admin_hover',
+          'class' => 'admin_hover '. $object .'-admin_hover'
+        );
+        $data[$i]['admin_hover'] = theme('admin_hover_links', $admin_hover_links, $attributes);
+      }
+    }
+  }
+  print drupal_to_js(array('status' => (count($data) > 0), 'data' => $data));
+  exit;
+}
+
+/**
+ * Generate the HTML output for a set of admin_hover links.
+ *
+ * @param array $links
+ *   An array of admin_hoverlinks.
+ * @param array $attributes
+ *   An array Drupal attributes applied to the containing div.
+ * @return string
+ *   HTML to print to screen
+ */
+function theme_admin_hover_links($links, $attributes) {
+  $output = '';
+  $attributes['style'] = 'display:none;';
+  $output .= '<div'. drupal_attributes($attributes) .'>';
+  $output .= theme('links', $links, array());
+  $output .= '</div>';
+  return $output;
+}
+
+/**
+ * Gathers returned values from instances of this module's hook function.
+ * 
+ * @return array
+ *   array of admin_hover links gathered from hook implementations
+ */
+function admin_hover_build() {
+  static $admin_hover;
+  if (!isset($admin_hover)) {
+    $admin_hover = array();
+    foreach (module_implements('admin_hover') as $module) {
+      $links = call_user_func($module .'_admin_hover');
+      if (isset($links) && is_array($links)) {
+        $admin_hover = array_merge($admin_hover, $links);
+      }
+    }
+  }
+  return $admin_hover;
+}
+
+/**
+ * Implementation of hook_admin_hover().
+ *
+ * @return array
+ *   Array of admin_hover links
+ */
+function admin_hover_admin_hover() {
+  $links = array();
+  $links[] = array(
+    'title' => 'Edit "@title"',
+    'title arguments' => array('@title' => '[title-raw]'),
+    // 'title callback' => 't',
+    'description' => 'Edit',
+    'href' => 'node/[nid]/edit',
+    'attributes' => array(
+      'class' => 'admin_hover-node_edit',
+    ),
+    'object' => 'node',
+    'access callback' => 'node_access',
+    'access arguments' => array('update', '%object'),
+    // 'dependencies' => array(),
+    // 'destination' => TRUE,
+  );
+  $links[] = array(
+    'title' => 'Publish "@title"',
+    'title arguments' => array('@title' => '[title-raw]'),
+    'description' => 'Publish',
+    'href' => 'node/[nid]/admin_hover/publish',
+    'attributes' => array(
+      'class' => 'admin_hover-node_publish',
+    ),
+    'object' => 'node',
+    'access callback' => 'admin_hover_node_action_access',
+    'access arguments' => array('publish', '%object'),
+  );
+  $links[] = array(
+    'title' => 'Unpublish "@title"',
+    'title arguments' => array('@title' => '[title-raw]'),
+    'description' => 'Unpublish',
+    'href' => 'node/[nid]/admin_hover/unpublish',
+    'attributes' => array(
+      'class' => 'admin_hover-node_unpublish',
+    ),
+    'object' => 'node',
+    'access callback' => 'admin_hover_node_action_access',
+    'access arguments' => array('unpublish', '%object'),
+  );
+  $links[] = array(
+    'title' => 'Promote "@title"',
+    'title arguments' => array('@title' => '[title-raw]'),
+    'description' => 'Promote',
+    'href' => 'node/[nid]/admin_hover/promote',
+    'attributes' => array(
+      'class' => 'admin_hover-node_promote',
+    ),
+    'object' => 'node',
+    'access callback' => 'admin_hover_node_action_access',
+    'access arguments' => array('promote', '%object'),
+  );
+  $links[] = array(
+    'title' => 'Unpromote "@title"',
+    'title arguments' => array('@title' => '[title-raw]'),
+    'description' => 'Unpromote',
+    'href' => 'node/[nid]/admin_hover/unpromote',
+    'attributes' => array(
+      'class' => 'admin_hover-node_unpromote',
+    ),
+    'object' => 'node',
+    'access callback' => 'admin_hover_node_action_access',
+    'access arguments' => array('unpromote', '%object'),
+  );
+  $links[] = array(
+    'title' => 'Make Sticky "@title"',
+    'title arguments' => array('@title' => '[title-raw]'),
+    'description' => 'Make sticky',
+    'href' => 'node/[nid]/admin_hover/make_sticky',
+    'attributes' => array(
+      'class' => 'admin_hover-node_make_sticky',
+    ),
+    'object' => 'node',
+    'access callback' => 'admin_hover_node_action_access',
+    'access arguments' => array('make_sticky', '%object'),
+  );
+  $links[] = array(
+    'title' => 'Make Unsticky "@title"',
+    'title arguments' => array('@title' => '[title-raw]'),
+    'description' => 'Make unsticky',
+    'href' => 'node/[nid]/admin_hover/make_unsticky',
+    'attributes' => array(
+      'class' => 'admin_hover-node_make_unsticky',
+    ),
+    'object' => 'node',
+    'access callback' => 'admin_hover_node_action_access',
+    'access arguments' => array('make_unsticky', '%object'),
+  );
+  $links[] = array(
+    'title' => 'Delete "@title"',
+    'title arguments' => array('@title' => '[title-raw]'),
+    'description' => 'Delete',
+    'href' => 'node/[nid]/delete',
+    'attributes' => array(
+      'class' => 'admin_hover-node_delete',
+    ),
+    'object' => 'node',
+    'access callback' => 'node_access',
+    'access arguments' => array('delete', '%object'),
+  );
+  $links[] = array(
+    'title' => 'Clone "@title"',
+    'title arguments' => array('@title' => '[title-raw]'),
+    'description' => 'Clone',
+    'href' => 'node/[nid]/clone',
+    'attributes' => array(
+      'class' => 'admin_hover-node_clone',
+    ),
+    'object' => 'node',
+    'access callback' => 'clone_access',
+    'access arguments' => array('%object'),
+    'dependencies' => array('clone'),
+    'destination' => FALSE,
+  );
+  $links[] = array(
+    'title' => 'Dev load',
+    'href' => 'node/[nid]/devel/load',
+    'attributes' => array(
+      'class' => 'admin_hover-node_devel',
+    ),
+    'object' => 'node',
+    'access arguments' => array('access devel information'),
+    'dependencies' => array('devel'),
+    'destination' => FALSE,
+  );
+  $links[] = array(
+    'title' => 'View author',
+    'href' => 'user/[author-uid]',
+    'attributes' => array(
+      'class' => 'admin_hover-user',
+    ),
+    'object' => 'node',
+    'access arguments' => array('access user profiles'),
+    'destination' => FALSE,
+  );
+  $links[] = array(
+    'title' => 'Edit author',
+    'href' => 'user/[author-uid]/edit',
+    'attributes' => array(
+      'class' => 'admin_hover-user_edit',
+    ),
+    'object' => 'node',
+    'access arguments' => array('administer users'),
+  );
+  $links[] = array(
+    'title' => 'Add "@type"',
+    'description' => 'Add',
+    'title arguments' => array('@type' => '[type-name]'),
+    'href' => 'node/add/[type-path]',
+    'attributes' => array(
+      'class' => 'admin_hover-node_add',
+    ),
+    'object' => 'node',
+    'access callback' => 'node_access',
+    'access arguments' => array('create', '%object'),
+    'destination' => FALSE,
+  );
+  $links[] = array(
+    'title' => 'Configure block',
+    'href' => 'admin/build/block/configure/%module/%id',
+    'attributes' => array(
+      'class' => 'admin_hover-block_configure',
+    ),
+    'object' => 'block',
+    'access arguments' => array('administer blocks'),
+  );
+  $links[] = array(
+    'title' => 'Add block',
+    'href' => 'admin/build/block/add',
+    'attributes' => array(
+      'class' => 'admin_hover-block_add',
+    ),
+    'object' => 'block',
+    'access arguments' => array('administer blocks'),
+    'destination' => FALSE,
+  );
+  return $links;
+}
+
+/**
+ * Access callback for admin_hover action link
+ *
+ * @param string $action
+ *   name of the action to be performed
+ * @param object $node
+ *   the node the action will be performed on
+ * @return bool
+ *   TRUE or FALSE depending on access to node action
+ */
+function admin_hover_node_action_access($action, $node) {
+  $access = FALSE;
+  switch ($action) {
+    case 'publish':
+      $access = (!$node->status && user_access('administer nodes'));
+    break;
+    case 'unpublish':
+      $access = ($node->status && user_access('administer nodes'));
+    break;
+    case 'promote':
+      $access = (!$node->promote && user_access('administer nodes'));
+    break;
+    case 'unpromote':
+      $access = ($node->promote && user_access('administer nodes'));
+    break;
+    case 'make_sticky':
+      $access = (!$node->sticky && user_access('administer nodes'));
+    break;
+    case 'make_unsticky':
+      $access = ($node->sticky && user_access('administer nodes'));
+    break;
+  }
+  return $access;
+}
+
+/**
+ * Gathers the objects that admin_hover links affect
+ *
+ * @return array
+ *   array of objects (node, block) that admin_hover links affect
+ */
+function admin_hover_get_objects() {
+  static $objects;
+  if (!isset($objects)) {    
+    $objects = array();
+    $admin_hover = admin_hover_build();
+    foreach ($admin_hover as $link) {
+      $objects[$link['object']] = $link['object'];
+    }
+    $objects = array_values($objects);
+  }
+  return $objects;
+}
+
+/**
+ * array_filter callback for node admin_hover links
+ */
+function _admin_hover_filter_node($item) {
+  return ($item['object'] == 'node');
+}
+
+/**
+ * array_filter callback for block admin_hover links
+ */
+function _admin_hover_filter_block($item) {
+  return ($item['object'] == 'block');
+}
+
+/**
+ * Gathers the currently active admin_hover links, based on Admin settings
+ *
+ * @param string $object
+ *   the object (node, block) of the links
+ * @param bool $encode
+ *   whether or not to urlencode the links (for settings form)
+ * @return array
+ *   array of admin_hover links
+ */
+function admin_hover_active_links($object, $encode = FALSE) {
+  $links = variable_get('admin_hover_active_links_'. $object, NULL);
+  if (is_null($links)) { // default
+    $admin_hover = admin_hover_build();
+    $admin_hover = array_filter($admin_hover, '_admin_hover_filter_'. $object);
+    $return = array();
+    foreach ($admin_hover as $link) {
+      $return[$link['href']] = $link['href'];
+      $link = urlencode($link['href']);
+      $links[$link] = $link;
+    }
+    variable_set('admin_hover_active_links_'. $object, $links);
+    $links = $return;
+  }
+  elseif (!$encode) {
+    $return = array();
+    foreach ($links as $link => $active) {
+      $return[urldecode($link)] = urldecode($active);
+    }
+    $links = $return;
+  }
+  return $links;
+}
+
+/**
+ * Builds an array of admin_hover links for a particular object
+ *
+ * @param array $admin_hover
+ *   array of admin_hover links built from implementations of admin_hover hook
+ * @param string $object
+ *   the object (node, block) being affected
+ * @param string $id
+ *   the id parameter of the containing div
+ * @param string $destination
+ *   the destination query as returned by drupal_get_destination()
+ * @param bool $check_access
+ *   whether or not to check the current user's access to the action
+ * @return array
+ *   array of admin_hover links
+ */
+function admin_hover_links($admin_hover, $object, $id, $destination, $check_access = TRUE) {
+  $admin_hover_links = array();
+  switch ($object) {
+    case 'node':
+      $nid = end(explode('-', $id));
+      if ($nid && is_numeric($nid)) {
+        $node = node_load($nid);
+      }
+      // verify that node did, indeed, load
+      if (!isset($node) || !$node) {
+        return $admin_hover_links;
+      }
+      $map = array(
+        '%object' => $node,
+      );
+    break;
+    case 'block':
+      $id_array = explode('-', $id);
+      if (!($id_array[1] && $id_array[2])) {
+        return $admin_hover_links;
+      }
+      $map = array(
+        '%module' => $id_array[1],
+        '%id' => $id_array[2],
+      );
+    break;
+  }
+  $admin_hover = array_filter($admin_hover, '_admin_hover_filter_'. $object);
+  $active_links = admin_hover_active_links($object);
+  foreach ($admin_hover as $link) {
+    // check active
+    if (isset($active_links[$link['href']]) && !$active_links[$link['href']]) {
+      continue;
+    }
+    // check dependencies
+    if (isset($link['dependencies']) && is_array($link['dependencies'])) {
+      $missing_dependencies = FALSE;
+      foreach ($link['dependencies'] as $dependency) {
+        if (!module_exists($dependency)) {
+          $missing_dependencies = TRUE;
+          continue;
+        }
+      }
+      if ($missing_dependencies) {
+        continue;
+      }
+    }
+    // check access
+    if ($check_access) {
+      $link['access callback'] = $link['access callback'] ? trim($link['access callback']) : 'user_access';
+      $link['access arguments'] = empty($link['access arguments']) ? array() : $link['access arguments'];
+      foreach ($link['access arguments'] as $i => $argument) {
+        $link['access arguments'][$i] = isset($map[$argument]) ? $map[$argument] : $argument;
+      }
+      $access = call_user_func_array($link['access callback'], $link['access arguments']);
+      if (!$access) {
+        continue;
+      }
+    }
+    // replace path tokens
+    $link['href'] = token_replace($link['href'], 'node', $node);
+    if ('block' == $object) {
+      $link['href'] = str_replace(array_keys($map), array_values($map), $link['href']);
+    }
+    // replace title tokens and translate
+    $link['title'] = isset($link['title']) ? $link['title'] : '';
+    $link['title'] = token_replace($link['title'], 'node', $node);
+    if (isset($link['title arguments']) && is_array($link['title arguments'])) {
+      foreach ($link['title arguments'] as $sub => $replace) {
+        $link['title arguments'][$sub] = token_replace($replace, 'node', $node);
+      }
+    }
+    $link['title callback'] = isset($link['title callback']) ? trim($link['title callback']) : 't';
+    $link['title arguments'] = isset($link['title arguments']) ? $link['title arguments'] : array();
+    $link['title arguments'] = array($link['title'], $link['title arguments']);
+    $link['attributes']['title'] = call_user_func_array($link['title callback'], $link['title arguments']);
+    $link['destination'] = isset($link['destination']) ? $link['destination'] : TRUE;
+    $admin_hover_links[] = array(
+      'title' => '',
+      'href' => $link['href'],
+      'attributes' => $link['attributes'],
+      'query' => ($link['destination'] ? $destination : NULL),
+    );
+  }
+  return $admin_hover_links;
+}

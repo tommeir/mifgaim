@@ -1,0 +1,427 @@
+<?php
+// $Id: addthis.module,v 1.13.2.23.2.12 2011/01/31 03:39:07 lesmana Exp $
+
+/**
+ * @file
+ * Provides integration with the AddThis.com bookmarking & sharing service.
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function addthis_menu() {
+  $items = array();
+  $items['admin/settings/addthis'] = array(
+    'title' => 'AddThis',
+    'description' => 'Configuration settings for AddThis integration.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('addthis_config_form'),
+    'access arguments' => array('administer addthis'),
+    'file' => 'addthis.admin.inc',
+  );
+  $items['admin/settings/addthis/config'] = array(
+    'title' => 'Configure',
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+  $items['admin/settings/addthis/templates'] = array(
+    'title' => 'Templates',
+    'description' => 'Settings for custom sharing templates offered by the AddThis API.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('addthis_templates_form'),
+    'access arguments' => array('administer addthis'),
+    'file' => 'addthis.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+  );
+  $items['admin/settings/addthis/custom'] = array(
+    'title' => 'Customize services',
+    'description' => 'Add HTML classes and attributes to individual Toolbox items.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('addthis_customize_form'),
+    'access arguments' => array('administer addthis'),
+    'file' => 'addthis.admin.inc',
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+  );
+  $items['admin/settings/addthis/flush-services'] = array(
+    'type' => MENU_CALLBACK,
+    'page callback' => 'addthis_flush_services',
+    'access arguments' => array('administer site configuration'),
+    'file' => 'addthis.admin.inc',    
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function addthis_perm() {
+  return array('administer addthis');
+}
+
+/**
+ * Implementation of hook_link().
+ */
+function addthis_link($type, $node = NULL, $teaser = FALSE) {
+  // Check whether AddThis is set to display on this node.
+  if ($type != 'node') {
+    return array(); 
+  }
+  if ($teaser && variable_get('addthis_display_in_teasers', '0') == FALSE) {
+    return array();
+  }
+  if (!$teaser && variable_get('addthis_display_in_links', '0') == FALSE) {
+    return array();
+  }
+  $addthis_node_types = variable_get('addthis_node_types', array());
+  if (empty($addthis_node_types[$node->type])) {
+    return array();
+  }
+  
+  $addthis_widget_type = variable_get('addthis_widget_type', 'addthis_button');
+  $links = array();
+  $links['addthis'] = array(
+    'title' => theme($addthis_widget_type, NULL, array(
+      'url' => url('node/' . $node->nid, array('absolute' => TRUE)),
+      'title' => $node->title,
+    )),
+    'html' => TRUE,
+  );
+
+  return $links;
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function addthis_block($op = 'list', $delta = 0) {
+  switch ($op) {
+    case 'list':
+      $blocks[0]['info'] = t('AddThis widget');
+      return $blocks;
+    case 'view':
+      $addthis_widget_type = variable_get('addthis_widget_type', 'addthis_button');
+      $block['subject'] = t('AddThis');
+      $block['content'] = theme($addthis_widget_type);
+      return $block;      
+  }
+}
+
+/**
+ * Implementation of hook_theme().
+ */
+function addthis_theme() {
+  return array(
+    'addthis_button' => array(
+      'arguments' => array(
+        'html' => NULL,
+        'config' => array(),
+      ),
+    ),
+    'addthis_toolbox' => array(
+      'arguments' => array(
+        'services' => NULL,
+        'config' => array(),
+      ),
+    ),
+    'addthis_toolbox_item' => array(
+      'arguments' => array(
+        'service' => NULL,
+      ),
+    ),
+  );
+}
+
+/**
+ * Theme function to render an AddThis button.
+ *
+ * @param $html
+ *   HTML code to be placed inside the <a> element that will become the AddThis
+ *   button. If blank, AddThis will use its own default button image.
+ * @param array $config
+ *   An optional array of configuration options to apply to this instance of
+ *   the button. A list of key/value possibilities can be found at
+ *   http://addthis.com/help/menu-api. Options from both addthis_config and
+ *   addthis_share may be used.
+ */
+function theme_addthis_button($html = NULL, $config = array()) {
+  addthis_add_default_js();
+  // Build the button attributes, including those provided in $config.
+  $attributes = array('class' => 'addthis_button');
+  if (!empty($config) && is_array($config)) {
+    foreach ($config AS $key => $value) {
+      $attributes['addthis:' . check_plain($key)] = check_plain($value);
+    }
+  }
+  $output = l(filter_xss_admin($html), NULL, array('html' => TRUE, 'attributes' => $attributes));
+  return $output;
+}
+
+/**
+ * Theme function to render an AddThis toolbox.
+ *
+ * @param $services
+ *   A comma-separated string of AddThis service codes to be rendered in the
+ *    toolbox. If blank, the short list from the admin settings will be used.
+ * @param array $config
+ *   An optional array of configuration options inherited by each item in the
+ *   toolbox. A list of key/value possibilities can be found at
+ *   http://addthis.com/help/menu-api
+ * @param $more
+ *   If the pseudo-service "more" is included, this is the text or HTML used
+ *   to represent the expanded menu in the toolbox. Defaults to "Share".
+ */
+function theme_addthis_toolbox($services = NULL, $config = array()) {
+  $default_config = variable_get('addthis_config', array());
+
+  // If no services are passed to the function, use the configured defaults.
+  if (empty($services)) {
+    $services = explode(',', $default_config['services_toolbox']);
+  }
+  else {
+    $services = explode(',', $services);
+  }
+  foreach ($services AS $service) {
+    $output .= theme('addthis_toolbox_item', trim(strtolower($service)));
+  }
+
+  // If a $config is specified, process it into $attributes.
+  if (!empty($config) && is_array($config)) {
+    foreach ($config AS $key => $value) {
+      $attributes .= sprintf("addthis:%s='%s' ", check_plain($key), check_plain($value));
+    }
+  }
+  
+  $toolbox_classes = check_plain(variable_get('addthis_toolbox_classes', ''));
+  return "<div class='addthis_toolbox addthis_default_style $toolbox_classes' $attributes>" . $output . "</div>";
+}
+
+/**
+ * Theme function to render an individual toolbox item. This is often, but not
+ * necessarily, in the context of an AddThis toolbox.
+ *
+ * @param service
+ *   A custom service code or a basic AddThis service code.
+ *   Full list at http://addthis.com/services/all
+ */
+function theme_addthis_toolbox_item($service) {
+  addthis_add_default_js();
+  static $services;
+  if (!isset($services)) {
+    $services = addthis_get_custom_services();
+  }
+
+  // Look for the service in the custom services list.
+  if (isset($services[$service])) {
+    if (isset($services[$service]['output'])) {
+      return $services[$service]['output'];
+    }
+    else {
+      $class = 'addthis_toolbox_item ' . check_plain($services[$service]['class']);
+      $attributes = filter_xss($services[$service]['attributes']);
+      $title = filter_xss_admin($services[$service]['title']);
+      return "<a class='$class' $attributes>$title</a>"; 
+    }
+  }
+  
+  // No custom service found; use the default output.
+  $output = "<a class='addthis_toolbox_item addthis_button_" . check_plain($service) . "'></a>";
+  return $output;
+}
+
+/**
+ * Implements hook_addthis_toolbox_services().
+ */
+function addthis_addthis_toolbox_services() {
+  $services = array(
+    'separator' => array(
+      'output' => '<span class="addthis_separator">|</span>',
+    ),
+    'share' => array(
+      'class' => 'addthis_button_expanded',
+      'title' => t('Share'),
+    ),
+    'more' => array(
+      'class' => 'addthis_button_expanded',
+    ),
+    'counter' => array(
+      'class' => 'addthis_counter',
+    ),
+    'counter_pill' => array(
+      'class' => 'addthis_counter addthis_pill_style',
+    ),
+    'facebook_like' => array(
+      'class' => 'addthis_button_facebook_like',
+    ),
+    'facebook_like_counter' => array(
+      'class' => 'addthis_button_facebook_like',
+      'attributes' => 'fb:like:layout="button_count">',
+    ),
+    'tweet' => array(
+      'class' => 'addthis_button_tweet',
+    ),
+  );
+  return $services;
+}
+
+/**
+ * Get custom service definitions.
+ *
+ * @return array
+ *   An array of service definitions keyed by service code.
+ */
+function addthis_get_custom_services() {
+  // Get service definitions from modules.
+  $services = module_invoke_all('addthis_toolbox_services');
+  drupal_alter('addthis_toolbox_services', $services);
+
+  // Get service definitions from the Service Customizations form.
+  $definitions = variable_get('addthis_service_customizations', array());
+  foreach ($definitions AS $def) {
+    $services[trim(check_plain($def['code']))] = $def;
+  }
+
+  return $services;
+}
+
+/**
+ * Load the addthis_widget.js and the configured AddThis defaults.
+ */
+function addthis_add_default_js() {
+  // Check if we've done this already.
+  static $addthis_counter = 0;
+  if ($addthis_counter++ > 0) {
+    return $addthis_counter;
+  }
+  
+  // Get the base configuration settings array.
+  $config = variable_get('addthis_config', array());
+
+  // Determine the current language context and add it to $settings.
+  global $language;
+  $config['ui_language'] = $language->language;
+  
+  // AddThis seems to be fairly strict about variable typing.
+  $config['ui_use_css'] = (bool) $config['ui_use_css'];
+
+  // Get any configured share templates.
+  $share = array();
+  $share['templates']['twitter'] = variable_get('addthis_templates_twitter', '');
+  
+  // Add the settings array to the page and process it for the AddThis script.
+  $settings = array(
+    'addthis' => array(
+      'config_default' => $config,
+      'share_default' => $share,      
+    ),
+  );  
+  _addthis_check_plain($settings);
+  drupal_add_js($settings, 'setting');
+  drupal_add_js('addthis_config = Drupal.settings.addthis.config_default; addthis_share = Drupal.settings.addthis.share_default;', 'inline');
+
+  // If javascript caching is enabled and the private file system is not being
+  // used, go ahead and load the cached file.
+  if (variable_get('addthis_cache_js', 0) && variable_get('file_downloads', 1) == 1 && $source = addthis_cache_js('http://s7.addthis.com/js/250/addthis_widget.js')) {
+    // We need the async fragment in the src argument, so we can't use
+    // drupal_add_js() so far as I know.
+    drupal_set_html_head("<script type='text/javascript' src='" . base_path() . $source . "#async=1'></script>");
+  }
+  else {
+    // Load the external javascript in the head.
+    drupal_set_html_head("<script type='text/javascript' src='//s7.addthis.com/js/250/addthis_widget.js#async=1'></script>");
+  }
+  
+  return $addthis_counter;
+}
+
+/**
+ * Implements hook_footer().
+ * 
+ * Google Analytics integration needs custom JavaScript that has to run after
+ * the GA tracking object has been initialized.
+ */
+function addthis_footer($main = 0) {
+  // Get the base configuration settings array.
+  $config = variable_get('addthis_config', array());
+  
+  if (!empty($config['data_ga_tracker'])) {
+    // Assume "pageTracker" is the name of the GA tracking object.
+    // TODO: Make this configurable in the UI.
+    $ga_tracker_name = variable_get('addthis_ga_tracker_name', 'pageTracker');
+    drupal_add_js('if (typeof ' . $ga_tracker_name . ' != "undefined") {addthis_config.data_ga_tracker = ' . $ga_tracker_name . ';}', 'inline', 'footer');    
+  }
+  
+  // Make sure we initialize addthis at the end of the page.
+  drupal_add_js('if (typeof addthis != "undefined") {addthis.init();}', 'inline', 'footer');
+}
+
+/**
+ * Download and cache the AddThis JS file locally and return its path.
+ * 
+ * @param $location
+ *   The full URL to the external JavaScript file.
+ * @return mixed
+ *   The path to the local JavaScript file on success, boolean FALSE on failure.
+ */
+function addthis_cache_js($location) {
+  // If the previous cached file is more than a day old, delete it.
+  if (time() - variable_get('addthis_last_cache', 0) >= 86400) {
+    addthis_clear_js();
+  }
+  
+  // Check for a cached version. Get one if it doesn't exist.
+  $directory = file_directory_path() .'/addthis';
+  $file_destination = $directory .'/'. basename($location);
+  if (!file_exists($file_destination)) {
+    $result = drupal_http_request($location);
+    // Make sure we got the file and that the files directory is writable.
+    if ($result->code == 200 && file_check_directory($directory, FILE_CREATE_DIRECTORY)) {
+      variable_set('addthis_last_cache', time());
+      return file_save_data($result->data, $directory .'/'. basename($location), FILE_EXISTS_REPLACE);
+    }
+    else {
+      return FALSE;
+    }
+  }
+  else {
+    return $file_destination;
+  }
+}
+
+/**
+ * Delete the cached JavaScript file.
+ */
+function addthis_clear_js() {
+  // Delete the cached AddThis JS file every day so it gets regenerated again.
+  if (file_delete(file_directory_path() .'/addthis/addthis_widget.js')) {
+    // Clear aggregated JS files.
+    if (variable_get('preprocess_js', 0)) {
+      drupal_clear_js_cache();
+    }
+  }
+}
+
+/**
+ * Helper function to recursively run an entire array through check_plain().
+ */
+function _addthis_check_plain(&$item) {
+  if (is_array($item)) {
+    foreach($item AS $key => $value) {
+      _addthis_check_plain($value);
+    }
+  }
+  else {
+    $item = check_plain($item);
+  }
+}
+
+/**
+ * Implementation of hook_views_api().
+ */
+function addthis_views_api() {
+  return array(
+    'api' => 2,
+    'path' => drupal_get_path('module', 'addthis'),
+  );
+}

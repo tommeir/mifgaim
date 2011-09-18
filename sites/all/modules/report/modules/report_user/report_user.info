@@ -1,0 +1,13 @@
+; $Id: report_user.info,v 1.1 2009/11/02 18:06:28 ki Exp $
+name        = Report User
+description = Report for users
+version     = 6.x-1.0
+core        = 6.x
+package     = Report
+dependencies[] = report
+; Information added by drupal.org packaging script on 2010-07-12
+version = "6.x-1.0-beta2"
+core = "6.x"
+project = "report"
+datestamp = "1278956708"
+

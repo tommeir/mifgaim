@@ -1,0 +1,18 @@
+name = Menu Editor path autocomplete
+description = Autocomplete for Menu Editor path field.
+core = 6.x
+dependencies[] = menu_editor
+package = Menu
+; Information added by drupal.org packaging script on 2010-07-15
+version = "6.x-2.1"
+core = "6.x"
+project = "menu_editor"
+datestamp = "1279195215"
+
+
+; Information added by drupal.org packaging script on 2010-11-09
+version = "6.x-2.2"
+core = "6.x"
+project = "menu_editor"
+datestamp = "1289340644"
+

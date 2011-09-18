@@ -1,0 +1,83 @@
+<?php
+// $Id: config_perms.module,v 1.3 2009/03/04 23:00:11 mrthumpz Exp $
+
+/**
+ * @file
+ * Adds more granular permissions for items under 'administer site configuration'.
+ *
+ * Development by mrthumpz (Todd Humphrey) todd@iplanitglobal.com
+ * www.iplanitglobal.com
+ */
+
+/**
+ * Configure permission names for urls:
+ */
+
+$GLOBALS['config_perms_map'] = array(
+ 'administer themes'                => array('admin/build/themes', 'admin/build/themes/settings'),
+ 'administer administration theme'  => array('admin/settings/admin'),
+ 'administer clean-urls'            => array('admin/settings/clean-urls'),
+ 'administer date-time'             => array('admin/settings/date-time', 'admin/settings/date-time/lookup'),
+ 'administer error reporting'       => array('admin/settings/error-reporting'),
+ 'administer file system'           => array('admin/settings/file-system'),
+ 'administer performance'           => array('admin/settings/performance'),
+ 'administer site information'      => array('admin/settings/site-information'),
+ 'administer site maintenance'      => array('admin/settings/site-maintenance'),
+ 'administer modules'               => array('admin/build/modules', 'admin/build/modules/list/confirm', 'admin/build/modules/uninstall', 'admin/build/modules/uninstall/confirm'),
+ 'administer user profile fields'   => array('admin/user/profile'),
+ 'administer content node settings' => array('admin/content/node-settings'),
+ 'display site building menu'         => array('admin/build'),
+ 'display site configuration menu'  => array('admin/settings'),
+);
+
+/*******************************************************************************
+ * Hook Functions
+ ******************************************************************************/
+/**
+
+/**
+ * Implementation of hook_perm
+ * Administer -> User management -> Permissions
+ */
+function config_perms_perm() {
+ return array_keys($GLOBALS['config_perms_map']);
+}
+
+/**
+* Implementation of hook_menu_alter().
+*/
+function config_perms_menu_alter(&$items) {
+	foreach ($GLOBALS['config_perms_map'] as $perm => $urls) {
+		foreach ($urls as $url) {			
+			$items[$url]['access callback'] = 'config_perms_access_callback';
+			$items[$url]['access arguments'] = array($perm);
+		}
+	}
+	// administer themes:
+	foreach (list_themes() as $theme) {
+		$items['admin/build/themes/settings/'. $theme->name]['access callback'] = 'config_perms_themes_access';
+		$items['admin/build/themes/settings/'. $theme->name]['access arguments'] = array($theme);
+	}
+}
+
+/**
+ * Implementation of hook_disable().
+ */
+function config_perms_disable() {
+  $resetcallback = serialize(array('administer site configuration'));
+  db_query("UPDATE {menu_router} SET access_callback = '%s', access_arguments = '%s' WHERE access_callback = '%s'", 'user_access', $resetcallback, 'config_perms_access_callback');
+}
+
+/**
+* Access callback for theme selection and settings page
+*/
+function config_perms_access_callback($perm) {	
+	return user_access($perm) || user_access('administer site configuration');
+}
+
+/**
+* Access callback for each theme's settings
+*/
+function config_perms_themes_access($theme) {
+	return (user_access('administer themes') || user_access('administer site configuration')) && ($theme->status || $theme->name == variable_get('admin_theme', '0'));
+}

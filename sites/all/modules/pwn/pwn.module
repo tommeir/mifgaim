@@ -1,0 +1,333 @@
+<?php
+// $Id: pwn.module,v 1.9 2010/02/25 04:15:44 ceardach Exp $
+
+/**
+ * @file
+ * Permits privileged users to control any owned permission for all roles.
+ *
+ * Allows the delegation of delegation.  Users in roles granted 'share
+ * permissions' permission can access the permissions administration page the
+ * same way a user with 'administer permissions' can, but they can only see
+ * permissions that exist in one of their roles.  This module relies on
+ * menu_alter and form_alter.
+ */
+
+/**
+ * Implements hook_perm().
+ */
+function pwn_perm() {
+  $perms = array(
+    'share permissions',
+    'share permissions through roles',
+  );
+
+  return $perms;
+}
+
+/**
+ * Implements hook_menu_alter().
+ */
+function pwn_menu_alter(&$items) {
+  $items['admin/user/permissions']['access callback'] = 'pwn_user_access_any';
+  $items['admin/user/permissions']['access arguments'][] = 'share permissions';
+}
+
+/**
+ * Implements hook_form_FORM_ID_alter() for user_admin_perm form.
+ */
+function pwn_form_user_admin_perm_alter(&$form, &$form_state) {
+  // If user does not have 'share permissions' or DOES have 'administer
+  // permissions', bail right away
+  if (!user_access('share permissions')
+   || user_access('administer permissions')) {
+    return;
+  }
+  $form['#validate'][] = 'pwn_form_user_admin_perm_validate';
+  $rolecount = count($form['checkboxes']);
+  // Place to save the default values of the options we will delete.
+  $form['pwnd'] = array();
+  $form['pwnd']['#type'] = 'value';
+  $form['pwnd']['#value'] = array();
+  for ($i = 1; $i <= $rolecount; $i++) {
+    $form['pwnd']['#value'][$i] = array();
+    foreach ($form['checkboxes'][$i]['#options'] as $perm => $permval) {
+      // If the user doesn't have this permission, don't let em set it.
+      if (!user_access($perm)) {
+        // Remove it from the main form.
+        unset($form['checkboxes'][$i]['#options'][$perm]);
+        // Add it to our hidden form values set to the existing value.
+        $form['pwnd']['#value'][$i][$perm] =
+          (in_array($perm, $form['checkboxes'][$i]['#default_value']))
+          ? $perm
+          : 0;
+        // Cosmetic: Get rid of listing.
+        unset($form['permission'][$perm]);
+      }
+    }
+  }
+  // If two keys in a row are numeric (title rows) delete first (empty) one.
+  $prevkey = NULL;
+  foreach ($form['permission'] as $key => $value) {
+    if (is_numeric($key)) {
+      if ($prevkey !== NULL) {
+        unset($form['permission'][$prevkey]);
+      }
+      $prevkey = $key;
+    }
+    else {
+      $prevkey = NULL;
+    }
+  }
+  if ($prevkey !== NULL) {
+    unset($form['permission'][$prevkey]);
+  }
+}
+
+/**
+ * Abuse the validation opportunity to throw values back into form_state.
+ */
+function pwn_form_user_admin_perm_validate(&$form, &$form_state) {
+  foreach ($form_state['values']['pwnd'] as $i => $pwnd) {
+    $form_state['values'][$i] = array_merge($form_state['values'][$i], $pwnd);
+  }
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter() for user add and edit forms
+ */
+function pwn_form_user_profile_form_alter(&$form, &$form_state) {
+  $form = _pwn_role_form($form);
+}
+function pwn_form_user_register_alter(&$form, &$form_state) {
+  $form = _pwn_role_form($form);
+}
+
+/**
+ * Internal function to add a roles form to an user account form
+ */
+function _pwn_role_form($form) {
+  if (user_access('share permissions through roles') && !user_access('administer permissions')) {
+    // Add in the roles form
+    // We have to enter our own form as pwn_roles because
+    // user_profile_form_validate() will reject any modifications to roles if
+    // the user does not have the 'administer permissions' permission
+    if (array_key_exists('account', $form)) {
+      $form['account']['pwn_roles'] = array();
+      $roles_form =& $form['account']['pwn_roles'];
+    }
+    else {
+      $form['pwn_roles'] = array();
+      $roles_form =& $form['pwn_roles'];
+    }
+    $roles_form = array(
+      '#type' => 'checkboxes',
+      '#title' => 'Roles',
+      '#default_value' => array(),
+      '#options' => array(),
+    );
+
+    // Add all of the users existing roles to the form
+    $all_roles = user_roles(TRUE);
+    if (array_key_exists('_account', $form)) {
+      foreach ($form['_account']['#value']->roles as $rid => $role_name) {
+        // If the editor does not have a permission that is available in a role
+        // the user currently has, then the role will be visible to the editor but
+        // disabled.  Effectively, editors should not revoke permissions the
+        // editor does not have themselves
+        if ($rid == 2 || !pwn_grant_role($rid)) {
+          $roles_form[$rid] = array(
+            '#type' => 'checkbox',
+            '#title' => $role_name,
+            '#default_value' => TRUE,
+            '#disabled' => TRUE,
+          );
+        }
+        // Otherwise add the role as optional
+        else {
+          $roles_form['#options'][$rid] = $role_name;
+        }
+        // Set all roles the user currently has as checked
+        $roles_form['#default_value'][] = $rid;
+
+        // Remove the role from the all-roles list since it has been processed
+        unset($all_roles[$rid]);
+      }
+    }
+    else {
+      // Since the user doesn't exist yet, only set authenticated as default
+      $roles_form[2] = array(
+        '#type' => 'checkbox',
+        '#title' => 'authenticated user',
+        '#default_value' => TRUE,
+        '#disabled' => TRUE,
+      );
+      $roles_form['#default_value'][] = 2;
+    }
+
+    // Add all of the remaining roles to the form
+    foreach ($all_roles as $rid => $role_name) {
+      // Only roles the editor can grant should be available as options
+      if (pwn_grant_role($rid)) {
+        $roles_form['#options'][$rid] = $role_name;
+      }
+    }
+  }
+
+  return $form;
+}
+
+/**
+ * Implementation of hook_user().
+ */
+function pwn_user($type, &$edit, &$user, $category = NULL) {
+  // Process the roles form on user submit
+  if ($category == 'account' && isset($edit['pwn_roles'])) {
+    // Reject the changes for security reasons if the user does not have the
+    // proper permissions for editing roles
+    if ($type == 'validate' && !user_access('share permissions through roles')) {
+      $message = t('Detected malicious attempt to alter user\'s roles.');
+      watchdog('security', $message, WATCHDOG_WARNING);
+      form_set_error('category', $message);
+    }
+
+    if ($type == 'insert' || $type == 'submit') {
+      // Now that the form has passed validation, copy the roles values to the
+      // real 'roles' section of the form so the values will be saved.
+      // For some reason, if the value is 0, its still being saved.  Removing
+      // any roles without the value TRUE
+      foreach ($edit['pwn_roles'] as $rid => $enabled) {
+        if ($enabled) {
+          $edit['roles'][$rid] = TRUE;
+        }
+      }
+    }
+  }
+}
+
+/**
+ * Returns true if a user has any of the passed-in permissions.
+ *
+ * A replacement for the default user_access callback, this function takes any
+ * number of strings as passed in by the 'access arguments' menu.
+ *
+ * Potential Agaric Utility (_au_) function, although this could just as easily
+ * be hard-coded in the function and nothing passed in.
+ */
+function pwn_user_access_any() {
+  $perms = func_get_args();
+  foreach ($perms as $perm) {
+    if (user_access($perm)) {
+      return TRUE;
+    }
+  }
+  // The current user had none of the permissions.
+  return FALSE;
+}
+
+/**
+ * Discover if a user can grant a given role based on comparing permissions
+ *
+ * @param Integer $rid
+ *   The role id to check
+ * @param Object $account
+ *   The user account to check against.  If no account is provided, then the
+ *   current user is used.
+ * @return Boolean
+ *   Returns the results of pwn_compare_perms() between all permissions of the
+ *   given account against all the permissions of the given role.
+ */
+function pwn_grant_role($rid, $account = NULL) {
+  if ($account == NULL) {
+    global $user;
+    $account = $user;
+  }
+
+  $roles = array_keys($user->roles);
+
+  // If the user already has the requested role then of course its OK
+  if (in_array($rid, $roles)) {
+    return TRUE;
+  }
+
+  // Otherwise compare permissions
+  $account_permissions = pwn_get_permissions_for_roles($roles);
+  $role_permissions = pwn_get_permissions_for_roles(array($rid));
+
+  return pwn_compare_perms($account_permissions, $role_permissions);
+}
+
+/**
+ * Returns an array of permissions for a given set of roles
+ *
+ * @param Array $role_ids
+ *   The ID of the role
+ * @return Array
+ *   An array of permissions associated with the given role
+ */
+function pwn_get_permissions_for_roles($role_ids) {
+  // Sanitize the role IDs
+  foreach ($role_ids as $key => $rid) {
+    if ($rid > PHP_INT_MAX) {
+      $precision = ini_get('precision');
+      @ini_set('precision', 16);
+      $rid = sprintf('%.0f', $rid);
+      @ini_set('precision', $precision);
+    }
+    else {
+      $rid = (int) $rid;
+    }
+    $role_ids[$key] = $rid;
+  }
+
+  // Grab the permissions for each role
+  $sql = "SELECT perm " .
+      "FROM {permission} " .
+      "WHERE rid IN (". implode(' ,', $role_ids) .")";
+  $results = db_query($sql);
+  $permissions = array();
+  while ($data = db_fetch_object($results)) {
+    // Since permissions are stored in a comma seperated string, we have to
+    // process the string
+    if (strlen($data->perm) > 0) {
+      $row_perms = explode(',', $data->perm);
+      foreach($row_perms as $perm){
+        $permissions[] = trim($perm);
+      }
+    }
+  }
+
+  // Since permissions can be shared between multiple roles, strip out all
+  // duplicate permissions before returning
+  $permissions = array_unique($permissions);
+  sort($permissions);
+
+  return $permissions;
+}
+
+/**
+ * Compare two sets of permissions to see if all of set B is contained in set A
+ *
+ * @param Array $permsA
+ *   The 'master' set of permissions.  E.g.: haystack
+ * @param Array $permsB
+ *   The 'sub' set of permissions. E.g.: needle
+ * @return Boolean
+ *   If all values within permsB is contained in permsA TRUE is returned.
+ *   Otherwise, return FALSE if there are any values in permsB that permsA does
+ *   not have.
+ */
+function pwn_compare_perms($permsA, $permsB) {
+  // Find all values in B that match A
+  $matches = array_intersect($permsA, $permsB);
+
+  // Discover if there is anything left over after all the matches
+  $diff = array_diff($permsB, $matches);
+
+  // If there are any diffs, they are permissions A does not have
+  if (count($diff) > 0) {
+    return FALSE;
+  }
+  else {
+    return TRUE;
+  }
+}

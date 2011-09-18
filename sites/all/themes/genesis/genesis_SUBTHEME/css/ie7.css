@@ -1,0 +1,43 @@
+@charset "utf-8";
+#header .block-search {overflow:hidden; float:left; width:350px;}
+#header-blocks {width:400px;}
+#header .block-search .form-item { margin:3px 0px 0px -1px;}
+#block-nodeblock-14 {background:url(../images/whatis.jpg) no-repeat right top;}
+#columns { margin-top:10px;}
+#block-views-banner-block_1 .views-field-field-simple-text-value { position:relative; bottom:118px; left:0px; width:618px;}
+#views_slideshow_singleframe_main_banner-block_1 {width:618px;}
+#block-views-banner-block_1 { height:348px; overflow:hidden;}
+.front #main-content {margin-top:-20px;}
+#columns-wrapper { overflow:hidden; }
+.pager .pager-next a { padding-left:0px; padding-right:10px;}
+.pager .pager-previous a {padding-right:0px; padding-left:10px;}
+.pager li {display:block; float:right;}
+.pager { float:left;}
+#content-column > .content-inner { overflow:hidden; position:relative; float:none;}
+span.num {float:right; display:block;}
+textarea { overflow: auto; }
+html, body {height:100%;}
+#breadcrumb .breadcrumb span.arrow { display:inline-block; height:7px; width:4px; margin:0px 8px;}
+#sidebar-left > .sidebar-inner > .block {float:none;}
+.node-type-post #content .node-content {overflow:hidden;}
+.node-type-post #content .node-content .time {top:-4px;}
+#content .comments { float:none; overflow:hidden; position:relative; clear:both; }
+.search #content .search-form .form-item input.form-submit { padding-top:2px; padding-bottom:3px;}
+.search #content .search-form .search-advanced.collapsed { margin:12px 0px 0px;}
+.search #content .search-form .search-advanced { margin:12px 0px 0px;}
+.search #content .search-form .search-advanced .action input { padding:6px 0px;}
+.search #content .search-form .search-advanced legend { background-position:right top !important; padding:0px; margin:0px;}
+.search #content .search-form .search-advanced.collapsed legend a { top:5px;}
+#breadcrumb .center span { display:inline-block; float:none; }
+#breadcrumb .center a {display:inline-block; float:none; }
+#block-sts_data-0 #edit-keywords-wrapper label {right:17px;}
+#block-views-dataitems-block_1 .views-row {margin-left:1%;}
+#content #comments .box #edit-subject-wrapper {margin-left:8px; }
+#content #comments .box #edit-name-wrapper {margin-left:8px; }
+#comments {width:100%;}
+.page-node-17 .view-blog .views-row .views-field-body { width:65%;}
+#secondary-content { background-position:center top;}
+#block-views-banner-block_1 {width:632px;}
+#block-views-banner-block_1 img {position:relative; right:3px;}
+#block-views-banner-block_1 .views-field-field-simple-text-value {left:-6px;}
+.view-tags li { display:inline;}

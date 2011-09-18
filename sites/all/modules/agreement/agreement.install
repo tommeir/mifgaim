@@ -1,0 +1,53 @@
+<?php
+// $Id: agreement.install,v 1.1 2009/01/13 20:13:20 yuriybabenko Exp $
+
+/**
+ * Implementation of hook_install()
+ */
+function agreement_install() {
+	drupal_install_schema('agreement');
+	db_query("UPDATE {system} SET weight = 9999 WHERE name = 'agreement'");
+}
+
+/**
+ * Implementation of hook_schema()
+ */
+function agreement_schema() {
+  	$schema['agreement'] = array(
+	  'fields' => array(
+	    'id' => array(
+		  'type' => 'serial',
+		  'unsigned' => TRUE,
+		  'not null' => TRUE,
+		),
+  	    'uid' => array(
+		  'type' => 'int',
+		  'unsigned' => TRUE,
+		  'not null' => TRUE,
+		),
+	    'agreed' => array(
+		  'type' => 'int',
+		  'unsigned' => TRUE,
+		  'not null' => TRUE,
+		  'default' => 0,
+		),
+	  ),
+	  'indexes' => array(
+	    'id' => array(
+		  'id',
+		 ),
+	  ),
+	  'primary key' => array(
+	    'id',
+	  ),
+  	);
+  	
+  	return $schema;
+}
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function agreement_uninstall() {
+	drupal_uninstall_schema('agreement');
+}

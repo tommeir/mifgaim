@@ -1,0 +1,47 @@
+<?php // $Id: author_select.module,v 1.2 2010/07/19 12:52:22 mcrittenden Exp $
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function author_select_form_alter(&$form, &$form_state, $form_id) {
+  if (isset($form['#node'])) { // If on node add/edit form.
+    $node = (object)$form['#node'];
+
+    // Determine what roles have permission to add/edit this content.
+    $permissions = array('create ' . $node->type . ' content', 'edit any ' . $node->type . ' content');
+    $roles = array();
+
+    $result = db_query('SELECT rid, perm FROM {permission}');
+    while($permission = db_fetch_object($result)){
+      if (count(array_intersect($permissions, explode(', ', $permission->perm)))) {
+        $roles[] = $permission->rid;
+      }
+    }
+
+    // Build a list of users that have permission to add/edit this content
+    // specifically checking the anonymous user and always including user 1.
+    if (!empty($roles)) {
+      if (in_array(1, $roles)) {
+        $options[0] = variable_get('anonymous', t('Anonymous'));
+      }
+      $result = db_query("SELECT u.name FROM {users} AS u LEFT JOIN {users_roles} AS ur ON u.uid = ur.uid WHERE (u.uid = 1 OR ur.rid IN (%s)) ORDER BY name", implode(',', $roles));
+    }
+    else{
+      $result = db_query("SELECT name FROM {users} WHERE uid = 1");
+    }
+    while ($person = db_fetch_object($result)) {
+      if ($person->name != "") {
+        $options[$person->name] = $person->name;
+      }
+    }
+
+    // Create the new form element.
+    $form['author']['name'] = array(
+      '#type' => 'select',
+      '#title' => t('Authored by'),
+      '#options' => $options,
+      '#default_value' => $node->name ? $node->name : 0,
+      '#weight' => -1
+    );
+  }
+}

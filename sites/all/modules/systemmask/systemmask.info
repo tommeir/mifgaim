@@ -1,0 +1,11 @@
+; $Id: systemmask.info,v 1.3 2009/01/13 23:07:32 robinmonks Exp $
+name = SystemMask
+description = Allows server administrators to prevent modules from being disabled.
+core = 6.x
+
+; Information added by drupal.org packaging script on 2010-07-11
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "systemmask"
+datestamp = "1278835862"
+

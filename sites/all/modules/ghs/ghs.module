@@ -1,0 +1,37 @@
+<?php
+
+function ghs_menu() {
+$items = array();
+$items['googlehostedservice.html'] = array(
+	'page callback' =>  'ghs_verify',
+	'title' => 'googlehostedservice.html',
+	'access arguments' => array('access content'),
+
+);
+$items['admin/settings/ghs'] = array(
+	'title' => 'Google Apps Verification',
+	'page callback' =>  'drupal_get_form',
+	'page arguments' => array('ghs_settings'),
+	'access arguments' => array('access administration pages'),
+);
+return $items;
+} 
+
+function ghs_verify() {
+print variable_get('ghs_srting_verify', 'The verification string has not been set please visit '.l('the settings page', 'admin/settings/ghs').' to enter the Google Verification sting required to verify your site with Google Apps.');
+exit();
+
+}
+function ghs_settings() {
+$form['helptext'] = array(
+'#value'=>'<p>In order to verify your domain ownership for Google Apps you must create a verification page on your site. This page will take care of setting the page up for you.</p>
+<p>To learn more about what you need to do, please follow the instructions on '.l('Google\'s Help Page', 'http://www.google.com/support/a/bin/answer.py?answer=63026&topic=9196').'.',
+);
+$form['ghs_string_verify']=array(
+'#title'=>'Google Verification String',
+'#type'=>'textarea',
+'#default_value'=>variable_get('ghs_verify_string', ''),
+'#description'=>'The verification string given to you by Google for verifying your domain ownership'
+);
+return system_settings_form($form);
+}

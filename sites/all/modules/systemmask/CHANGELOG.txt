@@ -1,0 +1,19 @@
+systemmask CHANGELOG
+===============================================================================
+
+2009/01/13 - Module being ported to Drupal 6. RM
+2008/04/23 - Module being ported to Drupal-5. RM  (sponsored by podhurl.com)
+------------ All work below this like not sponsored by any entity
+2007/05/20 - Initial chnages to module to prepare for intergration into Drupal
+             CVS and making official Drupal.org project for systemmask. RM
+2007/05/10 - Received permission from Kieran Lal of CivicSpace to maintain this
+             module, in my own time, in Drupal CVS. RM
+------------ All work below this line has been sponsored by CivicSpaceLabs.org
+2006/12/21 - Partial implimented of feature to hide the permission of hidden
+             modules from the access permission page. NR
+2006/09/24 - Don't allow required modules to be throttled. NR
+2006/09/19 - Modules can now be enabled, or disabled when hidden. NR
+2006/09/08 - Made variable name generic to facilitate use for other system 
+             elements at a later date. NR
+2006/09/-- - systemmask is created for CivicSpace's OnDemand Service by Nedjo 
+             Rogers.  NR

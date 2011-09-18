@@ -1,0 +1,27 @@
+<?php
+/*
+ * Implimentation of hook_perm()
+ */
+function simple_menu_settings_perm() {
+  return array('View standard menu settings');
+}
+
+/*
+ * Implimentation of hook_form_alter()
+ */
+function simple_menu_settings_form_alter(&$form, $form_state, $form_id) {
+  if (isset($form['type']) && isset($form['#node']) && !user_access('View standard menu settings')) {
+    if ($form['type']['#value'] .'_node_form' == $form_id) {
+      drupal_add_js(drupal_get_path('module', 'simple_menu_settings') .'/simple_menu_settings.js');
+      
+      $form['menu']['link_title']['#title'] = t('Link title');
+      unset($form['menu']['link_title']['#description']);
+      $form['menu']['parent']['#options'] = menu_get_menus();
+      $form['menu']['parent']['#default_value'] = $form['#node']->menu['menu_name'];
+      $form['menu']['parent']['#title'] = t('Menu');
+      unset($form['menu']['parent']['#description']);
+      unset($form['menu']['weight']);
+      
+    }
+  }
+}

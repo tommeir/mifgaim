@@ -1,0 +1,38 @@
+/* $Id: report.css,v 1.2 2009/11/04 00:35:53 ki Exp $ */
+
+#report-chart-form #edit-width-wrapper,
+#report-chart-form #edit-height-wrapper,
+#report-chart-form #edit-period-wrapper,
+#report-chart-form #edit-range-wrapper
+{
+  float: left;
+  margin: 0.5em 1em;
+}
+
+#report-chart-form .info-wrapper
+{
+  float: left;
+  margin: 2.5em 1em 0 0;
+  color: #666;
+  font-size: 0.8em;
+}
+
+.report-chart-wrapper {
+  float: left;
+  border: 1px solid #CCCCCC;
+  padding: 0 1em 1em;
+  margin: 1em 0;
+}
+
+#report-summary h3 {
+  margin: 2em 0 0;
+}
+
+#report-summary th {
+  white-space: nowrap;
+  text-align: center;
+}
+
+#report-summary fieldset {
+  padding: 0 1.5em 1em;
+}

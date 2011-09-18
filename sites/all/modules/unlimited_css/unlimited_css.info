@@ -1,0 +1,13 @@
+; $I$
+
+name = "IE Unlimited CSS Loader"
+description = "Solve the Internet Explorer limitation of loading not more than 31 CSS files per page."
+
+core = 6.x
+
+; Information added by drupal.org packaging script on 2011-02-25
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "unlimited_css"
+datestamp = "1298620551"
+

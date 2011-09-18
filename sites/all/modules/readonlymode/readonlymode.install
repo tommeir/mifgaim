@@ -1,0 +1,21 @@
+<?php 
+// $Id$
+/**
+ * @file
+ * Update hook and uninstaller for the Read Only Mode module
+ */
+ 
+function readonlymode_uninstall() {
+  variable_del('site_readonly');
+  variable_del('site_readonly_message');
+}
+
+/**
+ * Delete old variables
+ */
+function readonlymode_update_6000() {
+  $ret = array();
+  variable_del('readonlymode');
+  variable_del('readonlymode_path');
+  return $ret;
+}

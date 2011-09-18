@@ -1,0 +1,17 @@
+; $Id$
+name = Node Form Settings
+description = "Multiple changes to node form and comment form for better usability."
+core = 6.x
+; Information added by drupal.org packaging script on 2009-09-20
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "nodeformsettings"
+datestamp = "1253449177"
+
+
+; Information added by drupal.org packaging script on 2010-03-02
+version = "6.x-1.5"
+core = "6.x"
+project = "nodeformsettings"
+datestamp = "1267563624"
+

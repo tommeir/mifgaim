@@ -1,0 +1,356 @@
+<?php
+// $Id: recommender.module,v 1.17 2009/07/04 02:32:05 danithaca Exp $
+
+/**
+ * @file
+ * Providing generic recommender system algorithms.
+ */
+
+require_once('Recommender.php');
+
+/**
+ * classical collaborative filtering algorithm based on correlation coefficient.
+ * could be used in the classical user-user or item-item algorithm
+ * see the README file for more details
+ * 
+ * @param $app_name the application name that uses this function.
+ * @param $table_name the input table name
+ * @param $field_mouse the input table field for mouse
+ * @param $field_cheese the input table field for cheese
+ * @param $field_weight the input table field weight
+ * @param $options an array of options
+ *          'performance': whether to do calculation in memory or in database. 'auto' is to decide automatically.
+ *          'missing': how to handle missing data -- 'none' do nothing; 'zero' fill in missing data with zero; 'adjusted' skip mice that don't share cheese in common.
+ *          'sensitivity': if similarity is smaller enough to be less than a certain value (sensitivity), we just discard those
+ * @return null {recommender_similarity} will be filled with similarity data
+ */
+function recommender_similarity_classical($app_name, $table_name, $field_mouse, $field_cheese, $field_weight, $options = array()) { 
+  $recommender = new CorrelationRecommender($app_name, $table_name, $field_mouse, $field_cheese, $field_weight, $options);
+  $recommender->computeSimilarity();
+}
+
+
+
+/**
+ * Classical weight-average algorithm to calculate prediction from the similarity matrix, based on average weight.
+ * Limitation: we only do database operation for now. no in-memory operation available until future release.
+ * Limitation: we only do average weight. regression-based weight maybe included in future release.
+ * 
+ * @param $app_name the application name that uses this function.
+ * @param $table_name the input table name
+ * @param $field_mouse the input table field for mouse
+ * @param $field_cheese the input table field for cheese
+ * @param $field_weight the input table field weight
+ * @param $options an array of options
+ *          'missing': how to handle missing data -- 'none' do nothing; 'zero' fill in missing data with zero; 'adjusted' skip mice that don't share cheese in common.
+ *          'duplicate': how to handle predictions that already exists in mouse-cheese evaluation. 'preserve' or 'eliminate'
+ *          'sensitivity': if similarity is smaller enough to be less than a certain value, we treat it as zero
+ * @return null {recommender_prediction} will be filled with prediction data
+ */
+function recommender_prediction_classical($app_name, $table_name, $field_mouse, $field_cheese, $field_weight, $options = array()) {
+  $recommender = new CorrelationRecommender($app_name, $table_name, $field_mouse, $field_cheese, $field_weight, $options);
+  $recommender->computePrediction();
+}
+
+
+function recommender_user2user($app_name, $table_name, $field_mouse, $field_cheese, $field_weight, $options = array()) {
+  $options['sim_pred'] = TRUE;
+  $recommender = new User2UserRecommender($app_name, $table_name, $field_mouse, $field_cheese, $field_weight, $options);
+  $recommender->computeSimilarity();
+  $recommender->computePrediction();
+}
+
+
+function recommender_item2item($app_name, $table_name, $field_mouse, $field_cheese, $field_weight, $options = array()) {
+  $options['sim_pred'] = TRUE;
+  $recommender = new Item2ItemRecommender($app_name, $table_name, $field_mouse, $field_cheese, $field_weight, $options);
+  $recommender->computeSimilarity();
+  $recommender->computePrediction();
+}
+
+/**
+ * Co-ocurrences algorithm that compute similarity among mice based on how many cheese they share.
+ * 
+ * @param $app_name the application name that uses this function.
+ * @param $table_name the input table name
+ * @param $field_mouse the input table field for mouse
+ * @param $field_cheese the input table field for cheese
+ * @param $options an array of options
+ *          'incremental': whether to rebuild the whole similarity matrix, or incrementally update those got changed. 'rebuild' or 'update'
+ * @return null {recommender_similarity} will be filled with similarity data
+ */
+function recommender_similarity_coocurrences($app_name, $table_name, $field_mouse, $field_cheese, $options = array()) {
+  $recommender = new CooccurrenceRecommender($app_name, $table_name, $field_mouse, $field_cheese, NULL, $options);
+  $recommender->computeSimilarity();
+}
+
+
+
+
+/**
+ * This is the implementation of slope-one algorithm, which is supposed to be faster than other algrithms.
+ * From the original research paper, the author argues slope-one support incremental update. But this is quite hard to implement.
+ * The incremental update doesn't work for now.
+ * Missing data is just treated as missing. For slope-one, we don't automatically expand the matrix to have zeros.
+ * The responsibility of handling missing data is on the caller functions.
+ * 
+ * @param $app_name the application name that uses this function.
+ * @param $table_name the input table name
+ * @param $field_mouse the input table field for mouse
+ * @param $field_cheese the input table field for cheese
+ * @param $field_weight the input table field weight
+ * @param $options an array of options
+ *          'extention': whether to use 'basic', 'weighted', or 'bipolar' extensions of the algorithm.
+ *                       Please refer to the original research paper. Usually it could just be 'weighted'.
+ *          'duplicate': how to handle predictions that already exists in mouse-cheese evaluation. 'preserve' or 'eliminate'
+ *          'incremental': whether to 'rebuild' or to 'update'. CAUTION: 'update' doesn't work now.
+ * @return null {recommender_prediction} will be filled with prediction data
+ */
+function recommender_prediction_slopeone($app_name, $table_name, $field_mouse, $field_cheese, $field_weight, $options = array()) {
+  
+}
+
+
+
+/////////////////////// Helper functions /////////////////////
+
+
+/**
+ * Get the application id from the application name.
+ * @param $app_name
+ * @return the id of the application.
+ */
+function recommender_get_app_id($app_name) {
+  return Recommender::convertAppId($app_name);
+}
+
+
+/**
+ * Remove the application. Usually used in calling module's hook_uninstall()
+ * @param $app_name the application name to be removed.
+ * @return null
+ */
+function recommender_purge_app($app_name) {
+  Recommender::purgeApp($app_name);
+}
+
+/**
+ * Return a list of items that are top similar with $id
+ * @param $app_name The $app_name for the depending modules
+ * @param $id usually the $node_id of the target item.
+ * @param $top_n how many similar items to return
+ * @param $test_func optional function to test whether an item satisfy some conditions
+ * @return an array of the most similar items to $id.
+ */
+function recommender_top_similarity($app_name, $id, $top_n, $test_func=NULL) {
+  // create a null recommender to access the topSimilarity() function.
+  $recommender = new Recommender($app_name, NULL, NULL, NULL, NULL);
+  return $recommender->topSimilarity($id, $top_n, $test_func);
+} 
+
+/**
+ * Return a list of items that are top prediction for $id
+ * @param $app_name The $app_name for the depending modules
+ * @param $id usually the $node_id of the target item.
+ * @param $top_n how many predictions to return
+ * @param $test_func optional function to test whether an item satisfy some conditions
+ * @return an array of the most similar items to $id.
+ */
+function recommender_top_prediction($app_name, $id, $top_n, $test_func=NULL) {
+  // create a null recommender to access the topPrediction() function.
+  $recommender = new Recommender($app_name, NULL, NULL, NULL, NULL);
+  return $recommender->topPrediction($id, $top_n, $test_func);
+} 
+
+
+//////////////////////////// DRUPAL RELATED FUNCTIONS //////////////////////////
+
+// implementation of hook_perm()
+function recommender_perm() {
+  $perm = array(
+    "administer recommender",
+  );
+  return $perm;
+}
+
+// implementation of hook_menu()
+function recommender_menu() {
+  $items = array();
+  
+  $items['admin/settings/recommender'] = array(
+    'title' => 'Recommender API',
+    'description' => 'Configuration and trigger recommender modules',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('recommender_settings_form'),
+    'access arguments' => array('administer recommender'),
+  );
+  
+  $items['recommender/run'] = array(
+    'title' => 'Running recommender',
+    'page callback' => 'recommender_run',
+    'access arguments' => array('administer recommender'),
+    'type' => MENU_CALLBACK,
+   );
+  return $items;
+}
+
+function recommender_settings_form() {
+  $form = array();
+  
+  $form['settings'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#title' => t('Settings'),
+    '#description' => t('Change settings for Recommender API based modules.'),
+  );
+  
+  $form['settings']['cron_freq'] = array(
+    '#title' => t('Recommender running frequency in cron job.'),
+    '#type' => 'select',
+    '#default_value' => variable_get('recommender_cron_freq', 'never'),
+    '#options' => array(
+      'never' => 'Never',
+      'immediately' => 'Immediately',
+      'hourly' => t('Hourly'),
+      'every6hr' => t('Every 6 hours'),
+      'every12hr' => t('Every 12 hours'),
+      'daily' => t('Daily'),
+      'weekly' => t('Weekly')
+    ),
+    '#description' => t("Please specify the optional frequency to run recommender algorithms in cron. Note that this is a time consuming operation and might timeout or affect your other cron tasks. Not recommended for large site. Consider using the Drush script with system cron.") 
+  );
+  
+  $form['settings']['save'] = array(
+    '#type' => 'submit',
+    '#value' => t('Save'),
+    '#name' => 'save'
+  );
+  
+  $form['run'] = array(
+    '#type' => 'fieldset',
+    '#collapsible' => FALSE,
+    '#collapsed' => FALSE,
+    '#title' => t('Run recommender'),
+    '#description' => t('Running recommender involves complex matrix computation and could probably take some time. Please be patient. You can also run recommender with Drush.'),
+  );
+  
+  $options = drupal_map_assoc(module_implements('run_recommender'));
+  $modules = module_list();
+
+  if (empty($options)) {
+    $form['run']['note'] = array(
+      '#title' => 'Note',
+      '#type' => 'item',
+      '#description' => t('No recommender modules available.'),
+    );
+  }
+  else {
+    $form['run']['modules'] = array(
+      '#title' => t('Choose modules'),
+      '#default_value' => variable_get('recommender_modules', array()),
+      '#type' => 'checkboxes',
+      '#description' => t('Please select which modules to run the recommender'),
+      '#options' => $options,
+    );
+  }
+  
+  $form['run']['run'] = array(
+    '#type' => 'submit',
+    '#value' => t('Run recommender now'),
+    '#name' => 'run',
+    '#disabled' => $options==NULL ? TRUE : FALSE,
+  );
+  
+  return $form;
+}
+
+
+function recommender_settings_form_submit($form, &$form_state) {
+  $cron_freq = $form_state['values']['cron_freq'];
+  $modules = $form_state['values']['modules'];
+  
+  variable_set('recommender_cron_freq', $cron_freq);
+  variable_set('recommender_modules', $modules);
+  
+  if ($form_state['clicked_button']['#name'] == 'save') {
+    drupal_set_message(t("The configuration options have been saved."));
+  }
+  else {
+    // trigger recommender_run()
+    $modules = array_values(array_diff($modules, array(0)));
+    if (empty($modules)) {
+      drupal_set_message(t("No module selected to run recommender"));
+    }
+    else {
+      recommender_run($modules);
+    }
+  }
+}
+
+
+function recommender_cron() {
+  $last_cron = variable_get('recommender_last_cron', 0);
+  $cron_freq = variable_get('recommender_cron_freq', 'never');
+  
+  $current = time();
+  switch ($cron_freq) {
+    case 'immediately':
+      $run = TRUE;
+      break;
+    case 'hourly':
+      $run = (($current-$last_cron) >= 3600) ? TRUE : FALSE;
+      break;
+    case 'every6hr':
+      $run = (($current-$last_cron) >= 21600) ? TRUE : FALSE;
+      break;
+    case 'every12hr':
+      $run = (($current-$last_cron) >= 43200) ? TRUE : FALSE;
+      break;
+    case 'daily':
+      $run = (($current-$last_cron) >= 86400) ? TRUE : FALSE;
+      break;
+    case 'weekly':
+      $run = (($current-$last_cron) >= 604800) ? TRUE : FALSE;
+      break;
+    case 'never':
+    default:
+      $run = FALSE;
+  }
+  
+  $msg = $run ? "Will run." : "Not running.";
+  watchdog('recommender', "Recommender cron at frequency ${cron_freq}. $msg");
+  
+  if ($run == TRUE) {
+    recommender_run();
+    variable_set('recommender_last_cron', $current);
+  }
+}
+
+
+function recommender_run($selected = NULL) {
+  watchdog('recommender', "Invoking run_recommender. Might start a time-consuming process.");
+  
+  // hook_run_recommender() doesn't take any args. args setting is the responsibility of caller modules.
+  //module_invoke_all('run_recommender');
+  $operations = array();
+  foreach (module_implements('run_recommender') as $module) {
+    if ($selected===NULL || in_array($module, $selected)) {
+      $operations[] = array("{$module}_run_recommender", array());
+    }
+  }
+  
+  $batch = array(
+    'operations' => $operations,
+    //'finished' => 'recommender_run_finished', // post-operations, not needed.
+    'title' => t("Running recommender"),
+    'init_message' => t("The recommender engine is running. For medium to large site (users>100, nodes>1000), this could be very slow, and might cause PHP memory overload or execution timeout. Please be patient."),
+    'progress_message' => t("The recommender engine is running. Please be patient. Remaining @remaining out of @total"),
+    'error_message' => t("Running recommender encounter an internal error. If it is due to PHP out of memory, or timeout, please use Drush script instead. Otherwise, please file an issue to the http://drupal.org/project/recommender"),
+  );
+  
+  batch_set($batch);
+  // FIXME: the batch mode needs to be more polished. e.g., create a summary page.
+  // we are settled for now.
+  batch_process('/admin/settings/recommender');
+}

@@ -1,0 +1,41 @@
+<?php
+// $Id: systeminfo.install,v 1.1.2.10.2.2 2010/04/08 21:04:40 flanker Exp $
+// $Name: DRUPAL-6--2-0 $
+
+/**
+ * @file
+ *   Displays information about the Drupal installation and system environment.
+ */
+
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function systeminfo_uninstall() {
+
+  variable_del('systeminfo_drupal_modules_sort');
+  variable_del('systeminfo_drupal_themes_sort');
+
+  variable_del('systeminfo_php_phpinfo_parameter');
+
+  variable_del('systeminfo_database_tables_display');
+  variable_del('systeminfo_database_tables_tables');
+  variable_del('systeminfo_database_tables_rows');
+  variable_del('systeminfo_database_mysql_show_status_display');
+  variable_del('systeminfo_database_mysql_show_table_status_display');
+  variable_del('systeminfo_database_mysql_show_variables_display');
+  variable_del('systeminfo_database_mysqli_show_status_display');
+  variable_del('systeminfo_database_mysqli_show_table_status_display');
+  variable_del('systeminfo_database_mysqli_show_variables_display');
+  variable_del('systeminfo_database_pgsql_show_all_display');
+}
+
+
+/**
+ * Implementation of hook_update_N().
+ */
+function systeminfo_update_6100() {
+  menu_rebuild();
+
+  return array();
+}

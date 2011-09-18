@@ -1,0 +1,453 @@
+/* -------------------------------------------------------------- 
+
+   typography.css
+   * Sets up some sensible default typography.
+   
+-------------------------------------------------------------- */
+
+/* Default font settings. 
+   The font-size percentage is of 16px. (0.75 * 16px = 12px) */
+html { font-size:100.01%; }
+body { 
+  font-size: 75%;
+  color: #222; 
+  background: #fff;
+  font-family: "Helvetica Neue",  Helvetica, sans-serif;
+}
+
+
+/* Headings
+-------------------------------------------------------------- */
+
+h1,h2,h3,h4,h5,h6 { font-weight: normal; color: #111; }
+
+h1 { font-size: 30px; line-height: 1; margin-bottom: 4px; }
+h2 { font-size: 24px; margin-bottom: 4px; }
+h3 { font-size: 18px; line-height: 1; margin-bottom: 4px; }
+h4 { font-size: 15px; line-height: 1.25; margin-bottom: 4px; }
+h5 { font-size: 12px; font-weight: bold; margin-bottom:4px; }
+h6 { font-size: 10px; font-weight: bold; }
+
+h1 img, h2 img, h3 img, 
+h4 img, h5 img, h6 img {
+  margin: 0;
+}
+
+
+/* Text elements
+-------------------------------------------------------------- */
+
+p           { margin: 0 0 1.5em; }
+p img.left  { float: left; margin: 1.5em 1.5em 1.5em 0; padding: 0; }
+p img.right { float: right; margin: 1.5em 0 1.5em 1.5em; }
+
+a:focus, 
+a:hover     { color: #000; }
+a           { color: #009; text-decoration: underline; }
+
+blockquote  { margin: 1.5em; color: #666; font-style: italic; }
+strong      { font-weight: bold; }
+em,dfn      { font-style: italic; }
+dfn         { font-weight: bold; }
+sup, sub    { line-height: 0; }
+
+abbr, 
+acronym     { border-bottom: 1px dotted #666; }
+address     { margin: 0 0 1.5em; font-style: italic; }
+del         { color:#666; }
+
+pre 				{ margin: 1.5em 0; white-space: pre; }
+pre,code,tt { font: 1em 'andale mono', 'lucida console', monospace; line-height: 1.5; }
+
+
+/* Lists
+-------------------------------------------------------------- */
+
+li ul, 
+li ol       { margin:0 1.5em; }
+ul, ol      { margin: 0 1.5em 1.5em 1.5em; }
+
+ul          { list-style-type: disc; }
+ol          { list-style-type: decimal; }
+
+dl          { margin: 0 0 1.5em 0; }
+dl dt       { font-weight: bold; }
+dd          { margin-left: 1.5em;}
+
+
+/* Tables
+-------------------------------------------------------------- */
+
+table       { margin-bottom: 1.4em; width:100%; }
+th          { font-weight: bold; }
+thead th 		{ background: #c3d9ff; }
+th,td,caption { padding: 4px 10px 4px 5px; }
+tr.even td  { background: #e5ecf9; }
+tfoot       { font-style: italic; }
+caption     { background: #eee; }
+
+
+/* Misc classes
+-------------------------------------------------------------- */
+
+.small      { font-size: .8em; margin-bottom: 1.875em; line-height: 1.875em; }
+.large      { font-size: 1.2em; line-height: 2.5em; margin-bottom: 1.25em; }
+.hide       { display: none; }
+
+.quiet      { color: #666; }
+.loud       { color: #000; }
+.highlight  { background:#ff0; }
+.added      { background:#060; color: #fff; }
+.removed    { background:#900; color: #fff; }
+
+.first      { margin-left:0; padding-left:0; }
+.last       { margin-right:0; padding-right:0; }
+.top        { margin-top:0; padding-top:0; }
+.bottom     { margin-bottom:0; padding-bottom:0; }
+
+/* -------------------------------------------------------------- 
+  
+   reset.css
+   * Resets default browser CSS.
+   
+-------------------------------------------------------------- */
+
+
+body { 
+  line-height: 1.5; 
+}
+
+/* Tables still need 'cellspacing="0"' in the markup. */
+table { border-collapse: separate; border-spacing: 0; }
+caption, th, td { text-align: left; font-weight: normal; }
+table, td, th { vertical-align: middle; }
+
+/* Remove possible quote marks (") from <q>, <blockquote>. */
+blockquote:before, blockquote:after, q:before, q:after { content: ""; }
+blockquote, q { quotes: "" ""; }
+
+/* Remove annoying border on linked images. */
+a img { border: none; }
+
+/* -------------------------------------------------------------- 
+   
+   ie.css
+   
+   Contains every hack for Internet Explorer,
+   so that our core files stay sweet and nimble.
+   
+-------------------------------------------------------------- */
+
+/* Make sure the layout is centered in IE5 */
+.container { text-align: left; }
+
+/* Fixes IE margin bugs */
+* html .column, * html div.span-1, * html div.span-2, 
+* html div.span-3, * html div.span-4, * html div.span-5, 
+* html div.span-6, * html div.span-7, * html div.span-8, 
+* html div.span-9, * html div.span-10, * html div.span-11, 
+* html div.span-12, * html div.span-13, * html div.span-14, 
+* html div.span-15, * html div.span-16, * html div.span-17, 
+* html div.span-18, * html div.span-19, * html div.span-20, 
+* html div.span-21, * html div.span-22, * html div.span-23, 
+* html div.span-24 { display:inline; overflow-x: hidden; }
+
+
+/* Elements
+-------------------------------------------------------------- */
+
+/* Fixes incorrect styling of legend in IE6. */
+* html legend { margin:0px -8px 16px 0; padding:0; }
+
+/* Fixes incorrect placement of ol numbers in IE6/7. */
+ol { margin-left:2em; }
+
+/* Fixes wrong line-height on sup/sub in IE. */
+sup { vertical-align:text-top; }
+sub { vertical-align:text-bottom; }
+
+/* Fixes IE7 missing wrapping of code elements. */
+html>body p code { *white-space: normal; } 
+
+/* IE 6&7 has problems with setting proper <hr> margins. */
+hr  { margin:-8px auto 11px; }
+
+/* Explicitly set interpolation, allowing dynamically resized images to not look horrible */
+img { -ms-interpolation-mode:bicubic; }
+
+/* Clearing 
+-------------------------------------------------------------- */
+
+/* Makes clearfix actually work in IE */ 
+.clearfix { display:inline-block; }
+* html .clearfix,
+* html .container { height:1%; }
+
+
+/* Forms 
+-------------------------------------------------------------- */
+
+/* Fixes padding on fieldset */
+fieldset { padding-top:0; }
+
+/* Makes classic textareas in IE 6 resemble other browsers */
+textarea { overflow:auto; }
+
+/* Fixes rule that IE 6 ignores */
+input.text, input.title, textarea { background-color:#fff; border:1px solid #bbb; }
+input.text:focus, input.title:focus { border-color:#666; }
+input.text, input.title, textarea, select { margin:0.5em 0; }
+input.checkbox, input.radio { position:relative; top:.25em; }
+
+/* Fixes alignment of inline form elements */ 
+form.inline div, form.inline p { vertical-align:middle; }
+form.inline label { position:relative;top:-0.25em; }
+form.inline input.checkbox, form.inline input.radio,
+form.inline input.button, form.inline button { 
+  margin:0.5em 0; 
+}
+button, input.button { position:relative;top:0.25em; }
+
+/* Classes
+-----------------*/
+
+* {
+  padding:0;
+  margin:0;
+  font-family:verdana;
+}
+
+body {
+  background:#B2A38E url(images/bg.jpg) repeat-x scroll 0 0;
+}
+
+.clear {
+  clear:both;
+}
+
+a {
+  color:#3A6669;
+  text-decoration:none;
+}
+
+a:hover {
+  text-decoration:underline;
+}
+
+
+dd {
+  font-size:10px;
+}
+
+/* Elements
+---------------*/
+#container {
+  background:#fefae8;
+  height:auto;
+  margin:45px auto 0;
+  position:relative;
+  width:960px;
+}
+
+#header {
+  height:90px;
+  margin-left:140px;
+  width:auto;
+}
+
+.site-title  {
+  font-size:35px;
+  padding-top:35px;
+}
+
+.site-title a {
+  text-decoration:none;
+  color:#3a6669;
+}
+
+#slash {
+  padding:25px;
+  clear:both;
+}
+
+#slash img {
+  border:4px solid #94bb40;
+}
+
+#welcome {
+  border-bottom:1px solid #DCDCDC;
+  border-top:1px solid #DCDCDC;
+  clear:both;
+  color:#6B5B4E;
+  font-size:12px;
+  font-style:italic;
+  margin-left:26px;
+  margin-top:-45px;
+  width:95%;
+  margin-bottom:5px;
+}
+
+#content-area {
+  padding-bottom:20px;
+  clear:both;
+  display:block;
+  height:auto;
+  padding-left:25px;
+  color:#463328;
+  width:95%;
+}
+
+#content-area h2 , #content-area h1{
+  color:#7b9d33;
+}
+
+#content-area p {
+  color:#463328;
+}
+
+#content-area h3 , #content-area strong{
+  color:#cf8b1f;
+}
+
+body.sidebar-right #leftside {
+  float:left;
+  margin-right:35px;
+  width:59%;
+}
+
+#leftside {
+  width:95%;
+}
+
+#rightside {
+  clear:right;
+  float:right;
+  width:37%;
+}
+
+/* Navigation
+-----------------------*/
+#nav {
+  background:#94BB40 none repeat scroll 0 0;
+  height:40px;
+}
+
+#nav ul li {
+  border-right:1px solid #7B9C33;
+  display:block;
+  float:left;
+  height:20px;
+  padding:10px 50px;
+}
+
+#nav ul li.last {
+  border-right:none;
+}
+
+#nav li.active  {
+  background:#FEFAE8 none repeat scroll 0 0;
+  color:#000;
+}
+
+#nav li.active a {
+  color:#463328;
+}
+
+#nav a {
+  color:#FFFFFF;
+  font-size:14px;
+  font-weight:bold;
+  text-decoration:none;
+}
+
+#nav a.active #nav ul li {
+  background:#fff;
+}
+
+/* Footer
+-----------------*/
+#footer {
+  clear:both;
+  float:right;
+  margin:10px auto;
+  width:42%;
+}
+
+#footer li {
+  display:inline;
+}
+
+#footer a {
+  color:#544235;
+  font-size:12px;
+  margin-right:20px;
+  text-decoration:none;
+}
+
+.tabs li {
+  display:inline;
+}
+
+form#node-type-form {
+  font-size:14px;
+}
+
+/* Demo
+-----------------*/
+.calendar-calendar div.date-nav {
+  background-color:#453327;
+  border:1px solid #CCCCCC;
+  color:#FFFFFF;
+  padding:0.2em;
+  width:auto;
+}
+
+.calendar-calendar div.date-nav a, .calendar-calendar div.date-nav h3 {
+  color:#FFFFFF;
+}
+
+.calendar-calendar th.days {
+  background-color:#7B9C33;
+  border:1px solid #7B9C33;
+  color:#FFFFFF;
+  font-weight:bold;
+}
+
+.block {
+  margin-bottom:20px;
+}
+
+#node-1 img {
+  margin-top:20px;
+  width:100px;
+  margin-right:25px;
+}
+
+.calendar-calendar .month-view table {
+  border:medium none;
+  margin:0 0 0 2px;
+  padding:0;
+  width:99%;
+}
+
+.calendar-calendar td.has-no-events {
+  border:1px solid #D2E2E2;
+}
+
+.calendar-calendar td {
+  text-align:center;
+}
+
+.calendar-calendar td a {
+  color:#7B9D33;
+}
+
+.calendar-calendar .mini-day-on {
+  background:#7B9C33 none repeat scroll 0 0;
+  color:#FFFFFF;
+  padding:0;
+}
+
+.calendar-calendar .mini-day-on a {
+  color:#FFFFFF;
+}

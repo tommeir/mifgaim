@@ -1,0 +1,41 @@
+/* $Id: ie6-fixes.css,v 1.2 2010/11/01 17:37:53 aross Exp $ */ 
+
+/**
+ * @file
+ * Put fixes for IE6 here
+ */
+
+/* Alpha transparency png fix */
+div.pngfix,
+#logo img {
+  behavior: url(/sites/all/themes/fusion/fusion_core/js/iepngfix.htc);
+}
+
+/* ------------------------- PRIMARY MENU ------------------------- */
+/* When use a white background, primary menu is wider than rest of
+ * body.  Still not perfect with all layouts; may need to be
+ * adjusted for a specific site configuration.
+ */
+.primary-menu {
+  width: 99%;
+}
+
+/* ------------------------- SEARCH FORM IN HEADER ----------------- */
+#search-input .form-text {
+  float: right;
+  margin-right: 18px;
+}
+
+/* -------------------------------- BLOCKS ------------------------- */
+
+.fusion-list-bottom-border .inner ul li,
+.fusion-list-bottom-border .view-content div.views-row {
+  list-style-image: none;
+  border-bottom-color: #ddd;
+}
+
+
+
+
+
+

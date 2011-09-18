@@ -1,0 +1,12 @@
+; $Id: views404.info,v 1.1 2010/05/13 04:38:25 mikeytown2 Exp $
+name = Views 404
+description = Return 404 if the path doesn't match the view path.
+core = 6.x
+dependencies[] = views
+
+; Information added by drupal.org packaging script on 2010-05-14
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "views404"
+datestamp = "1273805410"
+

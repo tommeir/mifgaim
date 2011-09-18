@@ -1,0 +1,49 @@
+; $Id: beach.info,v 1.2 2009/03/25 14:35:50 gibbozer Exp $
+name = Beach
+description = Drupal On The Beach.
+version = VERSION
+core = 6.x
+engine = phptemplate
+
+screenshot = images/screenshot.png
+
+regions[left] = Left sidebar
+regions[right] = Right sidebar
+regions[content_top] = Top Content
+regions[content_bottom] = Bottom Content
+regions[footer_1] = Footer Block 1
+regions[footer_2] = Footer Block 2
+regions[footer_3] = Footer Block 3
+regions[footer_4] = Footer Block 4
+
+features[] = logo
+features[] = name
+features[] = slogan
+features[] = mission
+features[] = search
+features[] = favicon
+features[] = primary_links
+features[] = secondary_links
+features[] = node_user_picture
+features[] = comment_user_picture
+
+; Add a stylesheet for all media
+stylesheets[all][] = css/framework/reset.css
+stylesheets[all][] = css/framework/baseline.css
+stylesheets[all][] = css/framework/drupal6-core.css
+
+stylesheets[all][] = css/beach.css
+
+; Add a stylesheets for screen and projector media
+; stylesheets[screen, projector][] = theScreenProjectorStyle.css
+
+; Add a stylesheet for print media
+;stylesheets[print][] = css/print.css
+
+; scripts[] = yourscript.js
+; Information added by drupal.org packaging script on 2009-05-12
+version = "6.x-1.0-beta1"
+core = "6.x"
+project = "beach"
+datestamp = "1242169213"
+

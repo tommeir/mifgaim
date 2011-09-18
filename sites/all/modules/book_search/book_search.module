@@ -1,0 +1,315 @@
+<?php
+// $Id: book_search.module,v 1.1 2009/03/19 01:39:49 rszrama Exp $
+
+/**
+ * @file
+ * Adds a page to the search interface that lets users do a simple search within
+ *   a specific or all books.
+ */
+
+
+/**
+ * Implementation of hook_form_alter().
+ */
+function book_search_form_alter(&$form, $form_state, $form_id) {
+  // Alter the search form to add a book selection element to the book search.
+  if ($form_id == 'search_form' && $form['module']['#value'] == 'book_search') {
+    // Add a fieldset for the book search options.
+    $form['book_search'] = array(
+      '#type' => 'fieldset',
+      '#title' => t('Book search options'),
+      '#collapsible' => TRUE,
+      '#collapsed' => arg(2) != '',
+    );
+    $form['book_search']['books'] = array(
+      '#type' => 'checkboxes',
+      '#title' => t('Only search these books'),
+      '#description' => t('If no books are selected, all available books will be searched.'),
+      '#options' => book_search_options(TRUE),
+      '#default_value' => explode(',', search_query_extract(arg(2), 'book')),
+    );
+
+    // Add the book search validate handler to the form.
+    $form['#validate'][] = 'book_search_form_validate';
+
+    // Remove the book key from the keys textfield.
+    $form['basic']['inline']['keys']['#default_value'] = search_query_insert($form['basic']['inline']['keys']['#default_value'], 'book');
+  }
+}
+
+// Add book search information to the search keys if necessary.
+function book_search_form_validate($form, &$form_state) {
+  // Initialise using any existing basic search keywords.
+  $keys = $form_state['values']['processed_keys'];
+
+  // Look for any selected books.
+  if (is_array($form_state['values']['books'])) {
+    // Trim the books array down to selected books.
+    $books = book_search_selected($form_state['values']['books']);
+
+    // Add the book key to the search keys.
+    $keys = search_query_insert($keys, 'book', implode(',', $books));
+  }
+
+  // If we actually have search keys...
+  if (!empty($keys)) {
+    // Set the updated keys in the form state.
+    form_set_value($form['basic']['inline']['processed_keys'], trim($keys), $form_state);
+  }
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function book_search_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+    case 'list':
+      $blocks = array();
+
+      // Define the book search block.
+      $blocks[0] = array(
+        'info' => t('Book search: Current book'),
+      );
+
+      return $blocks;
+
+    case 'view':
+      // Turn the current path into an array of arguments as would normally be
+      // returned by the arg() function.
+      $arg = arg(NULL, $_GET['q']);
+
+      // Display the book search block.
+      if ($delta == 0) {
+        // If we're not on a valid book page, do not display the block.
+        if ($arg[0] != 'node') {
+          return;
+        }
+
+        $bid = db_result(db_query("SELECT bid FROM {book} WHERE nid = %d", $arg[1]));
+
+        if (empty($bid) || !in_array($bid, book_search_selected())) {
+          return;
+        }
+
+        if ($node = node_load($arg[1])) {
+          $block = array(
+            'subject' => t('Book search'),
+            'content' => drupal_get_form('book_search_block_form', $bid),
+          );
+        }
+      }
+
+      return $block;
+  }
+}
+
+// Build the book search block form.
+function book_search_block_form($form_state, $bid = '') {
+  $form = array();
+
+  $form['bid'] = array(
+    '#type' => 'value',
+    '#value' => $bid,
+  );
+
+  $form['keywords'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Search this book'),
+    '#size' => 15,
+    '#maxlength' =>128,
+  );
+
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Search'),
+  );
+
+  return $form;
+}
+
+function book_search_block_form_validate($form, &$form_state) {
+  if (empty($form_state['values']['keywords'])) {
+    form_set_error('keywords', t('Please enter some keywords.'));
+  }
+}
+
+function book_search_block_form_submit($form, &$form_state) {
+  // Build the keys string for the search.
+  $keys = search_query_insert($form_state['values']['keywords'], 'book', $form_state['values']['bid']);
+
+  $form_state['redirect'] = 'search/book_search/'. $keys;
+}
+
+/**
+ * Implementation of hook_search().
+ */
+function book_search_search($op = 'search', $keys = NULL) {
+  switch ($op) {
+    case 'name':
+      return t('Books');
+
+    case 'admin':
+      $form = array();
+
+      $form['book_search'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Book search options'),
+      );
+      $form['book_search']['searchable_books'] = array(
+        '#type' => 'checkboxes',
+        '#title' => t('Restrict book search to these books'),
+        '#description' => t('If no books are selected, all books will be available in the book search options.'),
+        '#options' => book_search_options(),
+        '#default_value' => variable_get('searchable_books', array()),
+      );
+
+      return $form;
+
+    case 'search':
+      // Extract search parameters from the current query.
+      list($join1, $where1) = _db_rewrite_sql();
+      $arguments1 = array();
+      $conditions1 = 'n.status = 1';
+
+      // Restrict the search result set to nodes that are outlined in books.
+      $join1 .= ' INNER JOIN {book} b ON b.nid = i.sid';
+
+      // If a specific book or set of books has been indicated...
+      if ($book = search_query_extract($keys, 'book')) {
+        $books = array();
+
+        // Loop through each book specified.
+        foreach (explode(',', $book) as $bid) {
+          // Add it to an array of books to limit the search to.
+          $books[] = "b.bid = %d";
+          $arguments1[] = $bid;
+        }
+
+        $conditions1 .= ' AND ('. implode(' OR ', $books) .')';
+
+        // Remove the book key from the keys string.
+        $keys = search_query_insert($keys, 'book');
+      }
+      else {
+        // If no books were indicated, restrict the search to any book that has
+        // been marked as searchable in the search settings.
+        $valid = book_search_selected();
+
+        if (!empty($valid)) {
+          $conditions1 .= ' AND (b.bid IN (%s))';
+          $arguments1[] = implode(', ', $valid);
+        }
+      }
+
+      // Perform search with our book search parameters.
+      $find = do_search($keys, 'node','INNER JOIN {node} n ON n.nid = i.sid '. $join1, $conditions1 . (empty($where1) ? '' : ' AND '. $where1), $arguments1);
+
+      // Build the search results array.
+      $results = array();
+
+      foreach ($find as $item) {
+        // Load the node and build the node body.
+        $node = node_load($item->sid);
+        $node->build_mode = NODE_BUILD_SEARCH_RESULT;
+        $node = node_build_content($node, FALSE, FALSE);
+        $node->body = drupal_render($node->content);
+
+        // Fetch comments for snippet.
+        $node->body .= module_invoke('comment', 'nodeapi', $node, 'update index');
+
+        // Fetch terms for snippet.
+        $node->body .= module_invoke('taxonomy', 'nodeapi', $node, 'update index');
+
+        // Add the current node to the search results array.
+        $results[] = array(
+          'link' => url('node/'. $item->sid, array('absolute' => TRUE)),
+          'title' => $node->title,
+          'node' => $node,
+          'snippet' => search_excerpt($keys, $node->body),
+          'extra' => book_search_extra($node),
+        );
+      }
+
+      return $results;
+  }
+}
+
+/**
+ * Build an array of extra information to include in search results during a
+ *   book search.
+ *
+ * @param $node
+ *   The node object used to create the search result.
+ * @return
+ *   An array of extra information to include in the search result.
+ */
+function book_search_extra($node) {
+  // Load all the book data.
+  $books = book_get_books();
+
+  // Extract the ID of the book for the current node.
+  $bid = $node->book['bid'];
+
+  // Add the book title link to the search result extra array.
+  $extra = array(
+    t('In book: !book_link', array('!book_link' => l($books[$bid]['link_title'], $books[$bid]['link_path']))),
+  );
+
+  // Return the array merged with the normal extra node information.
+  return array_merge($extra, node_invoke_nodeapi($node, 'search result'));
+}
+
+/**
+ * Return an options array of books on the site.
+ *
+ * @param $restrict
+ *   TRUE or FALSE to indicate whether or not the options array should only
+ *     include books that may be searched.
+ * @return
+ *   An options array of bid => book title for use in a checkboxes element.
+ */
+function book_search_options($restrict = FALSE) {
+  static $options;
+
+  // If the options arrays haven't been built, build them now.
+  if (empty($options)) {
+    // Loop through all the books.
+    foreach (book_get_books() as $bid => $book) {
+      // Add every book to the unrestricted book array.
+      $options['all'][$bid] = check_plain($book['title']);
+    }
+
+    // Get an array of all the books specified in the search settings form.
+    $valid = book_search_selected();
+
+    // Make a second array that only includes searchable books.
+    if (empty($valid)) {
+      $options['restricted'] = $options['all'];
+    }
+    else {
+      $options['restricted'] = array_intersect_key($options['all'], drupal_map_assoc($valid));
+    }
+  }
+
+  // Return the requested options array.
+  return $restrict ? $options['restricted'] : $options['all'];
+}
+
+/**
+ * Return a simple array of the options selected in a checkboxes element.
+ *
+ * @param $books
+ *   The submitted form value or a checkboxes element; defaults to the books
+ *     selected in the search settings form.
+ * @return
+ *   A simple array of values that were actually selected.
+ */
+function book_search_selected($books = NULL) {
+  // If NULL, default to the books selected in the search settings form.
+  if (is_null($books)) {
+    $books = variable_get('searchable_books', array());
+  }
+
+  return array_intersect(array_values($books), array_keys($books));
+}
+

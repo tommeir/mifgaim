@@ -1,0 +1,13 @@
+; $Id: admin_hover.info,v 1.2.2.1 2009/01/02 18:32:44 conortm Exp $
+name = "Admin:hover"
+description = "Displays admin links on hover."
+package = "Administration"
+core = 6.x
+dependencies[] = token
+
+; Information added by drupal.org packaging script on 2009-03-04
+version = "6.x-1.0"
+core = "6.x"
+project = "admin_hover"
+datestamp = "1236141012"
+

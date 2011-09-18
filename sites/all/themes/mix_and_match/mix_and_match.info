@@ -1,0 +1,167 @@
+; $Id: mix_and_match.info,v 1.3 2010/12/05 19:51:11 aross Exp $ 
+
+name = Mix and Match
+description = A highly customizable Fusion sub-theme with multiple color combinations.
+base theme = fusion_core
+core = 6.x
+engine = phptemplate
+
+stylesheets[all][] = css/mix-and-match-style.css
+stylesheets[all][] = css/base-colors.css
+stylesheets[all][] = css/skins.css
+
+scripts[] = js/mix_and_match_script.js
+
+regions[sidebar_first] = sidebar first
+regions[sidebar_last] = sidebar last
+regions[header_top] = header top
+regions[header] = header
+regions[preface_top] = preface top
+regions[preface_bottom] = preface bottom
+regions[content_top] = content top
+regions[content_bottom] = content bottom
+regions[postscript_top] = postscript top
+regions[postscript_bottom] = postscript bottom
+regions[footer] = footer
+regions[node_top] = node top
+regions[node_bottom] = node bottom
+
+features[] = logo
+features[] = name
+features[] = slogan
+features[] = node_user_picture
+features[] = comment_user_picture
+features[] = search
+features[] = favicon
+features[] = primary_links
+features[] = secondary_links
+
+; Default theme settings
+settings[theme_grid] = grid16-960
+settings[theme_grid_options][] = grid16-960
+settings[theme_grid_options][] = grid16-fluid
+settings[fluid_grid_width] = fluid-100
+settings[theme_font_size] = font-size-13
+settings[sidebar_layout] = sidebars-split
+settings[sidebar_first_width] = 3
+settings[sidebar_last_width] = 3
+settings[mixnmatch_body_bg] = white
+settings[mixnmatch_page_bg] = no-page-bg
+settings[mixnmatch_accent_color] = gray-accents
+settings[mixnmatch_site_title] = default-title
+settings[mixnmatch_site_slogan] = default-slogan
+settings[mixnmatch_header_color] = default-headers
+settings[mixnmatch_link_color] = default-links
+
+; Inherit Skinr styles from Fusion Core
+skinr[options][inherit_skins] = true
+
+; Disable 12 column grid block widths inherited from fusion_core
+skinr[grid12-width] =
+
+; Skinr styles
+skinr[background-color][title] = Background color
+skinr[background-color][type] = select
+skinr[background-color][description] = Select a background color for the block, node or comment.
+skinr[background-color][features][] = block
+skinr[background-color][features][] = node
+skinr[background-color][features][] = comment_wrapper
+skinr[background-color][features][] = panels_pane
+skinr[background-color][features][] = views_view
+skinr[background-color][options][1][label] = White
+skinr[background-color][options][1][class] = white-background
+skinr[background-color][options][2][label] = Black
+skinr[background-color][options][2][class] = black-background
+skinr[background-color][options][3][label] = Light Gray
+skinr[background-color][options][3][class] = gray-background
+skinr[background-color][options][4][label] = Medium Gray
+skinr[background-color][options][4][class] = med-gray-background
+skinr[background-color][options][5][label] = Dark Gray
+skinr[background-color][options][5][class] = dk-gray-background
+skinr[background-color][options][6][label] = Red
+skinr[background-color][options][6][class] = red-background
+skinr[background-color][options][7][label] = Dark Blue
+skinr[background-color][options][7][class] = blue-background
+skinr[background-color][options][8][label] = Light Blue
+skinr[background-color][options][8][class] = lt-blue-background
+skinr[background-color][options][9][label] = Dark Green
+skinr[background-color][options][9][class] = green-background
+skinr[background-color][options][10][label] = Light Green
+skinr[background-color][options][10][class] = lt-green-background
+skinr[background-color][options][11][label] = Dark Orange
+skinr[background-color][options][11][class] = orange-background
+skinr[background-color][options][12][label] = Light Orange
+skinr[background-color][options][12][class] = lt-orange-background
+
+skinr[header-background][title] = Header background color
+skinr[header-background][type] = select
+skinr[header-background][description] = Select a color if you would like a header background different from the body background.
+skinr[header-background][features][] = block
+skinr[header-background][features][] = panels_pane
+skinr[header-background][features][] = views_view
+skinr[header-background][options][1][label] = Black
+skinr[header-background][options][1][class] = black-header
+skinr[header-background][options][2][label] = Gray
+skinr[header-background][options][2][class] = gray-header
+skinr[header-background][options][3][label] = Red
+skinr[header-background][options][3][class] = red-header
+skinr[header-background][options][4][label] = Blue
+skinr[header-background][options][4][class] = blue-header
+skinr[header-background][options][5][label] = Green
+skinr[header-background][options][5][class] = green-header
+skinr[header-background][options][6][label] = Orange
+skinr[header-background][options][6][class] = orange-header
+
+skinr[title-color][title] = Header text color
+skinr[title-color][type] = select
+skinr[title-color][description] = Select a color for the block or node title text.
+skinr[title-color][features][] = block
+skinr[title-color][features][] = panels_pane
+skinr[title-color][features][] = views_view
+skinr[title-color][options][1][label] = White
+skinr[title-color][options][1][class] = white-title
+skinr[title-color][options][2][label] = Black
+skinr[title-color][options][2][class] = black-title
+skinr[title-color][options][3][label] = Gray
+skinr[title-color][options][3][class] = gray-title
+skinr[title-color][options][4][label] = Red
+skinr[title-color][options][4][class] = red-title
+skinr[title-color][options][5][label] = Blue
+skinr[title-color][options][5][class] = blue-title
+skinr[title-color][options][6][label] = Green
+skinr[title-color][options][6][class] = green-title
+skinr[title-color][options][7][label] = Orange
+skinr[title-color][options][7][class] = orange-title
+
+skinr[link-color][title] = Link text color
+skinr[link-color][type] = select
+skinr[link-color][description] = Select a color for the link text.
+skinr[link-color][features][] = block
+skinr[link-color][features][] = node
+skinr[link-color][features][] = comment_wrapper
+skinr[link-color][features][] = panels_pane
+skinr[link-color][features][] = views_view
+skinr[link-color][options][1][label] = White
+skinr[link-color][options][1][class] = block-white-links
+skinr[link-color][options][2][label] = Black
+skinr[link-color][options][2][class] = block-black-links
+skinr[link-color][options][3][label] = Dark Gray
+skinr[link-color][options][3][class] = block-gray-links
+skinr[link-color][options][4][label] = Light Gray
+skinr[link-color][options][4][class] = block-lt-gray-links
+skinr[link-color][options][5][label] = Red
+skinr[link-color][options][5][class] = block-red-links
+skinr[link-color][options][6][label] = Blue
+skinr[link-color][options][6][class] = block-blue-links
+skinr[link-color][options][7][label] = Green
+skinr[link-color][options][7][class] = block-green-links
+skinr[link-color][options][8][label] = Orange
+skinr[link-color][options][8][class] = block-orange-links
+
+
+; Information added by drupal.org packaging script on 2011-01-15
+version = "6.x-1.6"
+core = "6.x"
+project = "mix_and_match"
+datestamp = "1295107903"
+

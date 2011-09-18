@@ -1,0 +1,339 @@
+<?php
+// $Id: recommender.test,v 1.7 2009/07/04 02:32:05 danithaca Exp $
+
+class RecommenderMatrixTestCase extends DrupalWebTestCase {
+  
+  static function getInfo() {
+    return array(
+      'name' => t('Recommender test on Vector/Matrix classes'),
+      'description' => t('Test matrix functions of Recommender API'),
+      'group' => t('RecommenderAPI'),
+    );
+  }
+  
+  function setUp() {
+    parent::setUp('recommender');
+  }
+  
+  function assertEqualX($first, $second, $message = '', $group = 'Other') {
+    $diff = $first - $second;
+    return $this->assertTrue(abs($diff)<0.0001, $message, $group);
+  }
+  
+  function testVector() {
+    $vec1 = Vector::create('RealVector', 5, 0);
+    $vec1->set(0, 1);
+    $vec1->set(2, 5);
+    $vec1->set(4, 3);
+    $this->assertEqual(5, $vec1->count());
+    $this->assertEqual(1.8, $vec1->mean());
+    
+    $array = array(1, 1, 5, 0, 3);
+    $vec2 = Vector::wrap('RealVector', $array);    
+    $this->assertEqual(2, $vec2->mean());
+    $this->assertEqual(3.2, $vec2->variance());
+    
+    $this->assertEqual(3.4, $vec2->covariance($vec1));
+    $this->assertEqualX(0.9802, $vec1->correlation($vec2));
+    
+    $vec3 = Vector::create('SparseVector', 5);
+    $vec3->set(0, 1);
+    $vec3->set(2, 5);
+    $vec3->set(4, 3);
+    $this->assertEqual(3, $vec3->count());
+    $this->assertEqual(3, $vec3->mean()); 
+    $this->assertEqual(8/3, $vec3->variance());
+    
+    $array = array();
+    $vec4 = Vector::wrap('SparseVector', $array);
+    $this->assertTrue(is_nan($vec4->mean()));
+    
+    $vec3->set(1,1);
+    $vec4->set(0,2);
+    $vec4->set(2,4);
+    $vec4->set(4,1);
+    
+    $this->assertEqual(4/3, $vec3->covariance($vec4));
+    $this->assertEqual(4/3, $vec4->covariance($vec3));
+    $this->assertEqualX(0.6547, $vec3->correlation($vec4));
+    
+    $vec5 = Vector::create('RealVector', 5, 1);
+    $vec6 = Vector::create('RealVector', 5, 2);
+    $this->assertTrue(is_nan($vec5->correlation($vec6)));
+  }
+  
+  function testMatrix() {
+    $mat1 = Matrix::create('RealMatrix', 3, 5, 0);
+    $mat1->set(0,1,2);
+    $mat1->set(0,3,3);
+    $mat1->set(1,0,1);
+    $mat1->set(1,2,4);
+    $mat1->set(1,3,1);
+    $mat1->set(2,0,2);
+    $mat1->set(2,2,5);
+    $mat1->set(2,4,1);
+    $raw_values = $mat1->raw_values();
+    $this->assertTrue($raw_values===$mat1->raw_values());
+    $this->assertEqual(4, $raw_values[1][2]);
+    $this->assertEqual(0, $raw_values[2][3]);
+    
+    $mat2 = Matrix::correlation($mat1);
+    $this->assertEqualX(1, $mat2->get(1,1));
+    $this->assertEqualX(1, $mat2->get(0,0));
+    $this->assertEqualX(-0.3227, $mat2->get(0,1));
+    $this->assertEqualX(-0.6820, $mat2->get(2,0));
+    $this->assertEqualX(0.9098, $mat2->get(2,1));
+    $this->assertTrue(is_nan($mat2->get(3,1)));
+    
+    $mat3 = Matrix::create('SparseMatrix', 3, 5, 0);
+    $mat3->set(0,1,2);
+    $mat3->set(0,3,3);
+    $mat3->set(1,0,1);
+    $mat3->set(1,2,4);
+    $mat3->set(1,3,1);
+    $mat3->set(2,0,2);
+    $mat3->set(2,2,5);
+    $mat3->set(2,4,1);
+    
+    $mat4 = Matrix::correlation($mat3);
+    $this->assertEqualX(1, $mat4->get(0,0));
+    $this->assertTrue(is_nan($mat4->get(0,1)));
+    $this->assertTrue(is_nan($mat4->get(0,2)));
+    $this->assertTrue(is_nan($mat4->get(0,1)));
+    $this->assertEqualX(1, $mat4->get(1,2));
+    
+    // note: comprehensive matrix test will be at testCorrelationRecommenderMemory();
+  }
+  
+}
+
+class RecommenderTestCase extends DrupalWebTestCase {
+  
+  /**
+   * Implementation of getInfo().
+   */
+  static function getInfo() {
+    return array(
+      'name' => t('Recommender basic test'),
+      'description' => t('Test functions of Recommender API'),
+      'group' => t('RecommenderAPI'),
+    );
+  }
+  
+  private $schema;
+  
+  function setUp() {
+    parent::setUp('recommender');
+    
+    // define the grouplens test data table
+    $this->schema = array();
+    $this->schema['recommender_grouplens'] = array(
+      'description' => t('Temporary storage for mouse-cheese links. Used for input'),
+      'fields' => array(
+           'user_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10'),
+           'item_id' => array('type' => 'int', 'unsigned' => TRUE, 'not null' => TRUE, 'disp-width' => '10'),
+           'score' => array('type' => 'float', 'size' => 'big', 'not null' => TRUE)),
+      'primary key' => array('user_id', 'item_id'),
+    );
+    
+    $ret = array();
+    db_create_table($ret, 'recommender_grouplens', $this->schema['recommender_grouplens']);
+    
+    // insert grouplens data
+    update_sql("INSERT INTO {recommender_grouplens} VALUES
+        (1,1,1),(1,2,5),(1,4,2),(1,5,4),
+        (2,1,4),(2,2,2),(2,4,5),(2,5,1),(2,6,2),
+        (3,1,2),(3,2,4),(3,3,3),(3,6,5),
+        (4,1,2),(4,2,4),(4,4,5),(4,5,1)");
+  }
+  
+  function tearDown() {
+    $ret = array();
+    db_drop_table($ret, 'recommender_grouplens');
+    parent::tearDown(); // note: has to call this, or otherwise it'll cause exceptions.
+  }
+  
+  
+  function assertEqualX($first, $second, $message = '', $group = 'Other') {
+    $diff = $first - $second;
+    return $this->assertTrue(!is_nan($first) && !is_nan($second) && abs($diff)<0.0001, $message, $group);
+  }
+  
+  
+  // test basic functions
+  function testBasicFunctions() {   
+    // note that simpletest create new db tables with random prefix
+    $this->assertEqual(1, Recommender::convertAppId("recommender_test"));
+    $this->assertEqual(recommender_get_app_id("recommender_test"), Recommender::convertAppId("recommender_test"));
+    $this->assertEqual(2, Recommender::convertAppId('recommender_random'));
+    $this->assertEqual(1, Recommender::convertAppId("recommender_test"));
+  }
+  
+  
+  // test CooccurrenceRecommender
+  function testCooccurrenceRecommender() {   
+    // test the simple case w/ weight
+    $rec1 = new CooccurrenceRecommender('recommender_cooccur_1', 'recommender_grouplens', 'user_id', 'item_id', 'score');
+    $rec1->computeSimilarity();
+    $this->assertEqual(12, 12);
+    $this->assertEqual(12, $rec1->retrieveSimilarity(1, 2));
+    $this->assertEqual(12, $rec1->retrieveSimilarity(2, 1));
+    $this->assertEqual(6, $rec1->retrieveSimilarity(3, 1));
+    $this->assertEqual(9.5, $rec1->retrieveSimilarity(2,3));
+    $this->assertTrue(is_nan($rec1->retrieveSimilarity(6, 2)));
+    
+    // test just the # of co-occurs with SQL query
+    $sql = "SELECT user_id, item_id, 1 as score FROM {recommender_grouplens}";
+    $rec2 = new CooccurrenceRecommender('recommender_cooccur_2', $sql, 'user_id', 'item_id', 'score');
+    $rec2->computeSimilarity();
+    $this->assertEqual(4, $rec2->retrieveSimilarity(1,2));
+    $this->assertEqual(4, $rec2->retrieveSimilarity(2,1));
+    $this->assertEqual(3, $rec2->retrieveSimilarity(2,3));
+    $this->assertTrue(is_nan($rec2->retrieveSimilarity(5, 10)));
+    
+    // test topSimilarity/topPrediction
+    $items = $rec2->topSimilarity(1, 5);
+    $this->assertEqual(3, count($items));
+    $this->assertEqual(2, $items[0]['id']);
+    $this->assertEqual(3, $items[2]['id']);
+    
+    
+    function test($item) {
+      return ($item['score']>=3) ? FALSE : TRUE;
+    }
+    $items = $rec2->topSimilarity(1, 1, 'test');
+    $this->assertEqual(1, count($items));
+    $this->assertEqual(3, $items[0]['id']);
+    
+    recommender_purge_app('recommender_cooccur_1');
+    recommender_purge_app('recommender_cooccur_2');
+  }
+  
+  
+  function testCorrelationRecommender() {
+    $rec1 = new CorrelationRecommender('recommender_cor_1', 'recommender_grouplens', 'user_id', 'item_id', 'score',
+                array('missing'=>'none'));
+    $rec1->computeSimilarity();
+    //$this->assertEqual(1, $rec1->mcMatrix->get(1,1));
+    //$this->assertEqual(5, $rec1->mcMatrix->get(3,6));
+    $this->assertEqual(-0.8, $rec1->retrieveSimilarity(1,2));
+    $this->assertEqual(1, $rec1->retrieveSimilarity(1,3));
+    $this->assertTrue(!is_nan($rec1->retrieveSimilarity(1,4)));
+    $this->assertEqual(0, $rec1->retrieveSimilarity(1,4));
+    
+    $rec2 = new CorrelationRecommender('recommender_cor_2', 'recommender_grouplens', 'user_id', 'item_id', 'score',
+                array('missing'=>'none', 'lowerbound'=>0));
+    $rec2->computeSimilarity();
+    $this->assertTrue(is_nan($rec2->retrieveSimilarity(1,2))); // lower than the lowerbound, so it's not saved.
+    $this->assertTrue(!is_nan($rec2->retrieveSimilarity(1,4)));
+    
+    $rec3 = new CorrelationRecommender('recommender_cor_3', 'recommender_grouplens', 'user_id', 'item_id', 'score',
+                array('missing'=>'zero'));
+    $rec3->computeSimilarity();
+    $this->assertEqual($rec3->retrieveSimilarity(3,2), $rec3->retrieveSimilarity(2,3)); 
+    $this->assertEqualX(-0.34669, $rec3->retrieveSimilarity(2,3));
+    $this->assertEqualX(-0.36927, $rec3->retrieveSimilarity(3,4));
+    
+    // test prediction
+    
+    $rec4 = new CorrelationRecommender('recommender_cor_4', 'recommender_grouplens', 'user_id', 'item_id', 'score',
+                array('missing'=>'none', 'sim_pred'=>TRUE, 'duplicate'=>'keep'));
+    $rec4->computeSimilarity();
+    $rec4->computePrediction();
+    // note: this is the grouplens paper value. [#483112]
+    //$this->assertEqualX(4.56, $rec4->retrievePrediction(1,6));
+    $this->assertEqualX(4.18888, $rec4->retrievePrediction(1,6));
+    $this->assertEqualX(3.13367, $rec4->retrievePrediction(3,4));
+    $this->assertEqualX(4.77540, $rec4->retrievePrediction(3,2));
+    
+    $items = $rec4->topPrediction(1, 5);
+    $this->assertEqualX(4.8, $items[0]['score']);
+    $this->assertEqualX(4.18888, $items[1]['score']);
+    
+    $rec5 = new CorrelationRecommender('recommender_cor_5', 'recommender_grouplens', 'user_id', 'item_id', 'score',
+                array('missing'=>'none', 'sim_pred'=>FALSE, 'duplicate'=>'remove'));
+    $rec5->computeSimilarity();
+    $rec5->computePrediction();
+    // note: this is the grouplens paper value. [#483112]
+    //$this->assertEqualX(4.56, $rec4->retrievePrediction(1,6));
+    $this->assertEqualX(4.18888, $rec5->retrievePrediction(1,6));
+    $this->assertTrue(is_nan($rec5->retrievePrediction(4,5))); // rating exists already, so no prediction for it.
+    
+    $rec6 = new CorrelationRecommender('recommender_cor_6', 'recommender_grouplens', 'user_id', 'item_id', 'score',
+                array('missing'=>'none', 'sim_pred'=>TRUE, 'duplicate'=>'remove', 'knn' => 1));
+    $rec6->computeSimilarity();
+    $rec6->computePrediction();
+    $this->assertTrue(is_nan($rec6->retrievePrediction(1,6)));
+    $this->assertEqualX(2.5, $rec6->retrievePrediction(3,4));
+  }
+  
+  function testSlopeOneRecommender() {
+    $rec1 = new SlopeOneRecommender('recommender_slopeone_1', 'recommender_grouplens', 'user_id', 'item_id', 'score',
+                array('extension'=>'basic', 'duplicate'=>'keep'));
+    $rec1->computePrediction();
+    $this->assertEqualX(2.75, $rec1->retrievePrediction(1,6));
+    $this->assertEqualX(5.33333, $rec1->retrievePrediction(3,4));
+    $this->assertEqualX(4, $rec1->retrievePrediction(3,2));
+       
+    $rec2 = new SlopeOneRecommender('recommender_slopeone_2', 'recommender_grouplens', 'user_id', 'item_id', 'score',
+                array('extension'=>'weighted', 'duplicate'=>'remove'));
+    $rec2->computePrediction();
+    $this->assertEqualX(3, $rec2->retrievePrediction(1,6));
+    $this->assertEqualX(4.57143, $rec2->retrievePrediction(3,4));
+    $this->assertTrue(is_nan($rec2->retrievePrediction(2,2)));
+  }
+  
+  function testUser2UserRecommender() {
+    // since User2User is the same as Correlation, we just copied the test too.
+    
+    $rec3 = new User2UserRecommender('recommender_u2u_3', 'recommender_grouplens', 'user_id', 'item_id', 'score',
+                array('missing'=>'zero'));
+    $rec3->computeSimilarity();
+    $this->assertEqual($rec3->retrieveSimilarity(3,2), $rec3->retrieveSimilarity(2,3)); 
+    $this->assertEqualX(-0.34669, $rec3->retrieveSimilarity(2,3));
+    $this->assertEqualX(-0.36927, $rec3->retrieveSimilarity(3,4));
+    
+    // test prediction
+    
+    $rec4 = new User2UserRecommender('recommender_u2u_4', 'recommender_grouplens', 'user_id', 'item_id', 'score',
+                array('missing'=>'none', 'sim_pred'=>TRUE, 'duplicate'=>'keep'));
+    $rec4->computeSimilarity();
+    $rec4->computePrediction();
+    // note: this is the grouplens paper value. [#483112]
+    //$this->assertEqualX(4.56, $rec4->retrievePrediction(1,6));
+    $this->assertEqualX(4.18888, $rec4->retrievePrediction(1,6));
+    $this->assertEqualX(3.13367, $rec4->retrievePrediction(3,4));
+    $this->assertEqualX(4.77540, $rec4->retrievePrediction(3,2));
+    
+    $items = $rec4->topPrediction(1, 5);
+    $this->assertEqualX(4.8, $items[0]['score']);
+    $this->assertEqualX(4.18888, $items[1]['score']);
+  }
+  
+  function testItem2ItemRecommender() {
+    // swap user_id, item_id, the result should be the same
+    $rec1 = new Item2ItemRecommender('recommender_i2i_1', 'recommender_grouplens', 'item_id', 'user_id', 'score',
+                array('missing'=>'zero'));
+    $rec1->computeSimilarity();
+    $this->assertEqual($rec1->retrieveSimilarity(3,2), $rec1->retrieveSimilarity(2,3)); 
+    $this->assertEqualX(-0.34669, $rec1->retrieveSimilarity(2,3));
+    $this->assertEqualX(-0.36927, $rec1->retrieveSimilarity(3,4));
+    
+    $rec2 = new Item2ItemRecommender('recommender_i2i_2', 'recommender_grouplens', 'user_id', 'item_id', 'score',
+                array('missing'=>'none', 'sim_pred'=>TRUE, 'duplicate'=>'remove'));
+    $rec2->computeSimilarity();
+    $rec2->computePrediction();
+    $this->assertEqual(1, $rec2->retrieveSimilarity(1,1));
+    $this->assertEqual(-1, $rec2->retrieveSimilarity(1,2));
+    $this->assertEqualX(0.7559, $rec2->retrieveSimilarity(4,1));
+    $this->assertEqual(1, $rec2->retrieveSimilarity(6,2));
+    
+    $this->assertEqual(3.75, $rec2->retrievePrediction(3,4));
+    $this->assertEqual(4.75, $rec2->retrievePrediction(1,6));
+    $this->assertEqual(2.25, $rec2->retrievePrediction(3,5));
+    $this->assertTrue(is_nan($rec2->retrievePrediction(1,1))); // rating exists already, so no prediction for it.
+  }
+  
+}
+
+?>

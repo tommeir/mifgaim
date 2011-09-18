@@ -1,0 +1,13 @@
+<?php
+// $Id: report_content.install,v 1.1 2009/11/02 18:06:28 ki Exp $
+/**
+ * @file
+ * Report Content installation file.
+ */
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function report_content_uninstall() {
+  variable_del('report_content_type');
+}

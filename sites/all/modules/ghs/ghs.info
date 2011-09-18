@@ -1,0 +1,12 @@
+; $Id: 
+name = Google Verification
+description = Provides for the set up of verification of Google Hosted Services(Google Apps)
+package = Google
+core = 6.x
+
+; Information added by drupal.org packaging script on 2009-03-17
+version = "6.x-1.0"
+core = "6.x"
+project = "ghs"
+datestamp = "1237321250"
+

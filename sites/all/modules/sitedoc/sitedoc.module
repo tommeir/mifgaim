@@ -1,0 +1,2654 @@
+<?php
+// $Id: sitedoc.module,v 1.46.2.2.2.11 2008/09/16 13:23:47 nancyw Exp $
+
+/**
+ * Implementation of hook_help().
+ */
+function sitedoc_help($path, $args = array()) {
+  switch ($path) {
+    case 'admin/help#sitedoc':
+      $output = '<p>'. t('The sitedoc module allows a site admin to gather extensive information about their site. It may be printed or archived for configuration/change management purposes. It may also be used to add "fancy" and up-to-date information to other site documentation, such as a succession plan.') .'</p>';
+      break;
+      
+    case 'admin/settings/sitedoc/archive':
+      $output = '<p>'. t('The Site Documentation module may be run via Cron and the output HTML file archived to disk for future review. The options chosen on the main settings page will govern the data collected and reported.') .'</p>';
+      break;
+      
+    case 'admin/settings/sitedoc':
+      $output = '<p>'. t("The Site Documentation module's data collection and output is governed by these settings. Indented options are in effect only if the parent item is selected.") .'</p>';
+  }
+  return $output;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function sitedoc_perm() {
+  return array('view site documentation');
+}
+
+/**
+ * Implementation of hook_menu().
+ */
+function sitedoc_menu() {
+  $items = array();
+
+  $items['admin/build/sitedoc'] = array(
+    'title' => 'Site documentation',
+    'description' => 'Show site documentation',
+    'page callback' => 'sitedoc_list',
+    'access arguments' => array('view site documentation'),
+    );
+  $items['admin/settings/sitedoc'] = array(
+    'title' => 'Site documentation',
+    'description' => 'Set how Site Documentation works',
+    'page callback' => 'sitedoc_settings_page',
+    'access arguments' => array('view site documentation'),
+    'file' => 'sitedoc.admin.inc',
+    );  
+  $items['admin/settings/sitedoc/report'] = array(
+    'title' => 'Report',
+    'description' => 'Report settings',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sitedoc_settings_form'),
+    'access arguments' => array('view site documentation'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'file' => 'sitedoc.admin.inc',
+    );  
+  $items['admin/settings/sitedoc/archive'] = array(
+    'title' => 'Archive',
+    'access arguments' => array('view site documentation'),
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('sitedoc_archive_form'),
+    'description' => 'Set how Site Documentation archive works',
+    'weight' => 2,
+    'type' => MENU_LOCAL_TASK,
+    'file' => 'sitedoc.admin.inc',
+    );
+  $items['admin/build/sitedoc_node_access_view'] = array(
+    'title' => 'Site documentation node access list',
+    'page callback' => 'sitedoc_node_access_view',
+    'page arguments' => array(arg(3)),
+    'access arguments' => array('view site documentation'),
+    'type' => MENU_CALLBACK,
+    );
+  $items['sitedoc/vocabulary'] = array(
+    'title' => 'Site Documentation Term Count by Type',
+    'page callback' => 'sitedoc_term_count_by_type',
+    'access arguments' => array('access content'),
+    'type' => MENU_CALLBACK
+    );
+  $items['sitedoc/phpinfo'] = array(
+    'title' => 'Site Documentation PHP Information',
+    'page callback' => 'sitedoc_phpinfo',
+    'access arguments' => array('view site documentation'),
+    'type' => MENU_CALLBACK
+    );
+  $items['sitedoc/table'] = array(
+    'title' => 'Table Contents',
+    'page callback' => 'sitedoc_show_table',
+    'access arguments' => array('view site documentation'),
+    'type' => MENU_CALLBACK
+    );
+
+  return $items; 
+}
+/**
+ * Implementation of hook_init().
+ */
+function sitedoc_init() {
+  drupal_add_css(drupal_get_path('module', 'sitedoc') .'/sitedoc.css');
+}
+
+/**
+ * Implementation of hook_enable().
+ *
+ * Set the default parameters. This is an easy way to reset the deaults - disable and re-enable.
+ *
+ *  Parameters: None.
+ *
+ *  Return: None.
+ */
+function sitedoc_enable() {
+  $sitedoc_settings = array(
+    'drupal_section' => TRUE,
+    'kill_cron' => 0,                     /* kill long-running cron */
+    'table_section' => TRUE,
+    'show_indexes' => FALSE,              /* use SHOW INDEX on the tables */
+    'optimize_tables' => FALSE,           /* use OPTIMIZE to release overhead */
+    'node_section' => FALSE,              /* not on because of expense */
+    'include_comment_count' => FALSE,     /* comment count on nodes */
+    'include_node_access' => FALSE,       /* node access summary */
+    'node_show_size' => 99999,            /* show nodes exceeding x KB */
+    'node_max_size' => 50,                /* warn if nodes exceeding x KB */
+    'module_section' => TRUE,
+    'module_suppress' => FALSE,           /* exclude disabled modules */
+    'module_sort_order' => 0,             /* package, project, module */
+    'content_section' => TRUE,
+    'vocabulary_section' => TRUE,
+    'orphan_term_node' => FALSE,          /* not on to allow control */
+    'delete_orphan_term_nodes' => FALSE,  /* do not delete orphans  */
+    'theme_section' => TRUE,
+    'variables_section' => FALSE,         /* not on because of expense */
+    'block_section' => TRUE,
+    'block_warn' => TRUE,                 /* warn on missing theme */
+    'block_delete' => FALSE,              /* delete those orphan blocks */
+    'roles_section' => TRUE,
+    'role_users' => TRUE,                 /* list users in roles */
+    'role_perms_list' => FALSE,           /* do role permissions as stream */
+    'contacts_section' => TRUE,
+    'profile_fields_section' => FALSE,    /* not on because of interest */
+    'url_alias_section' => FALSE,         /* not on because of expense */
+    'input_format_section' => FALSE,      /* not on because probably not wanted */
+    // Archive options
+    'archive_frequency' => 0,             /* don't run */
+    'archive_directory' => 'sitedoc',     /* archive directory within file setting */ 
+    );
+  variable_set('sitedoc_settings', $sitedoc_settings);
+}
+
+/***********************/
+/**   main function   **/
+/***********************/
+function sitedoc_list() {
+  // Retrieve the settings and check if they have been settings page.
+  $sitedoc_settings = variable_get('sitedoc_settings', array());
+  if ($sitedoc_settings == array()) {
+    return t('It appears that you have not been to "administer >> site configuration" to set the Site Documentation settings. ') . l(t('Click here to do so.'), 'admin/settings/sitedoc');
+  }
+
+  // Insert a wrapper division and a link back to the settings page. 
+  $output = '<div class="site-documentation">'. l(t('Change settings.'), 'admin/settings/sitedoc') .'<br/><br/>';
+
+  // Get basic Drupal info.
+  if ($sitedoc_settings['drupal_section']) {
+    $output .= '<div class="sitedoc_drupal">';
+    $fieldset = array(
+      '#title' => t('Drupal Section'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => sitedoc_drupal($sitedoc_settings['kill_cron']),
+      );  
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+  }
+
+  // Get database info.
+  if ($sitedoc_settings['table_section']) {
+    $output .= '<div class="sitedoc_database_overview">';
+    $fieldset = array(
+      '#title' => t('Table Section'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => sitedoc_database_overview($sitedoc_settings['optimize_tables'], $sitedoc_settings['show_indexes']),
+      );  
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+  }
+ 
+  // Get summary of all nodes (this is VERY expensive!).
+  if ($sitedoc_settings['node_section']) {
+    $output .= '<div class="sitedoc_node_summary">';
+    $fieldset = array(
+      '#title' => t('Node Summary'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => sitedoc_node_summary($sitedoc_settings['include_comment_count'], $sitedoc_settings['node_show_size'], $sitedoc_settings['node_max_size']),
+      );
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+ 
+    // Get node access summary (this is expensive!).
+    // Runs only if the node summary section is selected.
+    if ($sitedoc_settings['include_node_access']) {
+      $output .= '<div class="sitedoc_node_access">';
+      $fieldset = array(
+        '#title' => t('Node Access'),
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+        '#value' => sitedoc_node_access(),
+      );  
+      $output .=  theme('fieldset', $fieldset);
+      $output .= "</div>\n";
+    } // end access summary 
+  }  // end node summary 
+
+  // Get content type info from node module along with workflow options from system variables.
+  if ($sitedoc_settings['content_section']) {
+    $output .= '<div class="sitedoc_content_types">';
+    $fieldset = array(
+      '#title' => t('Content Types'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => sitedoc_content_types(),
+      );  
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+  }
+
+  // Get modules from the System module functions.
+  if ($sitedoc_settings['module_section']) {
+    $output .= '<div class="sitedoc_modules">';
+    $fieldset = array(
+      '#title' => t('Modules'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => sitedoc_get_modules($sitedoc_settings['module_suppress'], $sitedoc_settings['module_sort_order']),
+      );  
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+  }
+
+  // Get themes from the System table.
+  if ($sitedoc_settings['theme_section']) {  /* controls themes */
+    $output .= '<div class="sitedoc_themes">';
+    $fieldset = array(
+      '#title' => t('Themes'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => sitedoc_get_system('theme'),
+      );  
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+  }
+
+  // Get vocabularies and their definitions.
+  if ($sitedoc_settings['vocabulary_section']) {
+    $output .= '<div class="sitedoc_vocabularies">';
+    $fieldset = array(
+      '#title' => t('Vocabularies'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => sitedoc_get_vocabularies(),
+      );  
+    $output .=  theme('fieldset', $fieldset);
+
+     // do we want to check for orphans in the Term_node table?
+    if ($sitedoc_settings['orphan_term_node']) {
+      $orphans = sitedoc_check_orphan_term_node($sitedoc_settings['delete_orphan_term_nodes']);
+      $fieldset = array(
+        '#title' => t('Orphan Term_nodes'),
+        '#collapsible' => TRUE,
+        '#collapsed' => ($orphans == '<p>'. t('No orphan term_nodes found.') .'</p>'),
+        '#value' => $orphans,
+      );  
+    $output .=  theme('fieldset', $fieldset);
+    }
+    $output .= "</div>\n";
+  }
+
+  // Get system variable info from cache.
+  if ($sitedoc_settings['variables_section']) {
+    $output .= '<div class="sitedoc_variables">';
+    $fieldset = array(
+      '#title' => t('Variables'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => sitedoc_get_variables(),
+      );  
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+  }
+
+  // Get blocks info from Blocks table.
+  if ($sitedoc_settings['block_section']) {  /* controls block and boxes */
+    $output .= '<div class="sitedoc_blocks">';
+      // use the setting to decide on a warning for missing themes
+    $fieldset = array(
+      '#title' => t('Blocks'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => sitedoc_get_blocks($sitedoc_settings['block_warn'], $sitedoc_settings['block_delete']),
+    );  
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+
+    // Get boxes (custom blocks) info from Boxes table.
+    // Runs only if the blocks section is selected.
+    $output .= '<div class="sitedoc_boxes">';
+    $boxes = sitedoc_get_boxes($sitedoc_settings['block_warn'], $sitedoc_settings['block_delete']);
+    $fieldset = array(
+      '#title' => t('Custom Blocks (Boxes)'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => $boxes ? $boxes : ('<p>'. t('No boxes found.') .'</p>'),
+      );
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+  }
+
+  // Get roles info from Roles table  (how can we get a description of the roles?).
+  if ($sitedoc_settings['roles_section']) {
+    $output .= '<div class="sitedoc_roles">';
+    $rpt .= sitedoc_get_roles($sitedoc_settings['role_perms_list'], $sitedoc_settings['role_users']);
+    $fieldset = array(
+      '#title' => t('Roles'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => $rpt ? $rpt : (t('No roles found.') .' '. _sitedoc_img_error()),
+      );
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+  }
+
+  // Get contacts info from Contacts table.
+  if ($sitedoc_settings['contacts_section']) {
+    $output .= '<div class="sitedoc_contacts">';
+    $rpt = sitedoc_get_contacts();
+    $fieldset = array(
+      '#title' => t('Contacts'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => $rpt ? $rpt : t('No contacts found.'),
+      );
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+  }
+
+  // Get info from Profile_fields table.
+  if ($sitedoc_settings['profile_fields_section']) {
+    $output .= '<div class="sitedoc_profile_fields">';
+    $rpt = sitedoc_profile_fields();
+    $fieldset = array(
+      '#title' => t('Profile Fields'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => $rpt ? $rpt : ('<p>'. t('No profile fields found.') .'</p>'),
+      );
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+  }
+
+  // Get info from URL Alias table and cross-check it.
+  if ($sitedoc_settings['url_alias_section']) {
+    $output .= '<div class="sitedoc_url_alias">';
+    $rpt = sitedoc_url_alias();
+    $fieldset = array(
+      '#title' => t('URL Aliases'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => $rpt ? $rpt : t('No aliases found.'),
+      );
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+  }
+
+  // Get info from Filter and Filter_format tables.
+  if ($sitedoc_settings['input_format_section']) {
+    $output .= '<div class="sitedoc_input_format">';
+    $fieldset = array(
+      '#title' => t('Input Formats and Filters'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => sitedoc_filters(),
+      );
+    $output .=  theme('fieldset', $fieldset);
+    $output .= "</div>\n";
+  }
+
+  $output .= "</div>\n";
+  return $output;
+
+}
+/**
+ *  Implementation of hook_cron
+ *
+ *  Runs the report and saves it to disk.
+ */
+function sitedoc_cron() {
+  // Get the module settings and verify they've been set.
+  $sitedoc_settings = variable_get('sitedoc_settings', array());
+  if ($sitedoc_settings == array()) {
+    watchdog('Site Doc', 'It appears that you have not been to "administer >> site configuration" to set the Site Documentation settings.', null, WATCHDOG_ERROR);
+  }
+
+  // If set up for manual run, then just quit now.
+  $frequency = $sitedoc_settings['archive_frequency'];
+  if ($frequency == 0) {
+    return;
+  }
+
+  // If set up for debugging, then -1 will let us run every time.
+  if ($frequency == '999999') {
+    $frequency = -1;
+  }
+
+  // Determine if it's time to make another run.
+  $how_long = time() - $sitedoc_settings['archive_last_run'];
+
+  if ($how_long > $frequency) { /* longer than how long between saves? */
+    // Get the file path and append a file name.
+    $filename = file_directory_path() .'/' 
+      . $sitedoc_settings['archive_directory'] .'/sitedoc_'. date('Ymd_Hi') .'.html';
+    $path = $filename;
+    // make sure we can write to it        
+    $writable = fopen($path, 'w');
+    if ($writable == FALSE) {
+      watchdog('Site Doc', 'Cannot write "!file" to archive directory.', array('!file' => $filename), WATCHDOG_ERROR);
+      return;
+    }
+
+    // Call the main list, format the output as a full page (without blocks),
+    //  change all the relative paths to full paths, fix the page title.
+    $output = theme('page', sitedoc_list(), FALSE);
+    global $base_url;
+    $output = str_replace('@import "/', '@import "'. $base_url .'/', $output);
+    $output = str_replace('src="/', 'src="'. $base_url .'/', $output);
+    $output = str_replace('<title>Run cron', '<title>Site Documentation', $output);
+
+    // Save the file and write a message indicating whether it worked.
+    $saved_as = fwrite($writable, $output);
+    if ($saved_as === 0) {
+      watchdog('Site Doc', 'Documentation file save failed.', null, WATCHDOG_ERROR);
+    }
+    else {
+      watchdog('Site Doc', 'Documentation file saved as !name', array('!name' => $filename), WATCHDOG_NOTICE);
+    }
+    fclose($writable);
+
+    // update last run time
+    $sitedoc_settings['archive_last_run'] = time();
+    variable_set('sitedoc_settings', $sitedoc_settings); 
+
+  } /* end if how long */
+}
+
+/**
+ * Helper functions to generate proper img tags.
+ */
+function _sitedoc_img_ok() {
+  return theme_image('misc/watchdog-ok.png', 'ok', 'ok');
+}
+function _sitedoc_img_warning() {
+  return theme_image('misc/watchdog-warning.png', 'warning', 'warning');
+}
+
+function _sitedoc_img_error() {
+  return theme_image('misc/watchdog-error.png', 'error', 'error');
+}
+
+/****************************/
+/**   Callable functions   **/
+/****************************/
+
+/**
+ *   Produce the basic system overview.
+ *
+ *  Parameters:
+ *    TRUE/FALSE - whether to fix Cron stall problem if detected.
+ *
+ *  Return: HTML string.
+ */
+function sitedoc_drupal($kill_cron=0) {
+  global $base_url;
+  $dest = drupal_get_destination();
+  $_abled = array(t('Disabled'), t('Enabled'));
+  $_bool = array(t('False'), t('True'));
+  $_noyes = array(t('No'), t('Yes'));
+
+  $header = array(t('Item'), t('Value'), t('Operation'));
+  $setting = t('Settings');
+  $rows = array();
+
+  $rows[] = array(t('Site Name'), variable_get('site_name', 'none'), l($setting, 'admin/settings/site-information', array('query' => $dest)));
+  $rows[] = array(t('Version'), VERSION, NULL);
+  $rows[] = array(t('Configuration file'), conf_path() .'/settings.php', NULL);
+  $rows[] = array(t('Install profile'), variable_get('install_profile', 'default'), NULL);
+  $rows[] = array(t('Base URL'), $base_url, NULL);
+
+  $cache = variable_get('cache', 0);
+  $cache_type = array(t('Disabled'), t('Normal'), t('Agressive'));
+  $rows[] = array(t('Cache'), $cache_type[$cache], l($setting, 'admin/settings/performance', array('query' => $dest)));
+  $rows[] = array(t('Minimum cache lifetime'), format_interval(variable_get('cache_lifetime', 0), 1), l($setting, 'admin/settings/performance', array('query' => $dest)));
+  $rows[] = array(t('CSS preprocess'), variable_get('preprocess_css', FALSE) ? t('Enabled') : t('Disabled'), l($setting, 'admin/settings/performance', array('query' => $dest)));
+
+  $clean_urls = variable_get('clean_url', FALSE);
+  $rows[] = array(t('Clean URLS'), $_abled[$clean_urls], l($setting, 'admin/settings/clean-urls', array('query' => $dest)));
+
+  $cron_last = variable_get('cron_last', NULL);
+  $cron_when = isset($cron_last) ? t('Last run !time ago', array('!time' => format_interval(time() - $cron_last))) : t('Not run yet');
+  // If it last ran more than an hour ago, add "Run now" link.
+  if (time() - $cron_last > 3600) {
+    $cron_op .= l(t('Run now'), 'admin/reportsstatus/run-cron', array('query' => $dest));
+  }
+  else {
+    $cron_op = NULL;
+  } 
+  $cron_semaphore = variable_get('cron_semaphore', NULL);  /* is it running now? */
+  if (isset($cron_semaphore)) { 
+    $how_long = time() - $cron_semaphore;  /* how long it's been running (secs) */
+    $cron_when .= ' - '. t('Running for !time', array('!time' => format_interval($how_long)))
+                  ._sitedoc_img_warning();
+    if ($kill_cron) {
+      if ($kill_cron <= $how_long) {
+        variable_del('cron_semaphore');  /* turn off "cron started" flag */
+        variable_del('cron_last');       /** I don't think this is actually needed **/
+      } /* end if how long */
+    }  /* end if kill_cron */
+  }  /* end if semaphore */
+  $rows[] = array(t('Cron'), $cron_when, $cron_op);
+
+  if (module_exists('search')) {
+    $rows[] = array(t('Search Cron limit'), variable_get("search_cron_limit", null), l($setting, 'admin/settings/search', array('query' => $dest)));
+    $remaining = 0;
+    $total = 0;
+    foreach (module_list() as $module) {
+      if (module_hook($module, 'search')) {
+        $status = module_invoke($module, 'search', 'status');
+        $remaining += $status['remaining'];
+        $total += $status['total'];
+      }
+    }
+    $count = format_plural($remaining, 'There is 1 item left to index.', 'There are @count items left to index.');
+    $percentage = ((int)min(100, 100 * ($total - $remaining) / max(1, $total))) .'%';
+    $status = t('%percentage of the site has been indexed.', array('%percentage' => $percentage)) .' '. $count;
+    $link = l($setting, 'admin/settings/search', array('query' => $dest));
+    if ($remaining) {
+      $link .= ', '. l(t('Run Cron'), 'admin/reports/status/run-cron', array('query' => $dest));
+    }
+    $rows[] = array(t('Search status'), $status, $link);
+  }
+
+  $rows[] = array(t('Anonymous'), variable_get('anonymous', 'anonymous'), l($setting, 'admin/settings/site-information', array('query' => $dest))); 
+  $rows[] = array(t('File directory'), file_directory_path(), l($setting, 'admin/settings/file-system', array('query' => $dest)));
+
+  if (variable_get('file_downloads', FILE_DOWNLOADS_PUBLIC) == FILE_DOWNLOADS_PUBLIC) {
+    $downloads = t('Public'); 
+    $download_op = NULL;
+  }
+  else {
+    $downloads = t('Private') ._sitedoc_img_warning(); 
+    $download_op = l($setting, 'admin/settings/file-system', array('query' => $dest));
+  }  
+
+  $rows[] = array(t('Download method'), $downloads, $download_op);
+
+  // Is the menu choice restricted?
+  $menu_restrict = variable_get('menu_parent_items', NULL);  
+  // "Show all menus" is Zero. Unless the setting has been changed it won't be present (NULL)
+  if ($menu_restrict) {
+    $menu_msg = t('Restricted') .' ('. $menu_restrict .') '. _sitedoc_img_warning();
+  }
+  else {
+    $menu_msg = t('Show all menus') ._sitedoc_img_ok();
+  }
+  $rows[] = array(t('Content menu links'), $menu_msg, l($setting, 'admin/build/menu/settings', array('query' => $dest)));
+
+  $rows[] = array(t('Default theme'), variable_get('theme_default', 'standard'), l($setting, 'admin/build/themes', array('query' => $dest)));
+  
+  $teaser_len = variable_get('teaser_length', 300);
+  $rows[] = array(t('Teaser length'), $teaser_len ? $teaser_len : t('unlimited'), l($setting, 'admin/content/node-settings', array('query' => $dest)));
+  
+  // Get default filter and then look up its name.
+  // Using 0 here to identify that it hasn't been set.
+  $filter = $filter_default = variable_get('filter_default_format', 0);
+  if ($filter_default == 0) {
+    $filter = 1;
+  }
+  $filter_name = db_fetch_object(db_query_range("SELECT f.name FROM {filter_formats} f WHERE f.format='%d'", $filter, 0, 1));
+  if ($filter_default == 1) {
+    $filter_warn = NULL;
+    $filter_op = NULL;
+  }
+  else {
+    $filter_warn = ' <em>('. t('not set') .')</em>'. _sitedoc_img_warning() .' ';
+    $filter_op = l($setting, 'admin/settings/filters', array('query' => $dest));
+  }  
+  $rows[] = array(t('Default filter format'), $filter_name->name . $filter_warn, $filter_op);
+
+  $rows[] = array(t('Operating system'), php_uname('s'), NULL);
+
+  $fieldset = array(
+    '#title' => t('Drupal'),
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#value' => theme('table', $header, $rows) ."\n",
+    );
+  $output .=  theme('fieldset', $fieldset);
+
+  // Webserver information.
+  $rows = array();
+
+  $rows[] = array(t('Web server'), $_SERVER['SERVER_SOFTWARE'], NULL);
+  if (strpos($_SERVER['SERVER_SOFTWARE'], 'Apache') !== FALSE) { /* is it Apache? */
+    $rows[] = array(t('Server name'), $_SERVER['SERVER_NAME'], NULL);
+    if (function_exists('apache_get_modules')) { /* can we get a list of modules ? */
+      $rows[] = array(t('Apache modules'), implode(', ', apache_get_modules()), NULL);
+    } /* end if function */
+  } /* end if apache */
+
+  $fieldset = array(
+    '#title' => t('Webserver Information'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => theme('table', $header, $rows) ."\n",
+  );
+  $output .=  theme('fieldset', $fieldset);
+  
+  // Php info.
+  $rows = array();
+  $error_names = array(
+    'E_ERROR' => 1,
+    'E_WARNING' => 2,
+    'E_PARSE' => 4,
+    'E_NOTICE' => 8,
+    'E_CORE_ERROR' => 16,
+    'E_CORE_WARNING' => 32,
+    'E_COMPILE_ERROR' => 64,
+    'E_COMPILE_WARNING' => 128,
+    'E_USER_ERROR' => 256,
+    'E_USER_WARNING' => 512,
+    'E_USER_NOTICE' => 1024,
+    'E_STRICT' => 2048,
+    'E_RECOVERABLE_ERROR' => 4096,
+    );
+  
+  list($php_vers, $php_rel, $php_fix) = explode('.', phpversion());
+
+  $rows[] = array(t('Php version'), phpversion(), l(t('View phpinfo'), 'sitedoc/phpinfo'));
+  if ($php_vers < 6) {
+    $safe_mode = ini_get('safe_mode');
+    if (is_bool($safe_mode)) {
+      $safe_mode = $_abled[$safe_mode];
+    }
+    if (empty($safe_mode)) {
+      $safe_mode = $_abled[0];
+    }
+    $rows[] = array(t('Safe mode'), $safe_mode, NULL);
+  }
+
+  $disperr = ini_get('display_errors');
+  if (is_bool($disperr)) {
+    $disperr = $_noyes[$disperr];
+  }
+  if (empty($disperr)) {
+    $disperr = $_noyes[0];
+  }
+  $rows[] = array(t('Display errors'), $disperr, NULL);
+
+  $mem_limit = ini_get('memory_limit');
+  $rows[] = array(t('Memory limit'), $mem_limit ? $mem_limit : t('default') .' '. _sitedoc_img_warning(), NULL);
+
+  // Changing the error level returns the previous level, so we'll turn errors off then set it back as it was.
+  $current = ini_get('error_reporting');
+
+  $levels = array();
+  if ($current == E_ALL) {
+    $levels[] = 'E_ALL';
+  }
+  else {
+    foreach ($error_names as $name => $bit) {
+      if ($current && $bit) {
+        $levels[] = $name;
+      }
+    }
+  }
+  $rows[] = array(t('Error reporting'), implode(' + ', $levels), NULL);
+
+  $rows[] = array(t('Upload max filesize'), ini_get('upload_max_filesize'), NULL);
+  $rows[] = array(t('Magic quotes GPC'), $_abled[ini_get('magic_quotes_gpc')], NULL);
+  $rows[] = array(t('Magic quotes runtime'), $_abled[ini_get('magic_quotes_runtime')], NULL);
+  $rows[] = array(t('Precision'), ini_get('precision'), NULL);
+  $rows[] = array(t('Register globals'), $_abled[ini_get('register_globals')], NULL);
+  $rows[] = array(t('Session cache limiter'), ini_get('session.cache_limiter'), NULL);
+  $cookie_params = session_get_cookie_params();
+  $rows[] = array(t('Session cookie domain'), !empty($cookie_params['domain']) ? $cookie_params['domain'] : t('- none -'), NULL);
+  $rows[] = array(t('Session name'), session_name(), NULL);
+  $rows[] = array(t('Session save handler'), ini_get('session.save_handler'), NULL);
+
+   /* php extensions */
+  if (extension_loaded('gd')) {
+    $gd = gd_info();
+    $rows[] = array(
+      t('GD version'),
+      $gd['GD Version'] .'<br />'
+        . t('FreeType support') .' ('. $_abled[$gd['FreeType Support']] .'), '
+        . t('Jpg support') .' ('. $_abled[$gd['JPG Support']] .'), '
+        . t('Png support') .' ('. $_abled[$gd['PNG Support']] .')',
+      NULL,
+      );
+  }
+  else {
+    $rows[] = array(t('GD support'), t('Disabled'));
+  }
+
+  if (extension_loaded('curl')) {
+    $curl = curl_version();
+    $rows[] = array(t('CURL version'), $curl['version'], NULL);
+  }
+  else {
+    $rows[] = array(t('CURL support'), t('Disabled'), NULL);
+  }
+
+  $rows[] = array(t('Multibyte support'), $_abled[extension_loaded('mbstring')], NULL);
+  $overload = ini_get('mbstring.func_overload');
+  $oload = array();
+  if ($overload & 1) {
+    $oload[] = t('mail');
+  }
+  if ($overload & 2) {
+    $oload[] = t('string');
+  }
+  if ($overload & 4) {
+    $oload[] = t('regex');
+  }
+  $rows[] = array('Mbstring.func_overload', (empty($oload) ? t('disabled') : implode(', ', $oload)), NULL);
+  $rows[] = array(t('XML support'), $_abled[extension_loaded('xml')], NULL);
+  $rows[] = array(t('Zip support'), $_abled[extension_loaded('zip')], NULL);
+  $rows[] = array(t('Zlib support'), $_abled[extension_loaded('zlib')], NULL);
+
+  $fieldset = array(
+    '#title' => t('PHP Information'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => theme('table', $header, $rows) ."\n",
+  );
+  $output .=  theme('fieldset', $fieldset);
+
+  return $output;
+}
+
+/**
+ *   Menu callback to produce PHPINFO page.
+ */
+function sitedoc_phpinfo() {
+  phpinfo(INFO_GENERAL | INFO_CONFIGURATION | INFO_ENVIRONMENT);
+  return;
+}
+
+/**
+ *   Produce the database tables overview and give overall size info
+ *
+ *  Parameters:
+ *    none
+ *
+ *  Return: HTML string
+ */
+function sitedoc_database_overview($optimize_tables=FALSE, $show_index=FALSE) {
+  global $base_url, $db_prefix, $db_url;
+
+// $db_url may be an array if using multiple databases.
+  if (is_array($db_url)) {
+    foreach ($db_url as $key => $value) {
+    $dbname = ucfirst($key);
+       // Switch databases
+    db_set_active($key);
+    $fieldset = array(
+      '#title' => $dbname,
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#value' => _sitedoc_database($dbname, $value, $optimize_tables, $show_index),
+      );
+    $output .=  theme('fieldset', $fieldset);
+    }
+     // Return to default database
+    db_set_active('default');
+  }
+  else {
+    $fieldset = array(
+      '#title' => t('Database Information'),
+      '#collapsible' => TRUE,
+      '#collapsed' => FALSE,
+      '#value' => _sitedoc_database('database', $db_url, $optimize_tables, $show_index),
+      );
+    $output .=  theme('fieldset', $fieldset);
+  }
+  return $output;
+}
+
+// Format the database information.
+// This was split out when I was informed that the $db_url variable could be an array.
+function _sitedoc_database($actdb, $db_url, $optimize_tables=FALSE, $show_index=FALSE) {
+  global $base_url, $db_prefix;
+  $rows = array();
+  $header = array();
+
+  $db_types = array('mysql' => 'MySQL',
+                    'mysqli' => 'MySQLi',
+                    'postgres' => 'Postgres',
+                );
+        
+  $output .= '<table cellpadding="5"><tr>'."\n";        
+
+  $output .= '<td valign="top">'."\n";
+  $output .= '<h5>'. t('Overview') ."</h5>\n";
+  $database_type = $db_types[$GLOBALS['db_type']];
+  $database_version = db_version();
+  $rows[] = array(t('Database type'), isset($database_type) ? $database_type : t('Unknown'));
+  $vers = isset($database_version) ? $database_version : t('Unknown');
+  $rows[] = array(t('Version'), l($vers, 'admin/reportsstatus/sql'));
+
+  $db = parse_url($db_url);
+// Don't show password
+  $db['pass'] = str_repeat('&bull;', strlen($db['pass']));
+  $dbrows = array();
+  foreach ($db as $key => $value) {
+    $dbrows[] = array($key, $value);
+  }
+  $rows[] = array(t('Database URL'), theme('table', NULL, $dbrows));
+
+  $rows[] = array(t('Base URL'), $base_url);
+  $rows[] = array(t('Database prefix'), empty($db_prefix) ? '- none -' : $db_prefix);
+  $grants = db_result(db_query('SHOW GRANTS'));
+  $privileges = trim(str_replace('GRANT', ' ', substr($grants, 0, strpos($grants, ' ON'))));
+  $rows[] = array(t('Privileges'), $privileges);
+
+  $output .= theme('table', $header, $rows) ."\n";
+  $output .= "</td>\n";
+
+// Check if we have a version of MySql that supports the variable and status checks
+// TODO: Can Postgres do something similar?
+  if (('MySQL' == $database_type && version_compare($database_version, '4.1.0', '>=')) || 'MySQLi' == $database_type) {
+  
+    // The next two things are done as lists to 
+    //   a) simplify building the query,
+    //   b) create the possibility of future settings page selection.
+
+    // Get selected variables from the database.
+    $variables_list = array(
+      'character_set_database',
+      'character_set_results',
+      'collation_connection',
+      'collation_database',
+      'collation_server',
+      'have_dynamic_loading',
+      'have_innodb',
+      'have_isam',
+      'have_query_cache',
+      'have_raid',
+      'max_connections',
+      'query_cache_size',
+      'query_cache_type',
+      );
+    $output .= _sitedoc_dbvars_list('VARIABLES', t('Selected Variables'), $variables_list, $database_version);
+  
+    // Get selected status information from the database.
+    $variables_list = array(
+      'Qcache_free_memory',
+      'Qcache_hits',
+      'Qcache_not_cached',
+      'Qcache_queries_in_cache',
+      'Max_used_connections',
+      'Threads_running',
+      'Threads_cached',
+      'Threads_connected',
+      'Threads_created',
+      );
+    $output .= _sitedoc_dbvars_list('STATUS', t('Selected Status'), $variables_list, $database_version);
+
+    $output .= "</tr></table>\n";
+  } /* end MySql check */
+  
+//  $output .= '<h5>'. t('Table Status') ."</h5>\n";
+
+  // Do the table status section.
+  $result = db_query("SHOW TABLE STATUS");
+
+ // I used a class to align fields rather than 'align' because the some themes override 'align' in headers.
+  $statrpt = "\n<table><thead><tr>";
+  $statrpt .= '<th>'. t('Table') .'</th>'
+    .'<th>'. t('Engine') .'</th>'
+    .'<th>'. t('Version') .'</th>'
+    .'<th>'. t('Row Format') .'</th>'
+    .'<th class="sitedoc_right">'. t('Rows') .'</th>'
+    .'<th class="sitedoc_right">'. t('Data Length') .'</th>'
+    .'<th class="sitedoc_right">'. t('Index Length') .'</th>'
+    .'<th class="sitedoc_right">'. t('Overhead') .'</th>'
+    .'<th class="sitedoc_right">'. t('Operation') .'</th>'
+    .'</tr></thead><tbody>';
+  $datalen = 0;
+  $indexlen = 0;
+  $overhead = 0;
+  $row_count = 0;
+  $rows = 0;
+  $row_classes = array('even', 'odd');
+  while ($table = db_fetch_array($result)) {
+    ++$rows;
+    $row_class = $row_classes[$rows & 1];
+    $row_count += $table['Rows'];
+    $datalen += $table['Data_length'];
+    $indexlen += $table['Index_length'];
+    $overhead += $table['Data_free'];
+    $r = number_format($table['Rows']);       
+    $d = number_format($table['Data_length']);
+    $i = number_format($table['Index_length']);
+    // Is there some overhead?
+    if ($table['Data_free']) { 
+      $o = number_format($table['Data_free']);
+      // Do we want to release it?
+      if ($optimize_tables) { 
+        $worked = db_query('OPTIMIZE TABLE {%s}', $table['Name']);
+        if ($worked) {
+          $o .= '<br />'. t('released');
+        }
+      }
+    }
+    else { $o = NULL; }
+    $statrpt .= "\n".'<tr class="'. $row_class .'">'
+      .'<td>'. $table['Name'] .'</td>'
+      .'<td>'. $table['Engine'] .'</td>'
+      .'<td align="center">'. $table['Version'] .'</td>'
+      .'<td>'. $table['Row_format'] .'</td>'
+      .'<td class="sitedoc_right">'. $r .'</td>'
+      .'<td class="sitedoc_right">'. $d .'</td>'
+      .'<td class="sitedoc_right">'. $i .'</td>'
+      .'<td class="sitedoc_right">'. ($table['Data_free'] ? $o : '') .'</td>'
+      .'<td>'. l(t('Show contents'), 'sitedoc/table/'. $table['Name'], array('title' => t("Display the contents of the '@table' table.", array('@table' => $table['Name'])))) .'</td>'
+      . (empty($table['Comment']) ? NULL : '</tr><tr class="'. $row_class .'"><td></td><td colspan="10"><img src="/misc/menu-collapsed.png" width="7" height="7"> <em>'. $table['Comment'] .'</em></td>');
+    if ($show_index) {
+      $statrpt .= '</tr><tr class="'. $row_class .'"><td></td><td valign="top" align="right"><em>'. t('Indexes') .':</em></td><td colspan="10">'. _sitedoc_show_index($table['Name']) .'</td>';
+    }
+    $statrpt .= '</tr>';
+  } /* end while */
+  $statrpt .= '<tr><td colspan="4">&nbsp;</td>'
+             .'<td class="sitedoc_right">----------</td>' 
+             .'<td class="sitedoc_right">----------</td>' 
+             .'<td class="sitedoc_right">----------</td>' 
+             .'<td class="sitedoc_right">----------</td>'
+             .'</tr>';
+  $statrpt .= '<tr><td colspan="4"><em>total</em></td>'
+             .'<td class="sitedoc_right">'. number_format($row_count) .'</td>'
+             .'<td class="sitedoc_right">'. number_format($datalen) .'</td>'
+             .'<td class="sitedoc_right">'. number_format($indexlen) .'</td>'
+             .'<td class="sitedoc_right">'. number_format($overhead) .'</td>'
+             .'</tr>';
+  $statrpt .=  "\n</table><p>";
+
+  $fieldset = array(
+    '#title' => t('Table Status'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#value' => $statrpt,
+    );
+  $output .=  theme('fieldset', $fieldset);
+
+  $totsize = $datalen + $indexlen;
+  $kb = $totsize / 1024;
+  $mb = $kb / 1024;
+  $gb = $mb / 1024;
+  $units = 'KB';
+  $howmany = $kb;
+  if ($mb >= 1) {
+    if ($gb >= 1) {
+      $units = 'GB'; $howmany = $gb;
+    }
+    else  {
+      $units = 'MB'; $howmany = $mb;
+    }
+  }
+ 
+  $output .= t('Total database size is !num !unit', array('!num' => sprintf('%.1f', $howmany), '!unit' => $units)) .'</p>';
+  drupal_set_message(t('!count tables found in !db.', array('!count' => $rows, '!db' => $actdb)), 'status');
+
+  return $output ."\n";
+}
+
+/*
+ *  Helper function to show the index structure of a database table.
+ */ 
+function _sitedoc_show_index($table_name) {
+  $output = null;
+  $index_list = db_query('SHOW INDEX FROM '. $table_name);
+  $indices = array();
+  $header = array(t('Key Name'), t('Columns'), t('Collation'), t('Cardinality'));
+  while ($index = db_fetch_array($index_list)) {
+    if ($index['Seq_in_index'] == 1) {        
+      $indices[$index['Key_name']] = array(
+        'name' => $index['Column_name'] . ($index['Sub_part'] ? ' ('. $index['Sub_part'] .')' : null),
+        'collation' => $index['Collation'],
+        'count' => $index['Cardinality'],
+        );
+    }
+    else {
+      $indices[$index['Key_name']]['name'] .= ', '. $index['Column_name'] . ($index['Sub_part'] ? ' ('. $index['Sub_part'] .')' : null);
+    }
+  }
+  if (count($indices)) {
+    $rows = array();
+    foreach ($indices as $key_name => $values) {
+      $rows[] = array($key_name,
+        $values['name'],
+        array('data' => $values['collation'], 'align' => 'center'),
+        array('data' => $values['count'], 'align' => 'center')
+        );
+    }
+    return theme('table', $header, $rows);
+  }
+  else {
+    return '<span class="admin-missing">No index found.</span> '. _sitedoc_img_warning(); 
+  }
+}
+
+/**
+ *   Helper function for database variable list
+ */
+function _sitedoc_dbvars_list($type, $title, $variables_list, $db_vers) {
+  if (count($variables_list)) {
+    $rows = array();
+    $output .= '<td valign="top">'."\n";
+    $output .= '<h5>'. $title ."</h5>\n";
+  $show = 'SHOW '. $type;
+  $vers = explode('.', $db_vers);
+  switch ($vers[0]) {
+    case 4:
+      foreach ($variables_list as $key => $name) {
+          $list = $show ." LIKE '". $name ."'";
+          $result = db_query($list);
+          while ($data = db_fetch_array($result)) {
+            $rows[] = array($data['Variable_name'], $data['Value']);
+          }
+    } /* end foreach */
+        $output .= theme('table', $header, $rows) ."\n";
+        $output .= "</td>\n"; 
+    break;
+
+    case 5:
+        $list = $show ." WHERE Variable_Name LIKE '". implode("' OR Variable_Name LIKE '", $variables_list) ."'";
+        $result = db_query($list);
+        while ($data = db_fetch_array($result)) {
+          $rows[] = array($data['Variable_name'], $data['Value']);
+        }
+        $output .= theme('table', $header, $rows) ."\n";
+        $output .= "</td>\n"; 
+    break;
+    
+      default:
+      drupal_set_message('Site Documentation: Unknown database version'. $vers[0], 'error');    
+  
+  } /* end switch */
+  } /* end count variables */
+  return $output;
+}
+
+/**
+ *   Function to display table contents.
+ *
+ *   @param:
+ *     $table - table name to show.
+ *     $rows_per_page - how many rows to format per page. Defaults to 20.
+ *
+ *   @return: HTML string
+ */
+function sitedoc_show_table($table = null, $rows_per_page = 20) {
+  if (!$table || !db_table_exists($table)) {
+    drupal_set_message(t('You must supply a valid database table name.'), 'error');
+    drupal_access_denied();
+  }
+
+  // We get the first (or only) part of the Primary key to be added to the sort sequence.
+  $result = db_query("SHOW INDEX FROM {$table}");
+  $x = db_fetch_array($result);
+  if ($x === false) {
+    drupal_set_message(t("The '@table' table has no index defined. This is probably normal.", array('@table' => $table)), 'status');
+    $first_key = null;
+  }
+  else {
+    $first_key = $x['Column_name'];
+  } 
+
+  drupal_set_title(t('@table Table Contents', array('@table' => ucwords($table))));
+  $output = '<p>'. t('Click on a column title to sort by that column.') .'</p><br/>';
+  $rows = array();
+
+  // Now we get the column names from the table and build the header.
+  $header = array();
+  $result = db_query("SHOW COLUMNS FROM {$table}");
+
+  while ($col_desc = db_fetch_array($result)) {
+    $header[] = array(
+      'data' => ucwords(str_replace('_', ' ', $col_desc['Field'])),
+      'field' => '`'. $col_desc['Field'] .'`',
+      );
+  }
+  
+  // Get the data rows from the table.
+  $select = "SELECT * FROM {$table}";
+  // Set it up so that the user can sort on any column, but the primary key will always be the last value to sort on.
+  $select .= tablesort_sql($header) . ($first_key ? (', '. $first_key .' ASC') : null);
+  // Do the query so that we can page the data.
+  $result = pager_query($select, $rows_per_page);
+
+  while ($row = db_fetch_array($result)) {
+    $line = array();
+    foreach ($row as $key => $value) {
+      // We use check_plain for security.
+      $line[] = check_plain($value);
+    }
+    $rows[] = $line;
+  }
+
+  // Build the displayable table.
+  $output .= theme('table', $header, $rows);
+  $output .= theme('pager', $rows_per_page);
+  return $output;
+}
+
+/**
+ *   Produce the modules list.
+ *
+ *  Parameters:
+ *    none
+ *
+ *  Return: HTML string
+ */
+function sitedoc_get_modules($exclude_disabled=FALSE, $sort_order=0) {
+  $output = '';
+  $rows = array();
+
+  $module = array();
+  $files = module_rebuild_cache();
+  $sortkey = array();
+  // Set some default package stuff for Drupal.
+  $package_list = array('Core - required', 'Core - optional');
+  $package_path = array('modules/ ', 'modules/ ');
+
+  foreach ($files as $filename => $file) {
+    $name = $file->info['name'];
+    $level = NULL;
+    
+    $package = empty($file->info['package']) ? t('Other') : ucfirst($file->info['package']);
+    $project = empty($file->info['project']) ? ucfirst($file->name) : ucfirst($file->info['project']);
+    $key = array(NULL, NULL, $name);
+
+    // The filename is something like sites/all/modules/package/contrib/project/project.module.
+    // For the path sorting option, we want the part before "package" as key[0],
+    // and the part after "package" ("contrib/") in key[1].
+    // "project.module" is in 'basename' already.
+    // So let's start by breaking the filename up into pieces.
+    $pieces = explode('/', $file->filename);
+    // We don't need the last array element (project.module).
+    unset($pieces[count($pieces) - 1]);
+
+    // Check for what kind of package it is.
+    if ($package == t('Other') || $project == 'Drupal') {
+      // 'Special' packages. Remove the last piece ("project/").
+      unset($pieces[count($pieces) - 1]);
+      // We add a blank to the end because 'sort' acts funny.
+      $key[0] = implode('/', $pieces) .'/ ';
+    }
+    else {
+      // 'Normal' packages.
+      $where = array_search($package, $pieces);
+      if ($where === FALSE) {
+        // If "package" is not part of the name, just pull the "project" part off.
+        unset($pieces[count($pieces) - 1]);
+        $key[0] = implode('/', $pieces) .'/ ';
+      }
+      else {
+        // "Package" is part of the name, split the keys up.
+        $key[0] = implode('/', array_slice($pieces, 0, $where)) .'/ ';
+        $key[1] = implode('/', array_slice($pieces, $where + 1)) .'/';
+      }
+    }
+
+    $where = array_search($package, $package_list);
+    if ($where === FALSE) {
+      $package_list[] = $package;
+      $package_path[] = $key[0];
+    }
+    else {
+      // Package already in list.
+      if ($package_path[$where] != $key[0] && $package != t('Other')) {
+        // The path is different from what we found earlier.
+        // One may be a substring of the other - that's okay, but save the shorter one.
+        if ((strpos($package_path[$where], rtrim($key[0])) === FALSE && strpos($key[0], rtrim($package_path[$where])) === FALSE) || ($project == 'Drupal')) {
+          if ($project == 'Drupal') {
+            $level = 'error';
+          }
+          else {
+            $level = 'status';
+          }
+          drupal_set_message(t("'!name' for the '!pkg' package was found in '!found' but a previous module was in '!prior'.", array('!name' => $name, '!pkg' => $package, '!found' => $key[0], '!prior' => $package_path[$where])), $level);
+        }
+        else {
+          // Resave the shorter one.
+          if (strlen($package_path[$where]) < strlen($key[0])) {
+            $package_path[$where] = $key[0];
+          }
+        }
+      }
+    }
+
+    $module[$name] = array(
+      'version' => $file->info['version'],
+      'basename' => $file->basename,
+      'filename' => $file->filename,
+      'path' => $key[0],
+      'contrib_path' => $key[1],
+      'package' => $package,
+      'project' => $project,
+      'dependencies' => $file->info['dependencies'],
+      'dependents' => $file->info['dependents'],
+      'description' => $file->info['description'],
+      'status' => $file->status,
+      'level' => $level,
+      );
+
+    // Build a parallel array to sort with.
+    $separator = '|';
+    switch ($sort_order) {
+      case 0:  // package, project, module
+        $key = array($module[$name]['package'], $module[$name]['project'], $name);
+        break;
+
+      case 1:  // path, module
+        // Keys already set.
+        break;
+
+      default:  // This should never happen.
+        drupal_set_message(t('Unrecognized sort order.'), 'error');
+        $key = array($module[$name]['package'], $module[$name]['project'], $name);
+    }
+    $sortkey[] = implode('|', $key);
+
+    $dependencies = array();
+    // Check for missing dependencies.
+    if (is_array($file->info['dependencies'])) {
+      foreach ($file->info['dependencies'] as $dependency) {
+        if (!isset($files[$dependency]) || !$files[$dependency]->status) {
+          if (isset($files[$dependency])) {
+            $dependencies[] = $files[$dependency]->info['name'] .'<span class="admin-disabled">('. t('disabled') .')</span>';
+          }
+          else {
+            $dependencies[] = drupal_ucfirst($dependency) .'<span class="admin-missing">('. t('missing') .')</span>';
+            $disabled[] = $filename;
+          }
+        } /* end if !isset */
+        else {
+          $dependencies[] = $files[$dependency]->info['name'] .'<span class="admin-enabled">('. t('enabled') .')</span>';
+        }
+      }  /* end foreach depend */
+    } /* end if isarray */   
+
+    // Un-array dependencies.
+    if (!empty($dependencies)) {
+      $module[$name]['dependencies'] = implode(', ', $dependencies);
+    }
+
+    // Un-array enabled dependents.
+    if (!empty($module[$name]['dependents'])) {
+      $module[$name]['required'] = implode(', ', $module[$name]['dependents']);
+    }
+  } /* end foreach files */
+
+  $header = array(
+    t('Name'),
+    t('Version'),
+    t('Status'),
+    t('Project / Package'),
+    t('Description'),
+    t('Required By'),
+    t('Depends On'),
+    ); 
+  drupal_set_message(t('!count modules found.', array('!count' => count($module))), 'status');
+  $disabled_count = 0;
+  $previous = NULL;
+
+  // Order it by project, package, module name.
+  sort($sortkey);
+
+  foreach ($sortkey as $key => $value) {
+    $keys = explode('|', $value);
+    $name = $keys[count($keys) - 1];
+
+    if ($keys[0] != $previous) {
+      if (count($rows) > 0) {
+        $fieldset = array(
+          '#title' => $previous,
+          '#collapsible' => TRUE,
+          '#collapsed' => TRUE,
+          '#value' => theme('table', $header, $rows),
+          );
+        $output .=  theme('fieldset', $fieldset);
+      }
+      $previous = $keys[0];
+      $rows = array();      
+    }
+
+    if (!$exclude_disabled || $module[$name]['status']) {
+      $path = $module[$name]['path'];
+      if ($module[$name]['level']) {
+      $path = '<span class="admin-missing">'. $path .'</span>';
+      }
+      $rows[] = array(
+        $name,
+        $module[$name]['version'],
+        $module[$name]['status'] ? 'Enabled' : 'Disabled',
+        '<small>'. $module[$name]['project'] .'<br />'. $module[$name]['package'] .'<br />'. $path .'</small>',
+        '<small>'. $module[$name]['description'] .'</small>',
+        $module[$name]['required'],
+        $module[$name]['dependencies'],
+        );
+    } // end if exclude disabled
+    else {
+      ++$disabled_count;
+    }
+
+  } /* end foreach sortkey */
+  // Flush the last set.
+  if (count($rows) > 0) {
+    $fieldset = array(
+      '#title' => $previous,
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#value' => theme('table', $header, $rows),
+      );
+    $output .=  theme('fieldset', $fieldset);
+  }
+
+  if ($exclude_disabled) {
+    $output .= '<p>'. t('!count disabled modules excluded.', array('!count' => $disabled_count)) .'</p>';
+  }
+  return $output ."\n";
+}
+
+/**
+ *   Produce the Themes lists
+ *
+ *  Parameters:
+ *    Which type of row to return
+ *      theme  - get themes list
+ *
+ *  Return: HTML string
+ */
+function sitedoc_get_system($type=null) {
+  if (!$type) {
+    return '<p>'. t('No system table type specified.') .'</p>';
+  }
+  $status = array('Disabled', 'Enabled');
+
+  $string = ucfirst(strtolower($type));
+
+  // This ORDER BY makes the list come out by directory the entry comes from.
+  $result = db_query('SELECT s.name, s.filename, s.status FROM {system} s WHERE s.type=\'%s\' ORDER BY s.status DESC, s.name ASC', $type);
+  $header = array($string, t('Path'), t('Status'));
+  $rows = array();
+  while ($mod = db_fetch_array($result)) {
+    $rows[] = array(
+      ucfirst($mod['name']),
+      $mod['filename'],
+      $status[$mod['status']],
+      );
+  }
+  if (!empty($rows)) {
+    drupal_set_message(t('!rows !type found.', array('!rows' => count($rows), '!type' => $string)), 'status');
+    $output .=  theme('table', $header, $rows);
+  }
+  else {
+    $output .= t('No entries found! Very curious.');
+  }
+  return $output ."\n";
+}
+
+/**
+ *   Produce the blocks list
+ *
+ *  Parameters:
+ *    $warn - TRUE / FALSE to produce orphan warning message.
+ *    $delete - TRUE / FALSE to delete orphans.
+ *
+ *  Return: HTML string
+ */
+function sitedoc_get_blocks($warn=TRUE, $delete=FALSE) {
+  $status = array();
+  $status = array(t('disabled'), t('enabled'));
+  $viz = array(t('Show except'), t('Show only'), t('Php'));
+  $del = NULL;
+  
+  // Check if the table is missing an index.
+  $indexes = db_fetch_array(db_query('SHOW INDEX FROM {blocks}'));
+  if ($indexes == FALSE) {
+    $index_msg = ' '. t('Performance may be improved by adding an index. See <a href="!url">this discussion</a>.', array('!url' => 'http://drupal.org/node/164532'));
+    $msg_level = 'warning';
+  }
+  else {
+    $index_msg = NULL;
+    $msg_level = 'status';
+  }
+
+  // Get blocks from the Blocks table.
+  $result = db_query('SELECT b.module, b.delta, b.theme, b.status, b.weight, b.region, b.custom, b.throttle, b.visibility, b.pages, b.title FROM {blocks} b ORDER BY b.theme, b.module, b.delta');
+
+  $header = array(
+    t('Theme'), 
+    t('Module'), 
+    array('data' => t('Delta'), 'align' => 'center'), 
+    t('Name') .' /<br/>'. t('Title'),
+    t('Status'), 
+    array('data' => t('Weight'), 'class' => 'sitedoc_right'),
+    t('Region'),
+    t('Roles'),
+    array('data' => t('Visibility'), 'align' => 'center'),
+    t('Pages'),
+    );
+  $output = '<h3>'. t('Blocks') .'</h3>';
+
+  $rows = array();
+  $missing_theme = FALSE;
+
+  while ($blk = db_fetch_object($result)) {
+    $theme = $blk->theme;
+    $thmq = db_query_range("SELECT s.status FROM {system} s WHERE s.type='theme' AND s.name='%s'", $theme, 0, 1);
+    $thm = db_fetch_array($thmq);
+    if (!empty($thm)) {
+      $theme .= ' <span class="admin-'. $status[$thm['status']] .'">('. ucfirst($status[$thm['status']]) .')</span>';
+    }
+    else {
+      $theme .= ' <span class="admin-missing">('. t('missing') .')</span>';
+      $missing_theme = TRUE;
+      $mod_delta = "module='$blk->module' AND delta='$blk->delta'";
+      $delblk = "DELETE FROM {blocks} WHERE theme='". $blk->theme ."' AND ". $mod_delta;
+      if ($has_roles = db_query_range('SELECT rid FROM {blocks_roles} WHERE '. $mod_delta, 0, 1)) {
+        $delrole = 'DELETE FROM {blocks_roles} WHERE '. $mod_delta;
+      }
+      else {
+        $delrole = null;
+        drupal_set_message("has_roles query returned $has_roles");
+      }
+      if ($delete) { 
+        $deleted = db_query($delblk) && ($delrole ? db_query($delrole) : true);
+        if ($deleted == false) {
+          $theme .= ' <span class="admin-missing">('. t('NOT DELETED') .')</span>';
+        }
+        else {
+          $theme .= ' <span class="admin-disabled">('. t('DELETED') .')</span>';
+          drupal_set_message(t('Deleted block ') . $blk->theme .'/'. $blk->module .'/'. $blk->delta, 'status');
+        }
+      }
+      else {
+        $del .= $delblk . $delrole;
+      }
+    }
+     
+    $blocks = module_invoke($blk->module, 'block', 'list');  // Get block information from module.
+
+    $w = $blk->weight ? $blk->weight : '';    // Don't show 0 weight.
+    $n = $blocks[$blk->delta]['info'];  // Get block name. 
+    // If there is one, put title on next line.
+    if (!empty($blk->title)) {
+      $n .= ' /<br />'. $blk->title;
+    } 
+     // The pages field format depends on the visibility setting
+     // 2 is php, 0 or 1 is pages list
+    if ($blk->visibility < 2) { 
+      $pt = trim(check_plain($blk->pages));
+      if (strcmp($pt, '') == 0) {
+        $pgs = NULL;
+      }  
+      else {
+        $pgs = explode("\n", $pt); 
+        if (is_array($pgs)) {
+          if (count($pgs) > 1) {
+            $pgs = theme('item_list', $pgs);
+          }
+          else {
+            $pgs = $pgs[0];
+          }
+        }
+      }
+    }
+    // Visibility = 2
+    else {
+      $pgs = highlight_string($blk->pages, TRUE);
+    }
+    
+    // Get the roles for the blocks.
+    $rids = db_query('SELECT br.rid, r.name FROM {blocks_roles} br INNER JOIN {role} r ON r.rid=br.rid WHERE br.module=\'%s\' AND br.delta=\'%d\'', $blk->module, $blk->delta);
+    $blk_rids = array();
+    while ($blk_role = db_fetch_array($rids)) {
+      $blk_rids[] = $blk_role['name'];
+    }
+    
+    $rows[] = array(
+      $theme,
+      $blk->module == 'block' ? 'block /<br/><small><em>'. t('see boxes') .'</em></small>' : $blk->module,
+      array('data' => $blk->delta, 'align' => 'center'),
+      $n,
+      '<span class="admin-'. $status[$blk->status] .'">'. ucfirst($status[$blk->status]) .'</span>',
+      array('data' => $w, 'class' => 'sitedoc_right'),
+      $blk->status ? $blk->region : '',    /* no region if not enabled */
+      count($blk_rids) ? '<small>'. implode(', ', $blk_rids) .'</small>' : NULL,
+      array('data' => $viz[$blk->visibility], 'align' => 'center'),
+      $pgs,
+      );
+  } /* end while */
+
+  $count = count($rows);
+  if ($count == 0) {
+    drupal_set_message(t('No Blocks found.'), 'status'); 
+  }
+  else {
+    drupal_set_message(t('!count Blocks found.', array('!count' => $count)) . $index_msg , $msg_level);
+    if ($index_msg) {
+      drupal_set_message(t('For example:') .' ALTER TABLE `blocks` ADD PRIMARY KEY(`theme`(32), `module`, `delta`)', $msg_level);
+    }
+    $output .=  theme('table', $header, $rows);
+  }
+  if ($missing_theme && $warn) {
+    drupal_set_message(t('Blocks defined for non-existent theme(s)'), 'error');
+  }
+
+  if ($missing_theme && !$delete) {
+    $output .= '<p>'. $del .'</p>';
+  }
+
+  return $output ."\n";
+}
+
+/**
+ *   Produce the boxes (manual blocks, additional data) list.
+ *
+ *  Parameters:
+ *    $warn - TRUE / FALSE to produce orphan warning message.
+ *    $delete - TRUE / FALSE to delete orphans.
+ *
+ *  Return: HTML string
+ */
+function sitedoc_get_boxes($warn=TRUE, $delete=FALSE) {
+  $result = db_query('SELECT * FROM {boxes} b');
+  $output = NULL;
+  $orphans = FALSE;
+  $header = array(
+    array('data' => 'Bid', 'class' => 'sitedoc_right'), 
+    t('Box Name'),
+    array('data' => t('Format'), 'class' => 'sitedoc_right'),
+    t('Body'),
+    );
+  $rows = array();
+  while ($box = db_fetch_array($result)) {
+    $info = $box['info'];
+    $check_block = db_result(db_query_range("SELECT COUNT(theme) FROM {blocks} WHERE module='block' AND delta=%d", $box['bid'], 0, 1));
+    if ($check_block == 0) {
+      $orphans = TRUE;
+      $info .= '<br/><span class="admin-missing">('. t('block missing') .')</span>';
+      if ($delete) {
+        $delbox = db_query_range('DELETE FROM {boxes} WHERE bid=%d', $box['bid'], 0, 1);
+        drupal_set_message(t('Box number !bid deleted.', array('!bid' => $box['bid'])), 'status');
+      }
+    }
+
+    $rows[] = array(
+      array('data' => $box['bid'], 'class' => 'sitedoc_right'), 
+      $info,
+      array('data' => $box['format'], 'class' => 'sitedoc_right'),
+      highlight_string($box['body'], TRUE),
+      );
+  } // End while.
+
+  $howmany = count($rows);
+  if ($howmany > 0) {
+    $output .= theme('table', $header, $rows) ."\n";
+    drupal_set_message(t('!count boxes found.', array('!count' => $howmany)), 'status');
+  }
+  if ($orphans) {
+    if ($warn) {
+      drupal_set_message('Orphan boxes found.', 'error');
+    }
+  }
+  return $output;
+}
+
+/**
+ *   Produce the content types list.
+ *
+ *  Parameters:
+ *    none
+ *
+ *  Return: HTML string
+ */
+function sitedoc_content_types() {  
+  $yesno = array(t('no'), t('yes'));
+  $com_vals = array(t('disabled'), t('read-only'), t('read/write'));
+
+  // The TRUE here forces the node module to refresh the list.
+  $node_types = node_get_types('types', NULL, TRUE); 
+  $header = array(
+    t('Type'), 
+    array('data' => t('Count'), 'class' => 'sitedoc_right'),
+    t('Name') .'/<br/>'. t('Module'),
+    t('Description'), 
+    t('Has title') .'/<br/>'. t('Has body') .'/<br/>'. t('Has help'),
+    array('data' => t('Min words'), 'class' => 'sitedoc_right'),
+    t('Custom') .'/<br/>'. t('Modified') .'/<br/>'. t('Locked'),
+    t('Workflow') .'/<br/>'. t('Comments')
+    );
+  $num_contents = 0;
+  $missing = FALSE;
+
+  foreach ($node_types as $type => $info) {
+    $num_contents ++;    
+    $workflow = str_replace('status', 'published', implode(', ', variable_get('node_options_'. $info->type, array())));
+    if (workflow == '') {
+      $workflow = 'not published';
+    }
+    $count = db_result(db_query('SELECT COUNT(n.nid) FROM {node} n WHERE n.type=\'%s\'', $info->type));
+    if (module_exists($info->module)) {
+      $mod = $info->module;
+    }
+    else {
+      $mod = $info->module .' <span class="admin-missing">('. t('missing') .')</span>';
+      $missing = TRUE;
+    }
+    $has_help = $info->help ? true : false;
+    $rows[] = array(
+      l($info->type, 'admin/content/types/'. $info->type),
+      array('data' => $count, 'class' => 'sitedoc_right'),
+      $info->name .'<br/>'. $mod,
+      $info->description,
+      $yesno[$info->has_title] .'<br/>'. $yesno[$info->has_body] .'<br/>'. $yesno[$has_help], 
+      array('data' => $info->min_word_count, 'class' => 'sitedoc_right'),
+      $yesno[$info->custom] .'<br/>'. $yesno[$info->modified] .'<br/>'. $yesno[$info->locked],
+      $workflow .'<br/>'. $com_vals[variable_get('comment_'. $info->type, 0)],
+      ); 
+  }  /* end foreach */
+
+  if ($missing) {
+    drupal_set_message(t('!num content types found. Missing modules identified.', array('!num' => $num_contents)), 'error');
+  }
+  else {
+    drupal_set_message(t('!num content types found.', array('!num' => $num_contents)), 'status');
+  }
+
+  $output .= theme('table', $header, $rows);
+
+  return $output ."\n";
+}
+
+/**
+ *   Produce the vocabularies and terms list.
+ *
+ *  Parameters:
+ *    none
+ *
+ *  Return: HTML string
+ */
+function sitedoc_get_vocabularies() {
+  if (!module_exists('taxonomy')) {
+    return '<p>Taxonomy'. t(' module not enabled') .'</p>';
+  }
+  $hier = array(t('Disabled'), t('Single'), t('Multiple'));
+  $vocabularies = taxonomy_get_vocabularies();
+  $rows = array();
+  $header = array(
+    t('Name (vid)'),
+    t('Content Types'),
+    t('Description'),
+    t('Help'),
+    t('Hierarchy'),
+    t('Terms'),
+    t('Module'),
+    t('Weight'),
+    );
+  foreach ($vocabularies as $vocabulary) {
+    $types = array();
+    foreach ($vocabulary->nodes as $type) {
+      $types[] = $type;
+    }
+    $t = array();
+    if ($vocabulary->relations) {
+      $t[] = t('related');
+    } 
+    if ($vocabulary->multiple) {
+      $t[] = t('multi-select');
+    } 
+    if ($vocabulary->required) {
+      $t[] = t('required');
+    } 
+    if ($vocabulary->tags) {
+      $t[] = t('free-tag');
+    } 
+    $rows[] = array(
+      'name' => check_plain($vocabulary->name) .' ('. $vocabulary->vid .')',
+      'type' => implode(', ', $types),
+      $vocabulary->description . _terms_list($vocabulary->vid),  /* subroutine gets terms */
+      $vocabulary->help ? t('yes') : t('no'),
+      $hier[$vocabulary->hierarchy],
+      implode(', ', $t),
+      $vocabulary->module,
+      $vocabulary->weight,
+      );
+  }
+   
+  $output .= theme('table', $header, $rows);
+  return $output ."\n";
+}
+
+// Helper function to get vocabulary term info.
+function _terms_list($vid) {
+  $items = array();
+  $thead = array(
+    t('Term (tid)'), 
+    array('data' => t('Count'), 'class' => 'sitedoc_right'),
+    t('Description'),
+    );
+  $terms = taxonomy_get_tree($vid);
+
+  foreach ( $terms as $term ) {
+    // This query should be very fast and includes unpublished nodes.
+    $count = db_result(db_query('SELECT COUNT(nid) FROM {term_node} WHERE tid=%d', $term->tid));
+
+    // Don't show terms with 0 count.
+    if ($count) {   
+      $items[] = array(
+        $term->name .' ('. $term->tid .')',
+        array('data' => $count, 'class' => 'sitedoc_right'),
+        $term->description);
+    }
+  }
+
+  return "\n". theme('table', $thead, $items);
+}
+
+/**
+ *  Produce a table of taxonomy term usage by content type.
+ *  This function is available only as a callable function;
+ *   it is not called within this module.
+ *
+ *  Parameters:
+ *    vid - the vocabulary id to show.
+ *
+ *  Return: HTML string
+ */
+function sitedoc_term_count_by_type($vid) {
+  $vocab = taxonomy_vocabulary_load($vid);
+  if (!$vocab->name) {
+    drupal_set_message(t('Vocabulary not found.'), 'error');
+    return t('Vocabulary not found.');
+  }
+
+  $output = '<h2>Usage of "'. $vocab->name .'" Category by Term and Content Type</h2>';
+  if ($vocab->description) {
+    $output .= '<h6>'. $vocab->description .'</h6>';
+  }
+
+  $header = array(t('Term'));
+  $rows = array();
+  $type = array();
+
+  // Build header row with types.
+  foreach ($vocab->nodes as $key => $value) {
+    $type[] = $value;
+    $name = $value;
+    $header[] =  array('data' => $name, 'align' => 'right') ;
+  } /* end foreach */
+
+  $terms = taxonomy_get_tree($vid);
+  foreach ( $terms as $term ) {
+    $line = array();
+  if (module_exists('taxonomy_image')) {
+    $img = taxonomy_image_display($term->tid, array('align' => 'left', 'hspace' => '3'));
+  }
+  else { $img = NULL; }
+    $line[] = $img . l($term->name, 'taxonomy/term/'. $term->tid) ."<br/><small>". $term->description ."</small>";
+    foreach ($type as $content_type) {
+      $count = sitedoc_term_count_nodes($term->tid, $content_type);
+      if ($count) { /* don't show terms with 0 count */
+        $line[] = array('data' => $count, 'align' => 'right');
+      } /* end if count */
+      else {
+        $line[] = ' ';
+      }
+    } /* end each content_type */
+    $rows[] = $line;
+  } /* end foreach term */
+
+  $output .= theme('table', $header, $rows);
+  return $output;
+}
+
+/**
+ *  Check if there are any term nodes entries that don't belong to nodes.
+ *
+ *  Parameters:
+ *    Delete - TRUE | FALSE - whether or not to delete the orphans.
+ *
+ *  Return: HTML string
+ */
+function sitedoc_check_orphan_term_node($delete_orphans=FALSE) {
+  if (!module_exists('taxonomy')) {
+    return '<p>Taxonomy'. t(' module not enabled') .'</p>';
+  }
+  
+  $tn = db_result(db_query('SELECT COUNT(DISTINCT(tn.nid)) FROM {term_node} tn'));
+  $n =  db_result(db_query('SELECT COUNT(DISTINCT(n.nid)) FROM {node} n'));
+  
+  if ($tn > $n) {
+    drupal_set_message(t('There are !tn term_nodes but only !n nodes.', array('!tn' => $tn, '!n' => $n)), 'error');
+  }
+  else {
+    return '<p>'. t('No orphan term_nodes found.') .'</p>';
+  }
+
+  $header = array('nid', 'tid', 'term', 'vocab');
+  $rows = array();
+  $del = NULL;
+
+  $result = db_query('SELECT tn.nid, tn.tid FROM {term_node} tn LEFT JOIN {node} n ON tn.nid=n.nid WHERE ISNULL(n.title) ORDER BY tn.nid, tn.tid');
+
+  while ($tn = db_fetch_array($result)) {
+    $term = taxonomy_get_term($tn['tid']);
+    $vocab = taxonomy_vocabulary_load($tn['tid']);
+    $delsql .= 'DELETE FROM {term_node} WHERE term_node.nid='. $tn['nid'] .' AND term_node.tid='. $tn['tid'];
+    if ($delete_orphans) {
+      db_query($delsql);
+      drupal_set_message(t('Deleted term_node ') .'nid='. $tn['nid'] .', tid='. $tn['tid'], 'status');
+    }
+    else {
+      $del .= $delsql;
+    }
+    $rows[] = array($tn['nid'], $tn['tid'], $term->name, $vocab->name, $del);
+  }
+   
+  $output = theme('table', $header, $rows);
+  if (!$delete_orphans) {
+    $output .= $del;
+  }
+  
+  return $output ."\n";
+}
+
+/**
+ *   Produce the node summary.
+ *
+ *  Parameters:
+ *    TRUE - include comments count.
+ *    FALSE - don't include comments count.
+ *
+ *  Return: HTML string
+ */
+function sitedoc_node_summary($comment=FALSE, $show_size=99999, $max_size=99999) {
+  $sql = "SELECT n.nid, n.title, n.type, n.status, n.promote, n.moderate, n.sticky, length(body) AS node_len";
+  if ($comment) {
+    $sql .= ", c.comment_count";
+  } 
+  $sql .= " FROM {node} n LEFT JOIN {node_revisions} nr ON nr.vid=n.vid";
+  if ($comment) {
+    $sql .= " LEFT JOIN {node_comment_statistics} c ON c.nid=n.nid";
+  } 
+  $result = db_query($sql);
+  $counters = array();
+  $types = array();
+  $weight_detected = FALSE;
+  
+  $toobig = 0;
+  $biggies = array();
+
+  while ($node = db_fetch_object($result)) {
+    $node_kb = $node->node_len / 1024;
+    if ($node_kb >= $show_size) {
+      $biggies[] = array(
+        l($node->title, 'node/'. $node->nid .'/edit'),
+        array('data' => number_format($node_kb, 2), 'align' => 'center'));
+    } /* end if show size */
+    if ($node_kb >= $max_size) {
+      ++$toobig;
+    }
+
+    if (!in_array($node->type, $types)) {
+      $types[] = $node->type;
+    }
+    $counters[$node->type]['type'] ++;
+    if ($node->status) {
+      ++$counters[$node->type]['published'];
+    }
+    if ($node->promote) {
+      ++$counters[$node->type]['promoted'];
+    }
+    if ($node->moderate) {
+      ++$counters[$node->type]['moderated'];
+    }
+    if ($comment) {
+      $counters[$node->type]['comments'] += $node->comment_count;
+    }
+     /* check if the weight module algorithm is in use */
+    if ($node->sticky > 1 || $node->sticky < 0) { 
+      _decode_sticky($node);
+      if (!$weight_detected) {
+        $weight_detected = TRUE;
+        drupal_set_message(t('Weight-encoded in sticky field has been detected.'), 'status');
+      }
+    }
+    else {
+      $node->weight = 0;  /* set unweighted if not */
+    }
+    if ($node->sticky) {
+      ++$counters[$node->type]['sticky'];
+    }
+    if ($node->weight <> 0) {
+      ++$counters[$node->type]['weight'];
+    }
+  } /* end while fetch */
+  ksort($types);
+  $header = array(
+    t('Type'),
+    array('data' => t('Count'), 'class' => 'sitedoc_right'),
+    array('data' => t('Published'), 'class' => 'sitedoc_right'),
+    array('data' => t('Promoted'), 'class' => 'sitedoc_right'),
+    array('data' => t('Sticky'), 'class' => 'sitedoc_right'), 
+    array('data' => t('Weighted'), 'class' => 'sitedoc_right'),
+    array('data' => t('Moderated'), 'class' => 'sitedoc_right'),
+    $comment ? array('data' => t('Comments'), 'class' => 'sitedoc_right') : NULL,
+    );
+  $rows = array();
+  $tot = 0; $pub = 0; $pro = 0; $sti = 0; $mod = 0;
+  foreach ($types as $type) {
+    $rows[] = array(
+      $type,
+      array('data' => $counters[$type]['type'], 'class' => 'sitedoc_right'),
+      array('data' => $counters[$type]['published'], 'class' => 'sitedoc_right'),
+      array('data' => $counters[$type]['promoted'], 'class' => 'sitedoc_right'),
+      array('data' => $counters[$type]['sticky'], 'class' => 'sitedoc_right'),
+      array('data' => $counters[$type]['weight'], 'class' => 'sitedoc_right'),
+      array('data' => $counters[$type]['moderated'], 'class' => 'sitedoc_right'),
+      $comment ? array('data' => $counters[$type]['comments'], 'class' => 'sitedoc_right') : NULL,
+      );
+    $tot += $counters[$type]['type'];
+    $pub += $counters[$type]['published'];
+    $pro += $counters[$type]['promoted'];
+    $sti += $counters[$type]['sticky'];
+    $wei += $counters[$type]['weight'];
+    $mod += $counters[$type]['moderated'];
+    $com += $counters[$type]['comments'];
+  } /* end foreach type */
+  $rows[] = array(
+    '',
+    array('data' => '------', 'class' => 'sitedoc_right'),
+    array('data' => '------', 'class' => 'sitedoc_right'),
+    array('data' => '------', 'class' => 'sitedoc_right'),
+    array('data' => '------', 'class' => 'sitedoc_right'),
+    array('data' => '------', 'class' => 'sitedoc_right'),
+    array('data' => '------', 'class' => 'sitedoc_right'),
+    $comment ? array('data' => '------', 'class' => 'sitedoc_right') : NULL,
+    );
+  $rows[] = array(
+    '<em>'. t('total') .'</em>',
+    array('data' => $tot, 'class' => 'sitedoc_right'),
+    array('data' => $pub, 'class' => 'sitedoc_right'),
+    array('data' => $pro, 'class' => 'sitedoc_right'),
+    array('data' => $sti, 'class' => 'sitedoc_right'),
+    array('data' => $wei, 'class' => 'sitedoc_right'),
+    array('data' => $mod, 'class' => 'sitedoc_right'),
+    $comment ? array('data' => $com, 'class' => 'sitedoc_right') : NULL,
+    );
+  drupal_set_message(t('!count nodes found.', array('!count' => $tot)), 'status');
+  $output .= theme('table', $header, $rows);
+
+  if ($toobig) {
+    $output .= '<p>'. _sitedoc_img_warning() .' '.
+      t('!count nodes exceed !size KB.', array('!count' => $toobig, '!size' => $max_size)) .'</p>';
+  }
+  else {
+    $output .= '<p>'. _sitedoc_img_ok() .' '
+      . t('No nodes exceed !size KB.', array('!size' => $max_size)) .'</p>';
+  }
+  if (!empty($biggies)) {  
+    $big_head = array(t('Title'), t('Length (KB)'));
+    $fieldset = array(
+      '#title' => t('Large Nodes'),
+      '#collapsible' => TRUE,
+      '#collapsed' => TRUE,
+      '#value' => theme('table', $big_head, $biggies),
+      );
+    $output .=  theme('fieldset', $fieldset);
+  }
+
+  return $output ."\n";
+}
+
+// Helper module in case weight module algorithm is used.
+function _decode_sticky(&$node) {
+  $sticky = $node->sticky;     /* save value */
+  $node->sticky = ($sticky > 0) ? 1 : 0;
+  $node->weight = ($sticky > 0) ? 100 - $sticky : -100 - $sticky;
+  return;
+}
+
+/**
+ *   Produce the node access summary.
+ *
+ *  Parameters:
+ *    None
+ *
+ *  Return: HTML string.
+ */
+function sitedoc_node_access() {
+  // How many nodes are not represented in the node_access table.
+  $result = db_fetch_object(db_query('SELECT COUNT(n.nid) as num_nodes FROM {node} n LEFT JOIN {node_access} na ON n.nid = na.nid WHERE na.nid IS NULL'));
+  if ($num = $result->num_nodes) {
+    $output .= '<p>'. _sitedoc_img_warning() .' '
+      . t('You have !num nodes in your node table which are not represented in your node_access table.  If you have an access control module installed, these nodes may be hidden from all users.  This could be caused by publishing nodes before enabling the access control module.  If this is the case, manually updating each node should add it to the node_access table and fix the problem. Click here to !rebuild.', array('!num' => l($num, 'admin/build/sitedoc_node_access_view/'), '!rebuild' => l(t('rebuild permissions'), 'admin/content/node-settings/rebuild'))) ."</p>\n";
+  }
+  else {
+    $output .= '<p>'. _sitedoc_img_ok() . t('All nodes are represented in the node_access table.') ."</p>\n";
+  } /* end else */
+
+  // Warn user if they have any entries that could grant access to all nodes.
+  $rows = array();
+  $result = db_query('SELECT DISTINCT na.realm FROM {node_access} na WHERE na.nid=0 AND na.gid=0');
+  while ($row = db_fetch_object($result)) {
+    $rows[] = $row->realm;
+  }
+  if (!empty($rows)) {
+    $output .= '<h5>'. t('Access Granted to All Nodes (All Users)') ."</h5>\n";
+    $output .= '<p>'. t('Your node_access table contains entries (!r) that may be granting all users access to all nodes.  Depending on which access control module(s) you use, you may want to delete these entries.  If you are not using an access control module, you should probably leave these entries as is.', array('!r' => implode(',  ', $rows))) ."</p>\n";
+  }
+
+  $headers = array(t('realm'));
+  $rows = array();
+ // A similar warning to the one above, but slightly more specific.
+  $result = db_query('SELECT DISTINCT(na.realm) FROM {node_access} na WHERE na.nid=0 AND na.gid<>0');
+  while ($row = db_fetch_object($result)) {
+    $rows[] = array($row->realm);
+  } /* end while */
+  if (!empty($rows)) {
+    $output .= '<h5>'. t('Access Granted to All Nodes (Some Users)') ."</h5>\n";
+    $output .= '<p>'. t('Your node_access table contains entries that may be granting some users access to all nodes.  This may be normal, depending on which access control module(s) you use.') ."</p>\n";
+    $output .= theme('table', $header, $rows);
+  } /* end all nodes */
+
+  $header = array(t('Realm'), t('Nodes'), t('Notes'));
+  $rows = array();
+
+  // Count nodes by realm.
+  $result = db_query('SELECT DISTINCT na.realm, COUNT(DISTINCT na.nid) as node_count FROM {node_access} na GROUP BY na.realm');
+  $all = FALSE;
+
+  while ($row = db_fetch_object($result)) {
+    if ($row->realm == 'all') {
+      $all = TRUE;
+      $realm_type = t('Public nodes');
+      $caption = t('This realm grants all users access to some specific nodes. If some of your content is available to the public, this may be normal.');
+    }
+    else {
+      $realm_type = t('Private nodes');
+      $caption = t('This realm grants limited access to some specific nodes.');
+    }
+    $rows[] = array($row->realm, l($row->node_count, 'admin/build/sitedoc_node_access_view/'. $row->realm) .' '. $realm_type, $caption);
+  } /* end while */
+  if ($all && !empty($rows)) {
+    $output .= theme('table', $header, $rows);
+  }
+
+  return $output ."\n";
+}
+
+/** 
+ *  Menu call back to produce a list of nodes within a given access realm.
+ *
+ *   parameters:
+ *     realm name
+ *
+ *   returns:
+ *     HTML string
+ */
+function sitedoc_node_access_view($realm=NULL) {
+  $rows = array();
+  $header = array(
+    t('Type'),
+    t('Title') .' &nbsp;&nbsp;&nbsp;<small> '. t('click to edit') .'</small>',
+    );
+
+  $sql = 'SELECT DISTINCT(n.nid), n.type, n.title FROM {node} n LEFT JOIN {node_access} na ON n.nid = na.nid WHERE na.realm ';
+  $count = 'SELECT COUNT(DISTINCT(n.nid)) FROM {node} n LEFT JOIN {node_access} na ON n.nid = na.nid WHERE na.realm ';
+  if (is_null($realm)) {
+    $output .= '<h3>'. t('Unprotected Nodes') .'</h3>';
+    $sql .= 'IS NULL';
+    $count .= 'IS NULL';
+  }
+  else { 
+    $output .= '<h3>'. t('Nodes in Realm: ') . ucfirst($realm) .'</h3>';
+    $sql .= "= '". $realm ."'";
+    $count .= "= '". $realm ."'";
+  }
+
+  $result = pager_query($sql, 50, 0, $count);
+  while ($node = db_fetch_object($result)) {
+    $rows[] = array($node->type, l($node->title, 'node/'. $node->nid .'/edit'));
+  } /* end while node */
+  $output .= theme('table', $header, $rows);
+  $output .= theme('pager', array(), 50);
+
+  return $output ."\n";
+}
+
+/**
+ *  Produce the user roles list.
+ *
+ *  Parameters:
+ *    1) TRUE - permissions listed as unordered list
+ *       FALSE - permissions listed as stream (default)
+ *    2) TRUE - include users in roles (default)
+ *       FALSE - do not include users 
+ *
+ *  Return: HTML string
+ */
+function sitedoc_get_roles($list = FALSE, $users = FALSE) {
+  $sql = 'SELECT r.rid, r.name, p.perm, p.tid FROM {role} r INNER JOIN {permission} p ON p.rid = r.rid';
+  $result = db_query($sql);
+  $output = NULL;
+  $header = array(
+    array('data' => 'Rid', 'class' => 'sitedoc_right'),
+    t('Name'),
+    t('Permissions'),
+    t('Blocks'),
+    $users ? t('Users') : NULL,
+    array('data' => 'Tid', 'class' => 'sitedoc_right'),
+    );
+
+  while ($role = db_fetch_object($result)) {
+    // Get which blocks they can see.
+    $bresult = db_query('SELECT b.module, b.delta FROM {blocks_roles} b WHERE b.rid = %d', $role->rid);
+    $blk_list = array();
+    while ($block = db_fetch_object($bresult)) {
+      $blk_list[] = $block->module .'/'. $block->delta;
+    } /* end while block */
+
+    // Get which users have this role.
+    $uresult = db_query('SELECT u.name, u.uid FROM {users_roles} r INNER JOIN {users} u ON u.uid = r.uid WHERE r.rid = %d', $role->rid);
+    $user_list = array();
+    while ($user = db_fetch_object($uresult)) {
+      // Make the user a link.
+      $user_list[] = l($user->name .'('. $user->uid .')', 'user/'. $user->uid);
+    } 
+
+    $rows[] = array(
+      array('data' => $role->rid, 'class' => 'sitedoc_right'),
+      $role->name,
+      $list ? theme('item_list', explode(', ', $role->perm)) : $role->perm,
+      $list ? theme('item_list', $blk_list) : implode(', ', $blk_list),
+      $users ? ($list ? theme('item_list', $user_list) : implode(', ', $user_list)) : NULL,
+      array('data' => $role->tid, 'class' => 'sitedoc_right'),
+      );
+  } /* end while role */
+  
+  $howmany = count($rows);
+  if ($howmany > 0) {
+    drupal_set_message(t('!count Roles found.', array('!count' => $howmany)), 'status');
+    $output = theme('table', $header, $rows);
+  }
+  return $output ."\n";
+}
+
+/**
+ *  Produce the system variables list.
+ *
+ *  Parameters:
+ *    None
+ *
+ *  Return: HTML string
+ */
+function sitedoc_get_variables() {
+  // $conf is the cached array of system variables 
+  global $conf;   
+
+  // Save it so we can sort it
+  $vars = $conf;  
+  ksort($vars);
+
+  drupal_set_message(count($vars) . t(' system variables found.'), 'status');
+
+  $header = array(t('Name'), t('Value'));
+  $rows = array();
+
+  foreach ($vars as $name => $value) {
+    $rows[] = array($name, _sitedoc_handle_data($value));
+  } /* end foreach */
+
+  $output .= theme('table', $header, $rows);
+  return $output ."\n";
+}
+
+// Helper function for traversing an array.
+// Since some arrays may contain arrays, this function can be called recursively.
+// Also handles objects.
+function _sitedoc_handle_data($text) {
+  // Take care of simple data types first.
+  if (is_string($text) || is_numeric($text) || is_float($text)) {
+//    return filter_xss($text);
+    return check_plain($text);
+  }
+
+  if (is_null($text)) {
+    return t('NULL');
+  }
+
+  if (is_bool($text)) {
+    return $text ? t('True') : t('False');
+  }
+
+  // That leaves arrays and objects.
+  if (is_array($text)) {
+    $rows = array();
+    foreach ($text as $key => $value) {
+      $rows[] = array($key, _sitedoc_handle_data($value));
+    }
+    return theme('table', array(t('Key'), t('Value')), $rows);
+  }
+
+  if (is_object($text)) {
+    $rows = array();
+    // turn it into an array and handle like one.
+    $data = (array) $text;
+    foreach ($data as $key => $value) {
+      $rows[] = array($key, _sitedoc_handle_data($value));
+    }
+    return theme('table', array(t('Method'), t('Value')), $rows);
+  }
+
+//  return gettype($text);
+
+  // Hmm, what could it be?
+  $value = '<strong>'. gettype($array[$name]) .'</strong>';
+  drupal_set_message('Tell Nancy I found a '. gettype($array[$name]) .' in the variables.', 'error');
+  return t('Unknown data type');
+}
+
+/**
+ * Produce the site-wide contacts (email) list.
+ *
+ *  Parameters:
+ *    None
+ *
+ *  Return: HTML string
+ */
+function sitedoc_get_contacts() {
+  $output = NULL;
+  if (!module_exists('contact')) {
+    return '<p>Contact'. t(' module not enabled') .'</p>';
+  }
+  $sql = 'SELECT * FROM {contact} c ORDER BY c.selected DESC, c.cid ASC';
+  $result = db_query($sql);
+  $header = array(
+    array('data' => 'Cid', 'class' => 'sitedoc_right'),
+    t('Category'), 
+    t('Recipients'), 
+    array('data' => t('Weight'), 'class' => 'sitedoc_right'),
+    array('data' => t('Selected'), 'align' => 'center'),
+    );
+  $rows = array();
+  while ($contact = db_fetch_object($result)) {
+    $recips = explode(',', $contact->recipients);
+    if (count($recips) > 1) {
+      $recip_list = theme('item_list', $recips);
+    }
+    else { $recip_list = $contact->recipients; }
+    $rows[] = array(
+      array('data' => $contact->cid, 'class' => 'sitedoc_right'),
+      $contact->category,
+      $recip_list,
+      array('data' => $contact->weight, 'class' => 'sitedoc_right'),
+      array('data' => $contact->selected ? 'yes' : 'no', 'align' => 'center'),
+      );
+  } /* end while role */
+  
+  $howmany = count($rows);
+  if ($howmany > 0) {
+    drupal_set_message(t('!count Contacts found.', array('!count' => $howmany)), 'status');
+    $output = theme('table', $header, $rows);
+  }
+  return $output ."\n";
+}
+
+/**
+ * Produce the user profile fields list.
+ *
+ *  Parameters:
+ *    string - limits the list to only this category
+ *
+ *  Return: HTML string
+ */
+function sitedoc_profile_fields() {
+  if (!module_exists('profile')) {
+    return '<p>Profile '. t('module not enabled') .'</p>';
+  }
+  $output = NULL;
+
+  // Allow an optional param to limit the display to a specific category.
+  if (func_num_args() > 0) {
+    $category = func_get_arg(0);
+  }
+
+  $no_yes = array(t('No'), t('Yes')); 
+  $viz = array(t('Hidden'), t('Private'), t('Profile'), t('Public'));
+  // This is to save display space.
+  $short_type = array(
+    'textfield' => t('Text'),
+    'textarea' => t('Area'),
+    'URL' => t('URL'),
+    'checkbox' => t('Check'),
+    'selection' => t('select'),
+    'list' => t('Free'),
+    'date' => t('Date'),
+    );
+
+  $header = array(
+    array('data' => t('Fid'), 'class' => 'sitedoc_right'),
+    t('Title'),
+    t('Name'),
+    t('Explanation'),
+    t('Page'),
+    t('Type'),
+    array('data' => t('Weight'), 'class' => 'sitedoc_right'),
+    array('data' => t('Visiblity'), 'align' => 'center'),
+    array('data' => t('Required'), 'align' => 'center'),
+    array('data' => t('Register'), 'align' => 'center'),
+    array('data' => t('Auto complete'), 'align' => 'center'),
+    t('Options'),
+    ); 
+  if ($category) {
+    $where = " WHERE p.category='$category'";
+  }
+  else {
+    $where = ' ';
+  }
+  $result = db_query('SELECT * FROM {profile_fields} p'. $where .' ORDER BY p.category, p.weight, p.name');
+  $save_cat = '';
+
+  while ($field = db_fetch_object($result)) {
+    if ($field->category <> $save_cat) {
+      // Flush previous rows, if any.
+      if (!empty($save_cat)) { 
+        $output .= theme('table', $header, $rows);
+      }
+      $output .= '<h4>'. t('Category: ') . $field->category .'</h4>';
+      $save_cat = $field->category;
+      $rows = array();
+    }
+    $rows[] = array(
+      array('data' => $field->fid, 'class' => 'sitedoc_right'),
+      $field->title,
+      $field->name,
+      $field->explanation,
+      $field->page,
+      $short_type[$field->type],
+      array('data' => $field->weight, 'class' => 'sitedoc_right'), 
+      array('data' => $viz[$field->visibility], 'align' => 'center'), 
+      array('data' => $no_yes[$field->required], 'align' => 'center'),
+      array('data' => $no_yes[$field->register], 'align' => 'center'),
+      array('data' => $no_yes[$field->autocomplete], 'align' => 'center'),
+      $field->options,
+      );
+  } /* end while field */
+  
+  $howmany = count($rows);
+  drupal_set_message(t('!count Profile fields found.', array('!count' => $howmany)), 'status');
+  if ($howmany > 0) {
+    $output .= theme('table', $header, $rows) ."\n";
+  }
+  return $output;
+}
+
+/**
+ * Produce the URL Alias list and checks for orphans.
+ *
+ *  Parameters:
+ *    string - limits the list to only this category
+ *
+ *  Return: HTML string
+ */
+function sitedoc_url_alias() {
+  if (!module_exists('path')) {
+    return '<p>Path '. t('module not enabled') .'</p>';
+  }
+  $output = NULL;
+  $rows = array();
+  $last_src = NULL;
+  $problems = 0;
+  // For reverse checking.
+  $node_alias = array();
+
+  $header = array(
+    array('data' => t('pid'), 'class' => 'sitedoc_right'),
+    t('Source'),
+    t('Destination'),
+    t('Notes'),
+    t('Operation'),
+    ); 
+  $result = db_query('SELECT u.pid, u.src, u.dst FROM {url_alias} u ORDER BY u.src, u.dst');
+
+  while ($path = db_fetch_object($result)) {
+    $notes = array();
+    $ops = array();
+    if ($last_src == $path->src) {
+      $notes[] = t('duplicate source');
+    } 
+    else { $last_src = $path->src; }
+  
+    // Ignore "special" paths.
+    if (substr($path->src, 0, 1) != '<') { 
+      $p = explode('/', $path->src);
+      $edit = 'edit';
+    // So pseudo HTML shows (like <front>)
+      $source = check_plain($path->src);   
+ 
+      // Check first part of path.
+      switch ($p[0]) {  
+
+        case 'node':
+          // Missing nid?
+          if (empty($p[1])) { 
+            $notes[] = '&lt;front&gt;?';
+            break;
+          }
+          $node_exists = db_result(db_query('SELECT COUNT(n.nid) FROM {node} n WHERE n.nid = %d', $p[1]));
+          if ($node_exists) { 
+            $source = $path->src;
+            $ops[] = l(t('edit node'), $path->src .'/edit');
+          }
+          else {
+            $notes[] = '<span class="admin-missing">'. t('missing node') .'</span>'; 
+            $edit = 'delete';
+          }
+          $node_alias[$p[1]] = TRUE;
+          break;
+
+        case 'taxonomy':
+          $taxo_exists = db_result(db_query('SELECT COUNT(td.name) FROM {term_data} td WHERE td.tid = %d', $p[2]));
+          if (!$taxo_exists) {
+            $notes[] = '<span class="admin-missing">'. t('missing taxonomy term') .'</span>';
+          }
+          break;
+
+        case 'faq':   /* same as taxo/term */
+          $taxo_exists = db_result(db_query('SELECT COUNT(td.name) FROM {term_data} td WHERE td.tid = %d', $p[1]));
+          if (!$taxo_exists) {
+            $notes[] = '<span class="admin-missing">'. t('missing faq taxonomy term') .'</span>';
+          }
+          break;
+
+        case 'user': 
+          $node_exists = db_result(db_query('SELECT COUNT(u.uid) FROM {users} u WHERE u.uid = %d', $p[1]));
+          if (!$node_exists) {
+            $notes[] = '<span class="admin-missing">'. t('missing user') .'</span>';
+          }
+          break;
+
+        case 'contact':  /* nothing to do */
+          break;
+
+        default:
+          if (module_exists($p[0])) {
+            $notes[] = '<span class="admin-enabled">'. t('ask the !name module', array('!name' => $p[0])) .'</span>'; 
+          }
+          else {
+            $notes[] = '<span class="admin-missing">'. t('unhandled path type') .'</span>'; 
+          }
+
+      } /* end switch $p(0) */
+    } /* end if not < */
+    
+    $problems += count($notes);
+    $ops[] = l($edit .' '. t('path'), 'admin/build/path/'. $edit .'/'. $path->pid);
+    $rows[] = array(array('data' => $path->pid, 'class' => 'sitedoc_right'),
+                    $source,
+                    $path->dst,
+                    implode(', ', $notes),
+                    implode(', ', $ops),
+                );
+  } /* end while path */
+  
+  $howmany = count($rows);
+  if ($howmany > 0) {
+    $output .= theme('table', $header, $rows);
+  }
+  
+  //  Now run through the nodes to see if they have an alias.
+  $rows = array();
+
+  $result = db_query('SELECT n.nid, n.title FROM {node} n ORDER BY n.nid');
+  while ($node = db_fetch_object($result)) {
+    // Does node NOT have an alias?
+    if (!isset($node_alias[$node->nid])) { 
+      $rows[] = array($node->title, l(t('edit'), 'node/'. $node->nid .'/edit'));
+    }
+  }
+
+  if (count($rows) > 0) {
+    $fieldset = array(
+      '#title' => t('Nodes without URL Alias'),
+      '#collapsible' => TRUE,
+      '#collapsed' => count($rows) > 10,
+      '#value' => theme('table', array(t('Title'), t('Operation')), $rows),
+      );
+    $output .=  '<br/>'. theme('fieldset', $fieldset);
+  }
+
+  $msg = t('!count URL Aliases found', array('!count' => $howmany));
+  if ($problems) {
+    $msg .= ' '. t('with !problems notes.', array('!problems' => $problems)) .' ';
+  }
+  else {
+    $msg .= '.';
+  }
+  if (count($rows)) {
+    $msg .= ' '. t('!count nodes without aliases found.', array('!count' => count($rows)));
+  }
+  drupal_set_message($msg, 'status');
+
+  return $output ."\n";
+}
+
+function sitedoc_term_count_nodes($tid = 0, $type = NULL) {
+  if ($type) {
+    $count = db_result(db_query(db_rewrite_sql("SELECT COUNT(n.nid) FROM {term_node} t INNER JOIN {node} n ON t.nid = n.nid WHERE t.tid = %d AND n.status = 1 AND n.type = '%s'"), $tid, $type));
+  }
+  else {
+    $count = db_result(db_query(db_rewrite_sql('SELECT COUNT(n.nid) FROM {term_node} t INNER JOIN {node} n ON t.nid = n.nid WHERE t.tid = %d AND n.status = 1'), $tid));
+  }
+  return $count;
+}
+
+/*
+ *  This function gets the Input Format and Filter information.
+ */
+function sitedoc_filters() {
+  $output = "\n<h2>". t('Filters and Input Formats') .'</h2>';
+  $filter_list = array();
+  $default_format = variable_get('filter_default_format', 1);
+
+  // Find out which modules provide filters.
+  $filter_modules = module_implements('filter', TRUE);
+  foreach ($filter_modules as $module) {
+    $list = module_invoke($module, 'filter', 'list');
+    foreach ($list as $delta => $name) {
+      $filter_list[$module][$delta] = array(
+        'name' => $name,
+        'used' => array(),
+        );
+    }
+  }
+
+  $output .= "\n<h4>". t('Input Formats') ."</h4>\n";
+
+  $rows = array();
+  $filter_names = array();
+  $count = 0;
+  $output .= "\n<table>\n<tr>\n";
+  $output .= "\n<th>". t('Format') .'</th>'
+    .'<th>'. t('Name') .'</th>'
+    .'<th>'. t('Roles') .'</th>'
+    .'<th>'. t('Cache') .'</th>'
+    .'<th>'. t('Filters') .'</th>'
+    ."\n</tr>\n";
+
+  // Get Input Formats.
+  $result = db_query("SELECT * FROM {filter_formats}");
+  while ($input = db_fetch_array($result)) {
+    ++$count;
+    $output .= "\n".'<tr class="'. ($count % 2 ? 'odd' : 'even') .'">';  
+
+    $name = $input['name'];
+    $format = $input['format'];
+    $filter_names[$format] = $name;
+
+    // Get the list of roles for this filter.
+    // The roles list always starts and ends with a comma.
+    $roles = substr($input['roles'], 1, strlen($input['roles']) - 2);
+    $role_names = array();
+    if (empty($roles)) {
+      $roles = '<em>'. t('None') .'</em>';
+    }
+    else {
+      // There is no need to look up the default, as all roles get it.
+      if ($format == $default_format) {
+        $roles = '<em>'. t('Default') .'</em>';
+      }
+      else {
+        $r_result = db_query("SELECT name FROM {role} WHERE rid IN (%s)", $roles);
+        while ($r = db_fetch_array($r_result)) {
+          if (!in_array($r['name'], $role_names)) {
+            $role_names[] = $r['name'];
+          }
+        }
+        $roles = theme('item_list', $role_names);
+      }
+    }
+    // Get the filter info.
+    $f_rows = array();
+    $filter_stuff = "\n<table><tr><th>". t('Name (Module, Delta)') .'</th><th>'.
+      t('No Cache') .'</th><th>'.
+      t('Weight') .'</th></tr>';
+    $f_result = db_query("SELECT * FROM {filters} WHERE format=%d ORDER BY format, weight", $format);
+    while ($filter = db_fetch_array($f_result)) {
+      $module = $filter['module'];
+      $delta = $filter['delta'];
+      $filter_stuff .= "\n".'<tr>'
+        .'<td>'. ucwords($filter_list[$module][$delta]['name']) .' ('. ucwords($module) .', '. $delta .')</td>'
+        .'<td align="center">'. (module_invoke($module, 'filter', 'no cache', $delta, $format) ? 'True' : null) .'</td>'
+        .'<td align="center">'. $filter['weight'] .'</td>'
+        .'<tr>';
+      $filter_list[$module][$delta]['used'][] = $filter_names[$format];
+    }
+    $filter_stuff .= "</table>\n";
+
+    $cache = $input['cache'] ? _sitedoc_img_ok() : _sitedoc_img_warning();
+
+    $output .= '<td valign="top">'. $format .'</td>'
+      .'<td valign="top">'. l($name, 'admin/settings/filters/'. $format) .'</td>'
+      .'<td valign="top">'. $roles .'</td>'
+      .'<td align="center" valign="top">'. $cache .'</td>'
+      .'<td valign="top">'. $filter_stuff .'</td>'
+      ."\n</tr>";  
+  }
+  $output .= "\n</table>\n";
+
+  $output .= "\n<h4>". t('Available Filters') ."</h4>\n";
+
+// Show usage info.
+  $list_rows = array();
+  foreach ($filter_list as $module => $deltas) {
+    $descs = "\n<table>";
+    foreach ($deltas as $delta => $values) {
+      $name = ucwords($values['name']);
+      $descs .= "\n".'<tr><td align="center">'. $delta .'</td><td width="100">'. $name .'</td><td>'.  $values['desc'] .'</td></tr>';
+    }
+    $descs .= '</table>';
+    $used = $filter_list[$module][$delta]['used'];
+    $list_rows[] = array(ucwords($module), $descs,
+      count(used) ? implode(', ', $used) : t('None'),
+      );
+  }
+  $output .= theme('table', array(t('Module'), t('Provides'), t('Used In')), $list_rows);
+
+  return $output;
+}

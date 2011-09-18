@@ -1,0 +1,198 @@
+<?php
+// $Id: cpo_special.module,v 1.0.0.1 2009/07/05 22:15:23 asaphk Exp $
+
+/**
+ * @file
+ * CPO Special modules and functions
+ *
+ */
+ 
+/**
+ * Implementation of hook_search().
+ */
+function sts_data_search($op = 'search', $keys = NULL) {
+  switch ($op) {
+    case 'name':
+      return t('Data search');
+    case 'search':
+      // Build matching conditions
+      list($join1, $where1) = _db_rewrite_sql();
+      $arguments1 = array();
+      $conditions1 = 'n.status = 1';
+      if ($category = search_query_extract($keys, 'category')) {
+        $categories = array();
+        foreach (explode(',', $category) as $c) {
+          $categories[] = "tn.tid = %d";
+          $arguments1[] = $c;
+        }
+        $conditions1 .= ' AND (' . implode(' OR ', $categories) . ')';
+        $join1 .= ' INNER JOIN {term_node} tn ON n.vid = tn.vid';
+        $keys = search_query_insert($keys, 'category');
+      }
+
+      // Build ranking expression (we try to map each parameter to a
+      // uniform distribution in the range 0..1).
+      $ranking = array();
+      $arguments2 = array();
+      $join2 = '';
+      // Used to avoid joining on node_comment_statistics twice
+      $stats_join = FALSE;
+      $total = 0;
+      if ($weight = (int) variable_get('node_rank_relevance', 5)) {
+        // Average relevance values hover around 0.15
+        $ranking[] = '%d * i.relevance';
+        $arguments2[] = $weight;
+        $total += $weight;
+      }
+      if ($weight = (int) variable_get('node_rank_recent', 5)) {
+        // Exponential decay with half-life of 6 months, starting at last indexed node
+        $ranking[] = '%d * POW(2, (GREATEST(MAX(n.created), MAX(n.changed), MAX(c.last_comment_timestamp)) - %d) * 6.43e-8)';
+        $arguments2[] = $weight;
+        $arguments2[] = (int) variable_get('node_cron_last', 0);
+        $join2 .= ' LEFT JOIN {node_comment_statistics} c ON c.nid = i.sid';
+        $stats_join = TRUE;
+        $total += $weight;
+      }
+      if (module_exists('comment') && $weight = (int) variable_get('node_rank_comments', 5)) {
+        // Inverse law that maps the highest reply count on the site to 1 and 0 to 0.
+        $scale = variable_get('node_cron_comments_scale', 0.0);
+        $ranking[] = '%d * (2.0 - 2.0 / (1.0 + MAX(c.comment_count) * %f))';
+        $arguments2[] = $weight;
+        $arguments2[] = $scale;
+        if (!$stats_join) {
+          $join2 .= ' LEFT JOIN {node_comment_statistics} c ON c.nid = i.sid';
+        }
+        $total += $weight;
+      }
+      if (module_exists('statistics') && variable_get('statistics_count_content_views', 0) && 
+          $weight = (int) variable_get('node_rank_views', 5)) {
+        // Inverse law that maps the highest view count on the site to 1 and 0 to 0.
+        $scale = variable_get('node_cron_views_scale', 0.0);
+        $ranking[] = '%d * (2.0 - 2.0 / (1.0 + MAX(nc.totalcount) * %f))';
+        $arguments2[] = $weight;
+        $arguments2[] = $scale;
+        $join2 .= ' LEFT JOIN {node_counter} nc ON nc.nid = i.sid';
+        $total += $weight;
+      }
+
+      // When all search factors are disabled (ie they have a weight of zero),
+      // the default score is based only on keyword relevance and there is no need to
+      // adjust the score of each item.
+      if ($total == 0) {
+        $select2 = 'i.relevance AS score';
+        $total = 1;
+      }
+      else {
+        $select2 = implode(' + ', $ranking) . ' AS score';
+      }
+
+      // Do search.
+	  $conditions1.=' AND n.type="data"';//LTZ: this is the main importent line that make this all work!
+      $find = do_search($keys, 'node', 'INNER JOIN {node} n ON n.nid = i.sid ' . $join1, $conditions1 . (empty($where1) ? '' : ' AND ' . $where1), $arguments1, $select2, $join2, $arguments2);
+      // Load results.
+      $results = array();
+      foreach ($find as $item) {
+        // Build the node body.
+        $node = node_load($item->sid);
+        $node->build_mode = NODE_BUILD_SEARCH_RESULT;
+        $node = node_build_content($node, FALSE, FALSE);
+        $node->body = drupal_render($node->content);
+
+        // Fetch comments for snippet.
+        $node->body .= module_invoke('comment', 'nodeapi', $node, 'update index');
+        // Fetch terms for snippet.
+        $node->body .= module_invoke('taxonomy', 'nodeapi', $node, 'update index');
+
+        $extra = node_invoke_nodeapi($node, 'search result');
+        $results[] = array(
+          'link' => url('node/' . $item->sid, array('absolute' => TRUE)), 
+          'type' => check_plain(node_get_types('name', $node)), 
+          'title' => $node->title, 
+          'user' => theme('username', $node), 
+          'date' => $node->changed, 
+          'node' => $node, 
+          'extra' => $extra, 
+          'score' => $item->score / $total, 
+          'snippet' => search_excerpt($keys, $node->body),
+        );
+      }
+      return $results;
+
+  }
+}
+
+/**
+ * Implementation of hook_block().
+ */
+function sts_data_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+    case 'list':
+      $blocks = array();
+
+      // Define the book search block.
+      $blocks[0] = array(
+        'info' => t('Data search'),
+      );
+
+      return $blocks;
+
+    case 'view':
+      // Turn the current path into an array of arguments as would normally be
+      // returned by the arg() function.
+      $arg = arg(NULL, $_GET['q']);
+
+      // Display the book search block.
+      if ($delta == 0) {
+        // If we're not on a valid book page, do not display the block.
+        if ($arg[0] != 'node') {
+          return;
+        }
+/*
+        $bid = db_result(db_query("SELECT bid FROM {data} WHERE nid = %d", $arg[1]));
+
+        if (empty($bid) || !in_array($bid, sts_data_selected())) {
+          return;
+        }
+*/
+        if ($node = node_load($arg[1])) {
+          $block = array(
+            'subject' => t('Data search'),
+            'content' => drupal_get_form('sts_data_block_form'/*, $bid*/),
+          );
+        }
+      }
+
+      return $block;
+  }
+}
+
+// Build the book search block form.
+function sts_data_block_form($form_state) {
+  $form = array();
+
+  $form['keywords'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Search'),
+    '#size' => 15,
+    '#maxlength' =>128,
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Search data'),
+  );
+
+  return $form;
+}
+
+function sts_data_block_form_validate($form, &$form_state) {
+  if (empty($form_state['values']['keywords'])) {
+    form_set_error('keywords', t('Please enter some keywords.'));
+  }
+}
+
+function sts_data_block_form_submit($form, &$form_state) {
+  // Build the keys string for the search.
+  $keys = search_query_insert($form_state['values']['keywords'], 'data');
+
+  $form_state['redirect'] = 'search/sts_data/'. $keys;
+}

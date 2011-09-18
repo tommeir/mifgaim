@@ -1,0 +1,211 @@
+/*
+Theme Name: Grassland
+Theme URI:http://www.interconnectit.com/
+Description: A light, fresh, widget friendly, two column theme  particularly suited to ecology and nature blogs, but suitable for a wide range of bloggers. 1.1 adds caption support.
+Version:1.1
+Author:James R Whitehead from Interconnect IT
+Author URI:http://www.interconnectit.com/
+Tags: two columns, fixed width, brown,green, tagging,navigation widget,e-mail form
+*/
+
+*{margin-top:0;margin-bottom:0;padding-top:0;padding-bottom:0;line-height:1.25em}
+body{font:10pt verdana,arial,free-sans,sans-serif;}
+
+a img{border:0}
+a{color:#4A6147;text-decoration:none;font-weight:bold}
+a:hover{color: #608D3D}
+
+abbr{cursor:help}
+.alignright {float:right;margin:5px 0 5px 5px;clear:right}
+.alignleft {float:left;margin:5px 5px 5px 0;clear:left}
+.aligncenter {display: block; clear:both;text-align: center;}
+img.right{float:right;margin:5px 0 5px 5px;clear:right}
+img.left{float:left;margin:5px 5px 5px 0;clear:left}
+img[align="right"]{float:right;margin:5px 0 5px 5px;clear:right} /* Yes I know these will not work in IE6 but why should eveyone else suffer. */
+img[align="left"]{float:left;margin:5px 5px 5px 0;clear:left}
+h1,h1 a{font-size:18pt;color:#303030;font-weight:bold}
+h2,h2 a{font-size:16pt;color:#303030;font-weight:bold}
+h3,h3 a{font-size:14pt;color:#303030;font-weight:bold}
+h4,h4 a{font-size:14px;color:#303030;font-weight:bold}
+h5,h5 a{font-size:14px;color:#303030;font-weight:bold;text-decoration:underline}
+h6,h6 a{font-size:14px;color:#303030;font-weight:bold;font-style:italic}
+input[type="submit"]{cursor:pointer;background:url(images/submit.png) repeat-x top left black;color:white;font-weight:normal;line-height: 1.25em;border:0}
+input.submit{cursor:pointer;background:url(images/submit.png) repeat-x top left black;color:white;font-weight:normal;line-height: 1.25em;border:0}
+
+p,table{margin:1em 0}
+ol,ul{margin-top:1em;margin-bottom:1em}
+li ol,li ul{margin-top:0;margin-bottom:0;padding:0 0 0 2em} /*Override the thing I just defined above for ul & ol subordinate to another ul or ol*/
+blockquote{border-left:solid 5px #efefef;padding-left:1em;margin:0 6% 1em;font-size:small;font-style:italic}
+blockquote *{font-style:italic}
+code{background-color:#f3f3f3;color:#6f6060;display:block;padding:1em 0.5em;margin:0.5em 0}
+
+.icit-tag{position:absolute;top:0;right:0;border:0}
+.clear{clear:both;height:1px;width:1px;overflow:hidden;visibility:hidden}
+
+/* Basic layout */
+body{background:url(images/background.jpg) repeat-x top center #604830;color:#6f6060;margin:0 0 20px 0;padding:0;font:10pt arial,free-sans,sans-serif}
+div.container{width:950px;padding:0;margin:0 auto;background:url(images/container.png) repeat-x center 167px transparent;min-height:500px;/*min height to remove a distracting page building effect. */}
+div#content{width:600px;display:inline;float:left;margin-left:20px;overflow:hidden}
+div#sidebar{width:290px;display:inline;float:right;margin-right:20px;overflow:hidden}
+div#footer{margin-left:20px;clear:both;color:silver;background-color:#604830;}
+div#header{height:167px;width:950px;background:url(images/header.png) no-repeat bottom center transparent}
+
+/* Header */
+div.titles{padding:12px 0 0 20px;height:135px;background:url(images/sun.jpg) no-repeat 179px 0px transparent;overflow:hidden}
+h1#site-name, h1#site-name a{line-height:1em;margin-top:4px;font-size:26pt;font-variant:small-caps;font-weight:900;letter-spacing:-0.05em}
+div.slogan h2{color:#eee;background-color:transparent;line-height:1.5em;font-size:10pt}
+div.login{text-align:right;float:right;color:#666;background-color:transparent;line-height:1.25em}
+div.login a{color:#666;font-size:8pt}
+div.login a:hover{color:#a90}
+/* Post/page  section */
+div.post-frame{margin-bottom:20px;width:600px;position:relative;/* if I want to position things inside a post */ overflow:hidden}
+div.post-frame-top{width:600px;height:16px;background:url(images/post.png) no-repeat -631px 0px transparent;display:block}
+span.post-frame-bottom{width:600px;height:16px;background:url(images/post.png) no-repeat -1261px 0px transparent;display:block}
+div.post-content{background:url(images/post.png) repeat-y 0 0 white;color:#333;padding:0 13px;overflow:hidden}
+/*Post header*/
+div.post-header{margin-bottom:10px}
+div.post-title {margin-right: 50px}
+div.post-title  h2{background:url(images/leaf-small.jpg) no-repeat 0 50% transparent;line-height:1.5em;padding-left:40px}
+div.post-title h2 a{line-height:1.5em} 
+div.post-author{font-size:8pt}
+/*div.post-date{width: 50px;height:60px; position: absolute; top:8px; right:8px; background:url(images/calendar.png) no-repeat center center white}*/
+div.post-date{width: 50px;height:60px; position: relative; float: right; top:8px; right:8px; background:url(images/calendar.png) no-repeat center center white}
+span.post-month{display:block;width:50px;text-align:center;position:absolute;top: 1px;color: white;font-weight: bold;background-color:transparent}
+span.post-day{line-height:60px;font-size:22pt;display:block; width:48px; height:60px; position:absolute;letter-spacing:-2px;text-align:center; font-weight: 900;z-index:10;top:3px}
+span.post-year{display:block;width:50px; text-align:center;position:absolute;bottom:0;font-weight: 900;bottom: 2px; font-size: 7.5pt}
+/* Post body stuff. */
+div.post-body p, div.post-body{line-height:1.5em;}
+div.page-links{display:block;text-align:right;margin-bottom:15px}
+div.post-body iframe{margin:0 10px} /* Generic body iframe style to take into account that IE6 won't like the next two lines. */
+div.post-body iframe[align="right"] {margin:0 0 10px 10px}
+div.post-body iframe[align="left"]  {margin:0 10px 10px 0}
+/* Post footer */
+div.tag-cloud-links{width:573px;text-align:right;color:#333;margin-top:10px}
+div.tag-cloud-links a{font-size:large}
+div.post-footer{clear:both;padding-top:60px;background:url(images/post-footer.jpg) no-repeat center 10px white;text-align:center}
+div.post-footer span{line-height:1.5em; padding: 0 0.5em}
+/* Foot of post/page  section */
+div.post-navigation{margin-bottom:16px;width:602px}
+.previous-link{float:left}
+.next-link{float:right}
+div.post-navigation-links a{color:#606A5E;font-size:14pt}
+div.post-navigation-links a:hover{color:#ccc}
+div.post-navigation-links{background:url(images/post-navigation-links.png) repeat-y #604830;background-position:-627px 0;color:#666;padding:5px 10px;text-align:center}
+span.post-navigation-top, span.post-navigation-bottom {overflow:hidden;display:block;width:627px;height:8px;background-image:url(images/post-navigation-links.png);background-repeat:no-repeat}
+span.post-navigation-top{background-position:0 0}
+span.post-navigation-bottom{background-position:0 -11px}
+/* Widgets */
+div.widget{width:290px;margin-bottom:16px}
+span.widget-top{width:290px;height:16px;background:url(images/widget.png) no-repeat -313px 0px transparent;display:block;overflow:hidden}
+span.widget-bottom{width:290px;height:16px;background:url(images/widget.png) no-repeat -625px 0px transparent;display:block;overflow:hidden}
+div.widget-centre{background:url(images/widget.png) repeat-y 0 0 transparent;color:black;width:270px;padding:0 10px;overflow:hidden}
+div.widget-centre h3{margin-bottom:0.5em;color:#333}
+div.widget-centre ul, div.widget-centre ol{padding:0;margin:0}
+div.widget-centre ul ul,div.widget-centre ol ol,
+div.widget-centre ul ol,div.widget-centre ol ul{padding:0;margin-left:10px}
+div.widget-centre li{list-style-position:inside;line-height:1.5em}
+
+/* My default navigation widget */
+div.grassland-navigation-widget{position:relative}
+div.grassland-navigation-widget a.rss-link{position:absolute;top:1em;right:18px;height:30px;width:30px;overflow:hidden}
+div.grassland-navigation-widget li.current_page_item li a, 
+div.grassland-navigation-widget li.current-cat li a,
+div.grassland-navigation-widget a{color:#4A6147}
+div.grassland-navigation-widget li.current_page_item li a:hover, 
+div.grassland-navigation-widget li.current-cat li a:hover, 
+div.grassland-navigation-widget li.current_page_item a,
+div.grassland-navigation-widget li.current-cat a, 
+div.grassland-navigation-widget a:hover{color:#608D3D}
+div.grassland-navigation-widget ul{padding:0;margin:0 0 0.5em 0;list-style-type:none}
+div.grassland-navigation-widget ul li{background:url(images/widget-li.jpg) repeat-y bottom left transparent;color:black;padding-bottom:8px;margin:8px 0 0 0;width:270px;list-style-position:outside;display:block;overflow:hidden}
+div.grassland-navigation-widget ul li a{background:url(images/widget-li.jpg) no-repeat top left transparent;display:block;overflow:hidden;padding:8px 8px 0 8px;margin-bottom:0;}
+div.grassland-navigation-widget ul ul {margin-bottom:0}
+div.grassland-navigation-widget ul ul li{background-image:none;background-color:transparent;padding:0;margin:0}
+div.grassland-navigation-widget ul ul li a{padding-left:20px;display:block;background-image:none;background-color:transparent;padding-bottom:0}
+/* Some of the default widgets need a little bit of attention */
+table#wp-calendar{margin:0 auto 10px auto}
+table#wp-calendar th{width: 25px}
+table#wp-calendar tr{height: 25px;line-height:2em;text-align:center}
+table#wp-calendar td{border:solid 1px #f3f3f3;color: silver;background-color:white;padding:0;margin:0}
+table#wp-calendar td a{background-color: #f3f3f3;color:#608D3D;display: block; line-height: 2.1em; width:100%; height:2.1em}
+table#wp-calendar td a:hover{color:black;background-color: silver}
+table#wp-calendar td.pad{border:0}
+table#wp-calendar caption{font-size:18pt;margin:0 auto 10px auto}
+div.widget_calendar h3{display:none} /* Title didn't look right */
+input.search_input, div.widget_search #searchform input#s{border:solid 2px silver;margin-bottom: 0.25em; padding: 0.12em 6px}
+#content input.search_input{width: 488px}
+div.widget_search #searchform input#s , #sidebar input.search_input{width: 186px}
+form.search-form{padding: 0.5em 30px;margin: 0.5em 0}
+/* Comments */
+#comments-block{padding-left:28px;width:515px;overflow:hidden}
+.comments-trackbacks-pings{margin-top:10px}
+#comment-title{display:inline;margin-right:10px}
+#commentlist{padding:0;margin:0;list-style-type:none;margin:0}
+#commentlist span.comment-header{display:block;border-bottom:solid 1px silver; padding:0.25em 0.5em}
+#commentlist span.comment-text{display:block;padding:0.25em 0 0.25em 8px;overflow:auto;width:495px;text-align:justify}
+#commentlist span.comment-footer{display:block;padding:0.25em 0.5em; text-align: right; font-style:italic;font-size: small}
+#commentlist li{border: solid 1px silver; margin:1em 0;color: #474747}
+#commentlist li span.comment-header{background-color: #EAF0DC}
+#commentlist li.alternate span.comment-header{background-color: #BDD191}
+#commentlist li.author{border: 2px solid black;color: black;background-color:white}
+#commentlist li.unapproved{border: 2px solid red}
+div.new-comment{margin-top:10px;padding:0;color:#333}
+#new-comment-title{margin-bottom:0.5em}
+#comment{width:508px;background:url(images/leaf.jpg) no-repeat bottom right white;border:solid 1px silver}
+/*Footer */
+div#footer{clear:both;color:#4B2523}
+div#footer a{color:#4B2523}
+div#footer a:hover {color: white;background-color:#4E4031}
+
+/* Contact form page template */
+#contactform{margin-top:10px;padding:10px 30px; width:513px}
+#contactform sup{vertical-align:top;margin-left:10px}
+#contactform label{width:30%;float:left;padding:0}
+#contactform .text{width:69%;border:solid 1px silver;font-size:12px;line-height:14px;padding:2px 0}
+#contactform .textarea{width:99%;border:solid 1px silver;padding:4px 0}
+#contactform #div_icit_submit_3{width:99%;text-align:right}
+#contactform p.paragraph,
+#contactform #label_icit_text{width:100%;display:block;float:none;font-size:16pt;line-height:1.25em;margin:0}
+#contactform .contactformrow{width:100%;margin-bottom:0.5em;overflow:hidden}
+#contactform #div_contactform_recipient{display:none}
+
+/* Stuff used by one of my plugins. */
+.excerptmore{display:block;height:1.5em;overflow:hidden;text-align:right;clear:both;margin-top:-1em}
+.excerpt-thumb-link{float:left;margin-right:5px}
+
+
+/*.wp-caption {
+	padding: 5px 0;
+	text-align:center;
+	border: solid 1px #eee;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	background-color:$colour_post_highlight;
+}
+.wp-caption img {
+	margin: 0;
+}
+
+p.wp-caption-text{
+	font-size: 10px;
+	margin: 0;
+	padding: 0.25em 0 0 0;
+}*/
+
+li.leaf, li.collapsed, li.expanded {padding: 0;}
+.form-text{
+  border:2px solid silver;
+  margin-bottom:0.25em;
+  padding:0.12em 6px;
+}
+.widget_search label {
+  display:none;
+ }
+#content .block-user{background-color:#FFFFFF;}
+
+/* footer */
+
+div#footer{margin-bottom:20px;width:600px;position:relative;/* if I want to position things inside a post */ overflow:hidden}
+div.footer-frame-top{width:600px;height:16px;background:url(images/post.png) no-repeat -631px 0px transparent;display:block;}
+span.footer-frame-bottom{width:600px;height:16px;background:url(images/post.png) no-repeat -1261px 0px transparent;display:block; margin-bottom:20px;}
+div.footer-content{background:url(images/post.png) repeat-y 0 0 white;color:#333;padding:0 13px;overflow:hidden}

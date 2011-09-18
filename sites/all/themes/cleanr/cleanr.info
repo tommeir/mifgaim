@@ -1,0 +1,23 @@
+name        = Cleanr
+description = A very clean administration theme friendly enough for people who are not used to Drupal
+core   		= 6.x
+engine 		= phptemplate
+version 	= 0.5
+
+; The screenshot used on the admin/build/themes page.
+screenshot = screenshot.png
+
+stylesheets[all][]   = reset.css
+stylesheets[all][]   = style.css
+
+regions[right] = Right
+
+scripts[] = scripts.js
+
+features[] = logo
+; Information added by drupal.org packaging script on 2010-02-25
+version = "6.x-0.7"
+core = "6.x"
+project = "cleanr"
+datestamp = "1267065007"
+

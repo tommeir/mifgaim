@@ -1,0 +1,12 @@
+; $Id: nodewords_verification_tags.info,v 1.1.2.3 2010/01/29 17:11:07 kiam Exp $
+name = Site verification meta tags
+description = Define site verification meta tags required by some web sites (mainly from search engines) to verify a web site.
+dependencies[] = nodewords
+package = Meta tags
+core = 6.x
+; Information added by drupal.org packaging script on 2010-02-17
+version = "6.x-1.12-beta3"
+core = "6.x"
+project = "nodewords"
+datestamp = "1266416413"
+

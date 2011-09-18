@@ -1,0 +1,54 @@
+/**
+ * Revision history for the Content Administration module
+ */
+
+version 2009-04-23 (6.x-1.0-beta2)
+-- page offset now resets when filters are changed
+-- improved compatibility with IE 7 [thanks to lance.gliser]
+
+version 2009-03-30
+-- fixed support for sites not using clean URLs [thanks to GuyPaddock]
+-- fixed bug causing error messages if no JavaScript or CSS is included
+
+version 2009-03-09 (6.x-1.0-beta1)
+-- testing white-space CSS modification [thanks to KNOFF]
+-- restructured AJAX handler and added query building component
+-- added paginated and sorted queries through an interactive table interface
+-- added filters for content type, author, and full text search
+-- removed administrative settings page
+-- clarified delete node confirmation message
+
+version 2009-02-06
+-- improved interface design
+-- reorganized JavaScript file
+
+version 2008-11-06
+-- added smart loading of embedded JavaScript/CSS files (each is only 
+loaded once by AJAX client)
+
+version 2008-11-05
+-- added support for relaying CSS files included by forms
+
+version 2008-10-29
+-- added 'working' status message during operations
+-- converted all data exchange to JSON
+-- added support for relaying Drupal status/warning/error messages
+-- added support for relaying JavaScript files included by forms
+-- fixed initializing AHAH and other Drupal behaviors from embedded forms
+-- reworked node delete process to use standard form-based method
+-- removed jquery.form.js as it is included with Drupal
+-- improved handling of response from save operation (triggers redirect)
+
+version 2008-10-24
+-- initial release on drupal.org
+
+TO-DO
+-- do not rewrite the entire table so that underway changes are not overwritten
+-- show operation buttons/add content types based on user's permissions
+-- add result index at the bottom of the page
+-- improve translation possibilities
+-- check cross-browser compatibility
+-- consider using json-sans-eval or other methods for parsing JSON
+-- better JavaScript compliance with jslint
+-- retain state data in cookies to allow returning to the last-saved state
+-- allow adding/removing fields as table columns

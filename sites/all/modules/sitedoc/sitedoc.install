@@ -1,0 +1,10 @@
+<?php
+// $Id: sitedoc.install,v 1.8.2.1 2008/02/27 20:00:12 nancyw Exp $
+
+/**
+ * Implementation of hook_uninstall()
+ */
+function sitedoc_uninstall() {
+// Delete system variables 
+  variable_del('sitedoc_settings');
+}

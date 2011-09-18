@@ -1,0 +1,1520 @@
+# $Id: sitedoc.pot,v 1.11 2008/01/02 00:35:56 nancyw Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  sitedoc.module,v 1.41 2008/01/02 00:22:09 nancyw
+#  sitedoc.install,v 1.7 2007/07/13 22:31:01 nancyw
+#  sitedoc.info,v 1.5 2007/06/19 13:02:37 nancyw
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2008-01-01 19:35-0500\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: sitedoc.module:10
+msgid "The sitedoc module allows a site admin to gather extensive information about their site. It may be printed or archived for configuration/change management purposes. It may also be used to add \"fancy\" and up-to-date information to other site documentation, such as a succession plan."
+msgstr ""
+
+#: sitedoc.module:14
+msgid "The Site Documentation module may be run via Cron and the output HTML file archived to disk for future review. The options chosen on the main settings page will govern the data collected and reported."
+msgstr ""
+
+#: sitedoc.module:18
+msgid "The Site Documentation module's data collection and output is governed by these settings. Indented options are in effect only if the parent item is selected."
+msgstr ""
+
+#: sitedoc.module:46;53
+msgid "Site documentation"
+msgstr ""
+
+#: sitedoc.module:47
+msgid "Show site documentation"
+msgstr ""
+
+#: sitedoc.module:54
+msgid "Set how Site Documentation works"
+msgstr ""
+
+#: sitedoc.module:60
+msgid "Report"
+msgstr ""
+
+#: sitedoc.module:61
+msgid "Report settings"
+msgstr ""
+
+#: sitedoc.module:69
+msgid "Archive"
+msgstr ""
+
+#: sitedoc.module:73
+msgid "Set how Site Documentation archive works"
+msgstr ""
+
+#: sitedoc.module:81
+msgid "Site documentation node access list"
+msgstr ""
+
+#: sitedoc.module:82
+msgid "Do not use"
+msgstr ""
+
+#: sitedoc.module:89
+msgid "Site Documentation Term Count by Type"
+msgstr ""
+
+#: sitedoc.module:96
+msgid "Site Documentation PHP Information"
+msgstr ""
+
+#: sitedoc.module:102
+msgid "Table Contents"
+msgstr ""
+
+#: sitedoc.module:173
+msgid "Show Sections"
+msgstr ""
+
+#: sitedoc.module:183
+msgid "Include Basic Drupal information?"
+msgstr ""
+
+#: sitedoc.module:190;518
+msgid "Never"
+msgstr ""
+
+#: sitedoc.module:194
+msgid "Delete Cron variables after"
+msgstr ""
+
+#: sitedoc.module:202
+msgid "Include Table Summary?"
+msgstr ""
+
+#: sitedoc.module:210
+msgid "Show indexes?"
+msgstr ""
+
+#: sitedoc.module:218
+msgid "Release overhead?"
+msgstr ""
+
+#: sitedoc.module:221
+msgid "(SQL intensive - uses OPTIMIZE)"
+msgstr ""
+
+#: sitedoc.module:233
+msgid "Include Sequences Summary?"
+msgstr ""
+
+#: sitedoc.module:242
+msgid "Include Node Summary?"
+msgstr ""
+
+#: sitedoc.module:245;446
+msgid "(SQL intensive)"
+msgstr ""
+
+#: sitedoc.module:251
+msgid "Show nodes exceeding (KB)"
+msgstr ""
+
+#: sitedoc.module:261
+msgid "Warn if nodes exceed (KB)"
+msgstr ""
+
+#: sitedoc.module:271
+msgid "Include node access summary?"
+msgstr ""
+
+#: sitedoc.module:279
+msgid "Include comment count on nodes?"
+msgstr ""
+
+#: sitedoc.module:287
+msgid "Include System Variables?"
+msgstr ""
+
+#: sitedoc.module:290
+msgid "(CPU intensive)"
+msgstr ""
+
+#: sitedoc.module:296
+msgid "Include Module summary?"
+msgstr ""
+
+#: sitedoc.module:304
+msgid "Exclude disabled modules?"
+msgstr ""
+
+#: sitedoc.module:317
+msgid "List sort order"
+msgstr ""
+
+#: sitedoc.module:326
+msgid "Include Content Type summary?"
+msgstr ""
+
+#: sitedoc.module:335
+msgid "Include Vocabulary summary?"
+msgstr ""
+
+#: sitedoc.module:338
+msgid "(may be CPU and SQL intensive)"
+msgstr ""
+
+#: sitedoc.module:344
+msgid "Check for orphan Term_nodes?"
+msgstr ""
+
+#: sitedoc.module:347
+msgid "(may be SQL intensive)"
+msgstr ""
+
+#: sitedoc.module:353
+msgid "Delete orphan term nodes?"
+msgstr ""
+
+#: sitedoc.module:362
+msgid "Include Themes and Theme Engines?"
+msgstr ""
+
+#: sitedoc.module:370
+msgid "Include Blocks and Boxes?"
+msgstr ""
+
+#: sitedoc.module:378
+msgid "Warn on missing theme for blocks?"
+msgstr ""
+
+#: sitedoc.module:381
+msgid "This allows the module to display a warning message if a block exists for a missing theme."
+msgstr ""
+
+#: sitedoc.module:387
+msgid "Delete the orphan blocks?"
+msgstr ""
+
+#: sitedoc.module:390
+msgid "Delete the blocks with a missing theme."
+msgstr ""
+
+#: sitedoc.module:396
+msgid "Include Roles and Permissions?"
+msgstr ""
+
+#: sitedoc.module:404
+msgid "Show list of users for each role?"
+msgstr ""
+
+#: sitedoc.module:407
+msgid "Displays the list of users assigned the role."
+msgstr ""
+
+#: sitedoc.module:413
+msgid "Show role permissions as a list?"
+msgstr ""
+
+#: sitedoc.module:416
+msgid "If not chosen, the roles will be shown as a stream."
+msgstr ""
+
+#: sitedoc.module:423
+msgid "Include Contacts?"
+msgstr ""
+
+#: sitedoc.module:433
+msgid "Include Profile Fields?"
+msgstr ""
+
+#: sitedoc.module:443
+msgid "Include URL Aliases?"
+msgstr ""
+
+#: sitedoc.module:453
+msgid "Include Input Formats and Filters?"
+msgstr ""
+
+#: sitedoc.module:462;543;583
+msgid "Save configuration"
+msgstr ""
+
+#: sitedoc.module:510;591
+msgid "Configuration has been updated. "
+msgstr ""
+
+#: sitedoc.module:510;591;957
+msgid "Run now"
+msgstr ""
+
+#: sitedoc.module:519
+msgid "Always"
+msgstr ""
+
+#: sitedoc.module:524
+msgid "Archive frequency"
+msgstr ""
+
+#: sitedoc.module:528
+msgid "The Site Documentation module will run at the next scheduled Cron run after this period has elapsed. A zero value suppresses creation of an archive. \"Always\" means a file will be created every time Cron runs."
+msgstr ""
+
+#: sitedoc.module:533
+msgid "Archive directory"
+msgstr ""
+
+#: sitedoc.module:537
+msgid "This is directory within '!filepath' where the Site Documentation module will place the archive file. The current date will be appended to the file name."
+msgstr ""
+
+#: sitedoc.module:552;579
+msgid "Run Cron Now"
+msgstr ""
+
+#: sitedoc.module:570
+msgid "The archive path could not be found or could not be created."
+msgstr ""
+
+#: sitedoc.module:602
+msgid "It appears that you have not been to \"administer >> site configuration\" to set the Site Documentation settings. "
+msgstr ""
+
+#: sitedoc.module:602
+msgid "Click here to do so."
+msgstr ""
+
+#: sitedoc.module:606
+msgid "Change settings."
+msgstr ""
+
+#: sitedoc.module:612
+msgid "Drupal Section"
+msgstr ""
+
+#: sitedoc.module:625
+msgid "Table Section"
+msgstr ""
+
+#: sitedoc.module:638
+msgid "Sequences Section"
+msgstr ""
+
+#: sitedoc.module:651
+msgid "Node Summary"
+msgstr ""
+
+#: sitedoc.module:664
+msgid "Node Access"
+msgstr ""
+
+#: sitedoc.module:678;2024
+msgid "Content Types"
+msgstr ""
+
+#: sitedoc.module:691
+msgid "Modules"
+msgstr ""
+
+#: sitedoc.module:704
+msgid "Themes"
+msgstr ""
+
+#: sitedoc.module:714
+msgid "Theme Engines"
+msgstr ""
+
+#: sitedoc.module:727
+msgid "Vocabularies"
+msgstr ""
+
+#: sitedoc.module:738
+msgid "Orphan Term_nodes"
+msgstr ""
+
+#: sitedoc.module:740;2147
+msgid "No orphan term_nodes found."
+msgstr ""
+
+#: sitedoc.module:752
+msgid "Variables"
+msgstr ""
+
+#: sitedoc.module:766;1811;2461
+msgid "Blocks"
+msgstr ""
+
+#: sitedoc.module:779
+msgid "Custom Blocks (Boxes)"
+msgstr ""
+
+#: sitedoc.module:782
+msgid "No boxes found."
+msgstr ""
+
+#: sitedoc.module:793;1807;2857
+msgid "Roles"
+msgstr ""
+
+#: sitedoc.module:796
+msgid "No roles found."
+msgstr ""
+
+#: sitedoc.module:807
+msgid "Contacts"
+msgstr ""
+
+#: sitedoc.module:810
+msgid "No contacts found."
+msgstr ""
+
+#: sitedoc.module:821
+msgid "Profile Fields"
+msgstr ""
+
+#: sitedoc.module:824
+msgid "No profile fields found."
+msgstr ""
+
+#: sitedoc.module:835
+msgid "URL Aliases"
+msgstr ""
+
+#: sitedoc.module:838
+msgid "No aliases found."
+msgstr ""
+
+#: sitedoc.module:850
+msgid "Input Formats and Filters"
+msgstr ""
+
+#: sitedoc.module:872
+msgid "It appears that you have not been to \"administer >> site configuration\" to set the Site Documentation settings."
+msgstr ""
+
+#: sitedoc.module:893
+msgid "Cannot write \"!file\" to archive directory."
+msgstr ""
+
+#: sitedoc.module:907
+msgid "Documentation file save failed."
+msgstr ""
+
+#: sitedoc.module:908
+msgid "Documentation file saved as !name"
+msgstr ""
+
+#: sitedoc.module:932;947;949;1136;1143;2021
+msgid "Disabled"
+msgstr ""
+
+#: sitedoc.module:932;949
+msgid "Enabled"
+msgstr ""
+
+#: sitedoc.module:933;2547
+msgid "False"
+msgstr ""
+
+#: sitedoc.module:933;2547
+msgid "True"
+msgstr ""
+
+#: sitedoc.module:934;2627
+msgid "No"
+msgstr ""
+
+#: sitedoc.module:934;2627
+msgid "Yes"
+msgstr ""
+
+#: sitedoc.module:936
+msgid "Item"
+msgstr ""
+
+#: sitedoc.module:936;2519;2537
+msgid "Value"
+msgstr ""
+
+#: sitedoc.module:936;1306;2709;2805
+msgid "Operation"
+msgstr ""
+
+#: sitedoc.module:937
+msgid "Settings"
+msgstr ""
+
+#: sitedoc.module:940
+msgid "Site Name"
+msgstr ""
+
+#: sitedoc.module:941;1230;1300;1666
+msgid "Version"
+msgstr ""
+
+#: sitedoc.module:942
+msgid "Configuration file"
+msgstr ""
+
+#: sitedoc.module:943
+msgid "Install profile"
+msgstr ""
+
+#: sitedoc.module:944;1241
+msgid "Base URL"
+msgstr ""
+
+#: sitedoc.module:947
+msgid "Normal"
+msgstr ""
+
+#: sitedoc.module:947
+msgid "Agressive"
+msgstr ""
+
+#: sitedoc.module:948;2858
+msgid "Cache"
+msgstr ""
+
+#: sitedoc.module:949
+msgid "CSS preprocess"
+msgstr ""
+
+#: sitedoc.module:952
+msgid "Clean URLS"
+msgstr ""
+
+#: sitedoc.module:955
+msgid "Last run !time ago"
+msgstr ""
+
+#: sitedoc.module:955
+msgid "Not run yet"
+msgstr ""
+
+#: sitedoc.module:962
+msgid "Running for !time"
+msgstr ""
+
+#: sitedoc.module:971
+msgid "Cron"
+msgstr ""
+
+#: sitedoc.module:974
+msgid "Search Cron limit"
+msgstr ""
+
+#: sitedoc.module:988
+msgid "%percentage of the site has been indexed."
+msgstr ""
+
+#: sitedoc.module:990
+msgid "Run Cron"
+msgstr ""
+
+#: sitedoc.module:991
+msgid "Search status"
+msgstr ""
+
+#: sitedoc.module:994
+msgid "Anonymous"
+msgstr ""
+
+#: sitedoc.module:995
+msgid "File directory"
+msgstr ""
+
+#: sitedoc.module:998;2628
+msgid "Public"
+msgstr ""
+
+#: sitedoc.module:1002;2628
+msgid "Private"
+msgstr ""
+
+#: sitedoc.module:1006
+msgid "Download method"
+msgstr ""
+
+#: sitedoc.module:1012
+msgid "Restricted"
+msgstr ""
+
+#: sitedoc.module:1015
+msgid "Show all menus"
+msgstr ""
+
+#: sitedoc.module:1017
+msgid "Content menu links"
+msgstr ""
+
+#: sitedoc.module:1019
+msgid "Default theme"
+msgstr ""
+
+#: sitedoc.module:1022
+msgid "Teaser length"
+msgstr ""
+
+#: sitedoc.module:1022
+msgid "unlimited"
+msgstr ""
+
+#: sitedoc.module:1035
+msgid "Default filter format"
+msgstr ""
+
+#: sitedoc.module:1037
+msgid "Operating system"
+msgstr ""
+
+#: sitedoc.module:1040
+msgid "Drupal"
+msgstr ""
+
+#: sitedoc.module:1050
+msgid "Web server"
+msgstr ""
+
+#: sitedoc.module:1052
+msgid "Server name"
+msgstr ""
+
+#: sitedoc.module:1054
+msgid "Apache modules"
+msgstr ""
+
+#: sitedoc.module:1059
+msgid "Webserver Information"
+msgstr ""
+
+#: sitedoc.module:1086
+msgid "Php version"
+msgstr ""
+
+#: sitedoc.module:1086
+msgid "View phpinfo"
+msgstr ""
+
+#: sitedoc.module:1091
+msgid "Safe mode"
+msgstr ""
+
+#: sitedoc.module:1097
+msgid "Display errors"
+msgstr ""
+
+#: sitedoc.module:1100
+msgid "Memory limit"
+msgstr ""
+
+#: sitedoc.module:1100
+msgid "default"
+msgstr ""
+
+#: sitedoc.module:1112
+msgid "Error reporting"
+msgstr ""
+
+#: sitedoc.module:1114
+msgid "Upload max filesize"
+msgstr ""
+
+#: sitedoc.module:1115
+msgid "Magic quotes GPC"
+msgstr ""
+
+#: sitedoc.module:1116
+msgid "Magic quotes runtime"
+msgstr ""
+
+#: sitedoc.module:1117
+msgid "Precision"
+msgstr ""
+
+#: sitedoc.module:1118
+msgid "Register globals"
+msgstr ""
+
+#: sitedoc.module:1119
+msgid "Session cache limiter"
+msgstr ""
+
+#: sitedoc.module:1121
+msgid "Session cookie domain"
+msgstr ""
+
+#: sitedoc.module:1121
+msgid "- none -"
+msgstr ""
+
+#: sitedoc.module:1122
+msgid "Session name"
+msgstr ""
+
+#: sitedoc.module:1123
+msgid "Session save handler"
+msgstr ""
+
+#: sitedoc.module:1128
+msgid "GD version"
+msgstr ""
+
+#: sitedoc.module:1130
+msgid "FreeType support"
+msgstr ""
+
+#: sitedoc.module:1131
+msgid "Jpg support"
+msgstr ""
+
+#: sitedoc.module:1132
+msgid "Png support"
+msgstr ""
+
+#: sitedoc.module:1136
+msgid "GD support"
+msgstr ""
+
+#: sitedoc.module:1140
+msgid "CURL version"
+msgstr ""
+
+#: sitedoc.module:1143
+msgid "CURL support"
+msgstr ""
+
+#: sitedoc.module:1146
+msgid "Multibyte support"
+msgstr ""
+
+#: sitedoc.module:1147
+msgid "XML support"
+msgstr ""
+
+#: sitedoc.module:1148
+msgid "Zip support"
+msgstr ""
+
+#: sitedoc.module:1149
+msgid "Zlib support"
+msgstr ""
+
+#: sitedoc.module:1152
+msgid "PHP Information"
+msgstr ""
+
+#: sitedoc.module:1200
+msgid "Database Information"
+msgstr ""
+
+#: sitedoc.module:1225
+msgid "Overview"
+msgstr ""
+
+#: sitedoc.module:1228
+msgid "Database type"
+msgstr ""
+
+#: sitedoc.module:1228;1229
+msgid "Unknown"
+msgstr ""
+
+#: sitedoc.module:1239
+msgid "Database URL"
+msgstr ""
+
+#: sitedoc.module:1242
+msgid "Database prefix"
+msgstr ""
+
+#: sitedoc.module:1245
+msgid "Privileges"
+msgstr ""
+
+#: sitedoc.module:1273
+msgid "Selected Variables"
+msgstr ""
+
+#: sitedoc.module:1286
+msgid "Selected Status"
+msgstr ""
+
+#: sitedoc.module:1298
+msgid "Table"
+msgstr ""
+
+#: sitedoc.module:1299
+msgid "Engine"
+msgstr ""
+
+#: sitedoc.module:1301
+msgid "Row Format"
+msgstr ""
+
+#: sitedoc.module:1302
+msgid "Rows"
+msgstr ""
+
+#: sitedoc.module:1303
+msgid "Data Length"
+msgstr ""
+
+#: sitedoc.module:1304
+msgid "Index Length"
+msgstr ""
+
+#: sitedoc.module:1305
+msgid "Overhead"
+msgstr ""
+
+#: sitedoc.module:1328
+msgid "released"
+msgstr ""
+
+#: sitedoc.module:1341
+msgid "Show contents"
+msgstr ""
+
+#: sitedoc.module:1341
+msgid "Display the contents of the '@table' table."
+msgstr ""
+
+#: sitedoc.module:1344
+msgid "Indexes"
+msgstr ""
+
+#: sitedoc.module:1363
+msgid "Table Status"
+msgstr ""
+
+#: sitedoc.module:1381
+msgid "Total database size is !num !unit"
+msgstr ""
+
+#: sitedoc.module:1382
+msgid "!count tables found in !db."
+msgstr ""
+
+#: sitedoc.module:1407
+msgid "Key Name"
+msgstr ""
+
+#: sitedoc.module:1407
+msgid "Columns"
+msgstr ""
+
+#: sitedoc.module:1407
+msgid "Collation"
+msgstr ""
+
+#: sitedoc.module:1407
+msgid "Cardinality"
+msgstr ""
+
+#: sitedoc.module:1472
+msgid "You must supply a valid database table name."
+msgstr ""
+
+#: sitedoc.module:1480
+msgid "The '@table' table has no index defined. This is probably normal."
+msgstr ""
+
+#: sitedoc.module:1487
+msgid "@table Table Contents"
+msgstr ""
+
+#: sitedoc.module:1488
+msgid "Click on a column title to sort by that column."
+msgstr ""
+
+#: sitedoc.module:1547;1561;1589
+msgid "Other"
+msgstr ""
+
+#: sitedoc.module:1595
+msgid "'!name' for the '!pkg' package was found in '!found' but a previous module was in '!prior'."
+msgstr ""
+
+#: sitedoc.module:1633
+msgid "Unrecognized sort order."
+msgstr ""
+
+#: sitedoc.module:1644;1781;1965
+msgid "disabled"
+msgstr ""
+
+#: sitedoc.module:1647;1824;1988
+msgid "missing"
+msgstr ""
+
+#: sitedoc.module:1652;1781
+msgid "enabled"
+msgstr ""
+
+#: sitedoc.module:1665;1803;1971;2183;2459;2519;2537;2641;2856
+msgid "Name"
+msgstr ""
+
+#: sitedoc.module:1667;1754;1804
+msgid "Status"
+msgstr ""
+
+#: sitedoc.module:1668
+msgid "Project / Package"
+msgstr ""
+
+#: sitedoc.module:1669;1754;1972;2024;2059
+msgid "Description"
+msgstr ""
+
+#: sitedoc.module:1670
+msgid "Required By"
+msgstr ""
+
+#: sitedoc.module:1671
+msgid "Depends On"
+msgstr ""
+
+#: sitedoc.module:1673
+msgid "!count modules found."
+msgstr ""
+
+#: sitedoc.module:1728
+msgid "!count disabled modules excluded."
+msgstr ""
+
+#: sitedoc.module:1744
+msgid "No system table type specified."
+msgstr ""
+
+#: sitedoc.module:1752
+msgid " found."
+msgstr ""
+
+#: sitedoc.module:1754
+msgid "Path"
+msgstr ""
+
+#: sitedoc.module:1766
+msgid "No entries found! Very curious."
+msgstr ""
+
+#: sitedoc.module:1782
+msgid "Show except"
+msgstr ""
+
+#: sitedoc.module:1782
+msgid "Show only"
+msgstr ""
+
+#: sitedoc.module:1782
+msgid "Php"
+msgstr ""
+
+#: sitedoc.module:1788
+msgid "Performance may be improved by adding an index. See <a href=\"!url\">this discussion</a>."
+msgstr ""
+
+#: sitedoc.module:1800
+msgid "Theme"
+msgstr ""
+
+#: sitedoc.module:1801;1971;2025;2922
+msgid "Module"
+msgstr ""
+
+#: sitedoc.module:1802
+msgid "Delta"
+msgstr ""
+
+#: sitedoc.module:1803;2307;2415;2640;2805
+msgid "Title"
+msgstr ""
+
+#: sitedoc.module:1805;2025;2586;2645;2882
+msgid "Weight"
+msgstr ""
+
+#: sitedoc.module:1806
+msgid "Region"
+msgstr ""
+
+#: sitedoc.module:1808
+msgid "Visibility"
+msgstr ""
+
+#: sitedoc.module:1809
+msgid "Pages"
+msgstr ""
+
+#: sitedoc.module:1836
+msgid "NOT DELETED"
+msgstr ""
+
+#: sitedoc.module:1839
+msgid "DELETED"
+msgstr ""
+
+#: sitedoc.module:1840
+msgid "Deleted block "
+msgstr ""
+
+#: sitedoc.module:1876
+msgid "see boxes"
+msgstr ""
+
+#: sitedoc.module:1889
+msgid "No Blocks found."
+msgstr ""
+
+#: sitedoc.module:1891
+msgid "!count Blocks found."
+msgstr ""
+
+#: sitedoc.module:1893
+msgid "For example:"
+msgstr ""
+
+#: sitedoc.module:1897
+msgid "Blocks defined for non-existent theme(s)"
+msgstr ""
+
+#: sitedoc.module:1919
+msgid "Box Name"
+msgstr ""
+
+#: sitedoc.module:1920;2855
+msgid "Format"
+msgstr ""
+
+#: sitedoc.module:1921
+msgid "Body"
+msgstr ""
+
+#: sitedoc.module:1929
+msgid "block missing"
+msgstr ""
+
+#: sitedoc.module:1932
+msgid "Box number !bid deleted."
+msgstr ""
+
+#: sitedoc.module:1947
+msgid "!count boxes found."
+msgstr ""
+
+#: sitedoc.module:1964;2041
+msgid "no"
+msgstr ""
+
+#: sitedoc.module:1964;2041
+msgid "yes"
+msgstr ""
+
+#: sitedoc.module:1965
+msgid "read-only"
+msgstr ""
+
+#: sitedoc.module:1965
+msgid "read/write"
+msgstr ""
+
+#: sitedoc.module:1969;2249;2414;2644
+msgid "Type"
+msgstr ""
+
+#: sitedoc.module:1970;2058;2250
+msgid "Count"
+msgstr ""
+
+#: sitedoc.module:1973
+msgid "Has title"
+msgstr ""
+
+#: sitedoc.module:1973
+msgid "Has body"
+msgstr ""
+
+#: sitedoc.module:1973
+msgid "Has help"
+msgstr ""
+
+#: sitedoc.module:1974
+msgid "Min words"
+msgstr ""
+
+#: sitedoc.module:1975
+msgid "Custom"
+msgstr ""
+
+#: sitedoc.module:1975
+msgid "Modified"
+msgstr ""
+
+#: sitedoc.module:1975
+msgid "Locked"
+msgstr ""
+
+#: sitedoc.module:1976
+msgid "Workflow"
+msgstr ""
+
+#: sitedoc.module:1976;2256
+msgid "Comments"
+msgstr ""
+
+#: sitedoc.module:2003
+msgid " content types found. Missing modules identified."
+msgstr ""
+
+#: sitedoc.module:2004
+msgid " content types found."
+msgstr ""
+
+#: sitedoc.module:2020;2141;2580
+msgid " module not enabled"
+msgstr ""
+
+#: sitedoc.module:2021
+msgid "Single"
+msgstr ""
+
+#: sitedoc.module:2021
+msgid "Multiple"
+msgstr ""
+
+#: sitedoc.module:2024
+msgid "Name (vid)"
+msgstr ""
+
+#: sitedoc.module:2024
+msgid "Help"
+msgstr ""
+
+#: sitedoc.module:2024
+msgid "Hierarchy"
+msgstr ""
+
+#: sitedoc.module:2025
+msgid "Terms"
+msgstr ""
+
+#: sitedoc.module:2033
+msgid "related"
+msgstr ""
+
+#: sitedoc.module:2034
+msgid "multi-select"
+msgstr ""
+
+#: sitedoc.module:2035
+msgid "required"
+msgstr ""
+
+#: sitedoc.module:2036
+msgid "free-tag"
+msgstr ""
+
+#: sitedoc.module:2057
+msgid "Term (tid)"
+msgstr ""
+
+#: sitedoc.module:2092;2093
+msgid "Vocabulary not found."
+msgstr ""
+
+#: sitedoc.module:2099
+msgid "Term"
+msgstr ""
+
+#: sitedoc.module:2146
+msgid "There are "
+msgstr ""
+
+#: sitedoc.module:2146
+msgid "term_nodes but only "
+msgstr ""
+
+#: sitedoc.module:2146
+msgid " nodes."
+msgstr ""
+
+#: sitedoc.module:2161
+msgid "Deleted term_node "
+msgstr ""
+
+#: sitedoc.module:2184
+msgid "Last ID"
+msgstr ""
+
+#: sitedoc.module:2216
+msgid " nodes found."
+msgstr ""
+
+#: sitedoc.module:2241
+msgid "Weight-encoded in sticky field has been detected."
+msgstr ""
+
+#: sitedoc.module:2251
+msgid "Published"
+msgstr ""
+
+#: sitedoc.module:2252
+msgid "Promoted"
+msgstr ""
+
+#: sitedoc.module:2253
+msgid "Sticky"
+msgstr ""
+
+#: sitedoc.module:2254
+msgid "Weighted"
+msgstr ""
+
+#: sitedoc.module:2255
+msgid "Moderated"
+msgstr ""
+
+#: sitedoc.module:2300
+msgid " nodes exceed "
+msgstr ""
+
+#: sitedoc.module:2304
+msgid "No nodes exceed "
+msgstr ""
+
+#: sitedoc.module:2308
+msgid "Length (KB)"
+msgstr ""
+
+#: sitedoc.module:2311
+msgid "Large Nodes"
+msgstr ""
+
+#: sitedoc.module:2345
+msgid "You have !num nodes in your node table which are not represented in your node_access table.  If you have an access control module installed, these nodes may be hidden from all users.  This could be caused by publishing nodes before enabling the access control module.  If this is the case, manually updating each node should add it to the node_access table and fix the problem. Click here to !rebuild."
+msgstr ""
+
+#: sitedoc.module:2345
+msgid "rebuild permissions"
+msgstr ""
+
+#: sitedoc.module:2349
+msgid "All nodes are represented in the node_access table."
+msgstr ""
+
+#: sitedoc.module:2357
+msgid "Access Granted to All Nodes (All Users)"
+msgstr ""
+
+#: sitedoc.module:2358
+msgid "Your node_access table contains entries (!r) that may be granting all users access to all nodes.  Depending on which access control module(s) you use, you may want to delete these entries.  If you are not using an access control module, you should probably leave these entries as is."
+msgstr ""
+
+#: sitedoc.module:2364
+msgid "Access Granted to All Nodes (Some Users)"
+msgstr ""
+
+#: sitedoc.module:2365
+msgid "Your node_access table contains entries that may be granting some users access to all nodes.  This may be normal, depending on which access control module(s) you use."
+msgstr ""
+
+#: sitedoc.module:2366
+msgid "realm"
+msgstr ""
+
+#: sitedoc.module:2374
+msgid "Realm"
+msgstr ""
+
+#: sitedoc.module:2375
+msgid "Nodes"
+msgstr ""
+
+#: sitedoc.module:2376;2708
+msgid "Notes"
+msgstr ""
+
+#: sitedoc.module:2388
+msgid "Public nodes"
+msgstr ""
+
+#: sitedoc.module:2389
+msgid "This realm grants all users access to some specific nodes. If some of your content is available to the public, this may be normal."
+msgstr ""
+
+#: sitedoc.module:2392
+msgid "Private nodes"
+msgstr ""
+
+#: sitedoc.module:2393
+msgid "This realm grants limited access to some specific nodes."
+msgstr ""
+
+#: sitedoc.module:2415
+msgid "click to edit"
+msgstr ""
+
+#: sitedoc.module:2421
+msgid "Unprotected Nodes"
+msgstr ""
+
+#: sitedoc.module:2426
+msgid "Nodes in Realm: "
+msgstr ""
+
+#: sitedoc.module:2460
+msgid "Permissions"
+msgstr ""
+
+#: sitedoc.module:2462
+msgid "Users"
+msgstr ""
+
+#: sitedoc.module:2493
+msgid "!count Roles found."
+msgstr ""
+
+#: sitedoc.module:2517
+msgid " system variables found."
+msgstr ""
+
+#: sitedoc.module:2540
+msgid "Empty"
+msgstr ""
+
+#: sitedoc.module:2584
+msgid "Category"
+msgstr ""
+
+#: sitedoc.module:2585
+msgid "Recipients"
+msgstr ""
+
+#: sitedoc.module:2587
+msgid "Selected"
+msgstr ""
+
+#: sitedoc.module:2604
+msgid "!count Contacts found."
+msgstr ""
+
+#: sitedoc.module:2620;2696
+msgid "module not enabled"
+msgstr ""
+
+#: sitedoc.module:2628
+msgid "Hidden"
+msgstr ""
+
+#: sitedoc.module:2628
+msgid "Profile"
+msgstr ""
+
+#: sitedoc.module:2630
+msgid "Text"
+msgstr ""
+
+#: sitedoc.module:2631
+msgid "Area"
+msgstr ""
+
+#: sitedoc.module:2632
+msgid "URL"
+msgstr ""
+
+#: sitedoc.module:2633
+msgid "Check"
+msgstr ""
+
+#: sitedoc.module:2634
+msgid "select"
+msgstr ""
+
+#: sitedoc.module:2635
+msgid "Free"
+msgstr ""
+
+#: sitedoc.module:2636
+msgid "Date"
+msgstr ""
+
+#: sitedoc.module:2639
+msgid "Fid"
+msgstr ""
+
+#: sitedoc.module:2642
+msgid "Explanation"
+msgstr ""
+
+#: sitedoc.module:2643
+msgid "Page"
+msgstr ""
+
+#: sitedoc.module:2646
+msgid "Visiblity"
+msgstr ""
+
+#: sitedoc.module:2647
+msgid "Required"
+msgstr ""
+
+#: sitedoc.module:2648
+msgid "Register"
+msgstr ""
+
+#: sitedoc.module:2649
+msgid "Auto complete"
+msgstr ""
+
+#: sitedoc.module:2650
+msgid "Options"
+msgstr ""
+
+#: sitedoc.module:2662
+msgid "Category: "
+msgstr ""
+
+#: sitedoc.module:2682
+msgid "!count Profile fields found."
+msgstr ""
+
+#: sitedoc.module:2705
+msgid "pid"
+msgstr ""
+
+#: sitedoc.module:2706
+msgid "Source"
+msgstr ""
+
+#: sitedoc.module:2707
+msgid "Destination"
+msgstr ""
+
+#: sitedoc.module:2717
+msgid "duplicate source"
+msgstr ""
+
+#: sitedoc.module:2739
+msgid "edit node"
+msgstr ""
+
+#: sitedoc.module:2742
+msgid "missing node"
+msgstr ""
+
+#: sitedoc.module:2750
+msgid "missing taxonomy term"
+msgstr ""
+
+#: sitedoc.module:2755
+msgid "missing faq taxonomy term"
+msgstr ""
+
+#: sitedoc.module:2760
+msgid "missing user"
+msgstr ""
+
+#: sitedoc.module:2767
+msgid "ask the !name module"
+msgstr ""
+
+#: sitedoc.module:2768
+msgid "unhandled path type"
+msgstr ""
+
+#: sitedoc.module:2774
+msgid "path"
+msgstr ""
+
+#: sitedoc.module:2794
+msgid "edit"
+msgstr ""
+
+#: sitedoc.module:2802
+msgid "Nodes without URL Alias"
+msgstr ""
+
+#: sitedoc.module:2810
+msgid "!count URL Aliases found"
+msgstr ""
+
+#: sitedoc.module:2811
+msgid "with !problems notes."
+msgstr ""
+
+#: sitedoc.module:2813
+msgid "!count nodes without aliases found."
+msgstr ""
+
+#: sitedoc.module:2833
+msgid "Filters and Input Formats"
+msgstr ""
+
+#: sitedoc.module:2849
+msgid "Input Formats"
+msgstr ""
+
+#: sitedoc.module:2859
+msgid "Filters"
+msgstr ""
+
+#: sitedoc.module:2882
+msgid "Name (Module, Delta)"
+msgstr ""
+
+#: sitedoc.module:2906
+msgid "Available Filters"
+msgstr ""
+
+#: sitedoc.module:2919
+msgid "None"
+msgstr ""
+
+#: sitedoc.module:2922
+msgid "Provides"
+msgstr ""
+
+#: sitedoc.module:2922
+msgid "Used In"
+msgstr ""
+
+#: sitedoc.module:872;893;907;908
+msgid "Site Doc"
+msgstr ""
+
+#: sitedoc.module:986
+msgid "There is 1 item left to index."
+msgid_plural "There are @count items left to index."
+msgstr[0] ""
+msgstr[1] ""
+
+#: sitedoc.module:27
+msgid "view site documentation"
+msgstr ""
+
+#: sitedoc.module:0
+msgid "sitedoc"
+msgstr ""
+
+#: sitedoc.install:12
+msgid "The Site Documentation module was installed. You may want to go to the <a href=\"!settings\">settings page now</a>."
+msgstr ""
+
+#: sitedoc.install:11;30 sitedoc.info:0
+msgid "Site Documentation"
+msgstr ""
+
+#: sitedoc.info:0
+msgid "Displays various pieces of information about this Drupal installation."
+msgstr ""
+

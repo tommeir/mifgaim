@@ -1,0 +1,12 @@
+; $Id: protect_critical_users.info,v 1.1.2.2 2008/11/20 05:33:29 markuspetrux Exp $
+name = Protect Critical Users
+description = Protects critical users from being deleted.
+package = Administration
+core = 6.x
+
+; Information added by drupal.org packaging script on 2008-11-20
+version = "6.x-1.1"
+core = "6.x"
+project = "protect_critical_users"
+datestamp = "1227159919"
+

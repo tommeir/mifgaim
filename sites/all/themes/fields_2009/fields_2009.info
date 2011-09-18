@@ -1,0 +1,21 @@
+name = Fields 2009
+description = Template Fields 2009
+version = 6.6
+core = 6.x
+engine = phptemplate
+
+regions[header]        = Header
+regions[middle_left]   = Middle block Left
+regions[middle_center] = Middle block Center
+regions[middle_right]  = Middle block Right
+regions[content]       = Content
+regions[sidebar]       = Right sidebar
+regions[footer]        = Footer
+
+
+; Information added by drupal.org packaging script on 2009-10-30
+version = "6.x-3.0"
+core = "6.x"
+project = "fields_2009"
+datestamp = "1256915736"
+

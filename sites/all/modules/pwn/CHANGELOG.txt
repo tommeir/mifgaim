@@ -1,0 +1,13 @@
+// $Id: CHANGELOG.txt,v 1.4 2010/02/25 04:15:44 ceardach Exp $
+
+02/24/10
+--------
+- Added ability for a user to share permissions through granting roles to users
+  if those roles do not have a permission the user does not have themselves
+
+07/20/09
+--------
+- Users with 'share permissions' permission can access the permissions
+  administration page like a user with 'administer permissions', but they can
+  only see permissions that exist in one of their roles (using menu_alter and
+  form_alter).  No configuration options.

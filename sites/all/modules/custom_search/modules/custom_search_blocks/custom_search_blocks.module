@@ -1,0 +1,148 @@
+<?php
+// $Id: custom_search_blocks.module,v 1.1.2.15 2010/11/30 08:51:02 jdanthinne Exp $
+
+/**
+ * @file
+ * Bring additional search blocks
+ *
+ * Adds node types and taxonomy options to the search form
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function custom_search_blocks_menu() {
+  $items['admin/settings/custom_search/blocks'] = array(
+    'title'             => 'Search Blocks',
+    'description'       => 'Provide additional search blocks by content type.',
+    'page arguments'    => array('custom_search_blocks_admin'),
+    'access arguments'  => array('administer custom search blocks'),
+    'file'              => 'custom_search_blocks.admin.inc',
+    'type'              => MENU_LOCAL_TASK,
+    'weight'            => 3,
+  );
+  return $items;
+}
+
+/**
+ * Implementation of hook_perm().
+ */
+function custom_search_blocks_perm() {
+  return array('administer custom search blocks', 'use custom search blocks');
+}
+
+/**
+ * Implementation of hook_block() to provide additional blocks.
+ */
+function custom_search_blocks_block($op = 'list', $delta = 0, $edit = array()) {
+  switch ($op) {
+
+    case 'configure':
+      $form['search_box'] = array(
+        '#type'   => 'fieldset',
+        '#title'  => t('Search box'),
+      );
+      $form['search_box']['custom_search_blocks_' . $delta . '_label_visibility'] = array(
+        '#type'           => 'checkbox',
+        '#title'          => t('Display label'),
+        '#default_value'  => variable_get('custom_search_blocks_' . $delta . '_label_visibility', TRUE),
+      );
+      $form['search_box']['custom_search_blocks_' . $delta . '_label'] = array(
+        '#type'           => 'textfield',
+        '#title'          => t('Label text'),
+        '#default_value'  => variable_get('custom_search_blocks_' . $delta . '_label', CUSTOM_SEARCH_LABEL_DEFAULT),
+        '#description'    => t('Enter the label text for the search box. The default value is "!default".', array('!default' => CUSTOM_SEARCH_LABEL_DEFAULT)),
+      );
+      $form['search_box']['custom_search_blocks_' . $delta . '_text'] = array(
+        '#type'           => 'textfield',
+        '#title'          => t('Search box default text'),
+        '#default_value'  => variable_get('custom_search_blocks_' . $delta . '_text', ''),
+        '#description'    => t('This will change the default text inside the search form. Leave blank for no text. This field is blank by default.'),
+      );
+      // Content.
+      $form['content'] = array(
+        '#type'         => 'fieldset',
+        '#title'        => t('Content'),
+        '#collapsible'  => TRUE,
+        '#collapsed'    => TRUE,
+      );
+      $form['content'] = array_merge($form['content'], custom_search_content_admin_form($delta));
+      // Custom search paths
+      $form = array_merge($form, custom_search_custom_paths_admin_form($delta));
+      // Ordering
+      $form = array_merge($form, custom_search_ordering_admin_form($delta));
+      $form['order']['#weight'] = 50;
+
+      return $form;
+    break;
+
+    case 'save':
+      foreach ($edit as $key => $value) {
+        if (drupal_substr($key, 0, 20) == 'custom_search_blocks') variable_set($key, $value);
+      }
+      foreach ($edit['custom_search_blocks_' . $delta . '_order'] as $key => $data) {
+        variable_set('custom_search_blocks_' . $delta . '_' . $key . '_weight', $data['sort']);
+        variable_set('custom_search_blocks_' . $delta . '_' . $key . '_region', $data['region']);
+      }
+    break;
+
+    case 'list':
+      $blocks = array();
+      for ($a = 1 ; $a <= variable_get('custom_search_blocks_number', 1) ; $a++) {
+        $blocks[$a]['info'] = "Custom Search $a";
+        $blocks[$a]['cache'] = BLOCK_NO_CACHE;
+      }
+      return $blocks;
+    break;
+
+    case 'view':
+      if (user_access('use custom search blocks')) {
+        $block['content'] = drupal_get_form('custom_search_blocks_form_' . $delta, $delta);
+        $block['subject'] = "Custom Search $delta";
+        return $block;
+      }
+    break;
+  }
+
+}
+
+/**
+ * Implementation of hook_forms() to generate a unique form_id with the same form builder function
+ */
+function custom_search_blocks_forms($form_id, $args) {
+  for ($a = 1 ; $a <= variable_get('custom_search_blocks_number', 1) ; $a++) {
+    $forms['custom_search_blocks_form_' . $a] = array(
+      'callback'            => 'custom_search_blocks_form',
+      'callback arguments'  => array($a),
+    );
+  }
+  return $forms;
+}
+
+/**
+ * Form builder; Output a search form for the additional search blocks.
+ */
+function custom_search_blocks_form(&$form_state, $delta) {
+  $form['custom_search_blocks_form_' . $delta] = array(
+    '#type'           => 'textfield',
+    '#size'           => 15,
+    '#default_value'  => '',
+    '#attributes'     => array('title' => t('Enter the terms you wish to search for.')),
+  );
+
+  $form['delta'] = array('#type' => 'hidden', '#value' => $delta);
+  $form['submit'] = array('#type' => 'submit', '#value' => t('Search'));
+  $form['#submit'][] = 'search_box_form_submit';
+
+  if (function_exists('apachesolr_autocomplete_variable_get_widget')) {
+    // support for apachesolr_autocomplete module
+    if (apachesolr_autocomplete_variable_get_widget() == 'custom') {
+      $form['#attributes']['class'] = 'apachesolr-autocomplete unprocessed';
+    }
+    else {
+      $form['#autocomplete_path'] = 'apachesolr_autocomplete';
+    }
+  }
+
+  return $form;
+}

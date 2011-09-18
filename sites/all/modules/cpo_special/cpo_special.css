@@ -1,0 +1,25 @@
+#block-menu-primary-links ul.menu {
+	list-style:none;
+	overflow:auto; /* makes sure the container fits the floated list-items below */
+}
+#block-menu-primary-links ul.menu li{
+	margin:3px 5px;
+	padding:0; /* padding moved to the a element below */
+	float:left;
+	color:#333;
+}
+#block-menu-primary-links ul.menu li a {
+	display:block; /* allows us to add top and bottom padding to the element */
+	position: relative;
+	z-index: 5;
+	color:#333;
+	text-decoration:none;
+}
+#block-menu-primary-links ul.menu li a:hover {
+	color:#FFF;
+}
+#block-menu-primary-links ul.menu li.backLava {
+	position:absolute;
+	z-index:3;
+	background:url("../../themes/genesis/genesis_SUBTHEME/images/li-active-nav.jpg") no-repeat top left;
+}

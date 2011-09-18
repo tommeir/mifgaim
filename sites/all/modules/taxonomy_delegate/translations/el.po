@@ -1,0 +1,141 @@
+# $Id: el.po,v 1.1.2.1 2008/03/22 01:30:14 nancyw Exp $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  taxonomy_delegate.module,v 1.1 2008/02/23 05:00:02 nancyw
+#  taxonomy_delegate.info,v 1.1 2008/02/23 05:00:02 nancyw
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: taxonomy delegate greek translation\n"
+"POT-Creation-Date: 2008-02-23 00:48-0500\n"
+"PO-Revision-Date: 2008-03-21 16:05+0200\n"
+"Last-Translator: Dimitris Kounalakis <dcoun@medsite.info>\n"
+"Language-Team: Dimitris Kounalakis <dcoun@medsite.info>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Poedit-Language: Greek\n"
+"X-Poedit-Country: GREECE\n"
+
+#: taxonomy_delegate.module:22
+msgid "The taxonomy_delegate module allows the administrator to delegate the maintenance of selected vocabularies without the need to grant \"access taxonomy\" permission. Delegation is done on the <a href=\"!link\">Category Delegate</a> tab of the Categories administration page."
+msgstr "Η μονάδα taxonomy_delegate επιτρέπει στο διαχειριστή να αναθέσει την συντήρηση επιλεγμένων λεξιλογίων χωρίς να χρειάζεται να εκχωρήσει το δικαίωμα \"access taxonomy\". Η ανάθεση πραγματοποιείται στην καρτέλα <a href=\"!link\">Ανάθεση Ταξινόμησης</a> της ταξινόμησης της σελίδας διαχείρησης."
+
+#: taxonomy_delegate.module:24
+msgid "Note that forum containers and topics are a vocabulary, so you may delegate their maintenance to a specific role without giving full forums administration permission."
+msgstr "Σημείωση: Το περιεχόμενο του φόρουμ και τα θέμτα είναι ένα λεξιλόγιο, έτσι μπορείς να αναθέσεις την συντήρηση τους σε ένα συγκεκριμένο ρόλο χωρίς να δώσεις πλήρη δικαιώματα διαχείρησης στα φόρουμ."
+
+#: taxonomy_delegate.module:29
+msgid "This is an overview of the current delegation of authority to administer categories. Setting of the delegation is done on the vocabulary edit page."
+msgstr "Το παρακάτω είναι μια εικόνα των τωρινών αναθέσεων διαχείρησης λεξιλογίων. Ορισμός της ανάθεσης γίνεται στην σελίδα επεξεργασίας λεξιλογίου."
+
+#: taxonomy_delegate.module:107;46
+msgid "Delegation"
+msgstr "Ανάθεση"
+
+#: taxonomy_delegate.module:108
+msgid "Use this section to delegate authority to maintain this vocabulary to a specific role."
+msgstr "Χρησιμοποίησε αυτή την ενότητα για να αναθέσεις δικαιώματα συντήρησης αυτού του λεξιλογίου σε ένα συγκεκριμένο ρόλο."
+
+#: taxonomy_delegate.module:116;232
+msgid "Choose the role(s) that may administer this vocabulary."
+msgstr "Επίλεξε ρόλο(ους) που θα διαχειριστούν αυτή το λεξιλόγιο."
+
+#: taxonomy_delegate.module:120;236
+msgid "You may choose more than one by using the CTRL key."
+msgstr "Μπορείς να επιλέξεις περισσότερα από ένα χρησιμποιώντας το πλήκτρο CTRL."
+
+#: taxonomy_delegate.module:181;372;389
+msgid "edit"
+msgstr "επεξεργασία"
+
+#: taxonomy_delegate.module:187
+msgid "Vocabulary"
+msgstr "Λεξιλόγιο"
+
+#: taxonomy_delegate.module:188
+msgid "Roles"
+msgstr "Ρόλοι"
+
+#: taxonomy_delegate.module:189
+msgid "Op"
+msgstr "Λειτουργίες"
+
+#: taxonomy_delegate.module:242
+msgid "Update"
+msgstr "Τροποποίηση"
+
+#: taxonomy_delegate.module:250
+msgid "Delete"
+msgstr "Διαγραφή"
+
+#: taxonomy_delegate.module:330
+msgid "List terms"
+msgstr "Λίστα όρων"
+
+#: taxonomy_delegate.module:331
+msgid "Add terms"
+msgstr "Προσθήκη όρων"
+
+#: taxonomy_delegate.module:335
+msgid "Category"
+msgstr "Λεξιλόγιο"
+
+#: taxonomy_delegate.module:336;399
+msgid "Operations"
+msgstr "Λειτουργίες"
+
+#: taxonomy_delegate.module:359
+msgid "Terms for "
+msgstr "Όροι για "
+
+#: taxonomy_delegate.module:363
+msgid "This is a freetagging vocabulary."
+msgstr "Αυτή είναι ένα λεξιλόγιο ελεύθερης σήμανσης."
+
+#: taxonomy_delegate.module:395
+msgid "No terms available."
+msgstr "Δεν υπάρχουν διαθέσιμοι όροι."
+
+#: taxonomy_delegate.module:398
+msgid "Image"
+msgstr "Εικόνα"
+
+#: taxonomy_delegate.module:399
+msgid "Name"
+msgstr "Όνομα"
+
+#: taxonomy_delegate.module:399
+msgid "Description"
+msgstr "Περιγραφή"
+
+#: taxonomy_delegate.module:71;80;0
+msgid "taxonomy_delegate"
+msgstr "taxonomy_delegate"
+
+#: taxonomy_delegate.module:71
+msgid "taxonomy_delegate module enabled by !name"
+msgstr "Η μονάδα taxonomy_delegate ενεργοποιήθηκε από !name"
+
+#: taxonomy_delegate.module:80
+msgid "taxonomy_delegate module disabled by !name"
+msgstr "Η μονάδα taxonomy_delegate απενεργοποιήθηκε από !name"
+
+#: taxonomy_delegate.module:49
+msgid "Allow delegation of taxonomy admin to specific roles."
+msgstr "Επιτρέπει την "
+
+#: taxonomy_delegate.module:56
+msgid "Administer My Categories"
+msgstr "Διαχείρηση του λεξιλογίου μου"
+
+#: taxonomy_delegate.info:0
+msgid "Taxonomy Delegate"
+msgstr "Ανάθεση Ταξινόμησης"
+
+#: taxonomy_delegate.info:0
+msgid "Allows delegating vocabulary maintenance."
+msgstr "Επιτρέπει την ανάθεση της συντήρησης ενός λεξιλογίου."
+

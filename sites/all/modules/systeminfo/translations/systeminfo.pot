@@ -1,0 +1,821 @@
+# $Id: systeminfo.pot,v 1.1.2.3.2.2 2010/04/08 21:04:40 flanker Exp $
+# $Name: DRUPAL-6--2-0 $
+#
+# LANGUAGE translation of Drupal (general)
+# Copyright YEAR NAME <EMAIL@ADDRESS>
+# Generated from files:
+#  systeminfo.admin.inc,v 1.1.2.15 2009/04/15 16:17:02 flanker
+#  systeminfo.module,v 1.19.2.72 2009/04/15 15:23:00 flanker
+#  systeminfo.info,v 1.4.2.4 2009/02/27 15:42:42 flanker
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PROJECT VERSION\n"
+"POT-Creation-Date: 2009-04-15 18:19+0200\n"
+"PO-Revision-Date: YYYY-mm-DD HH:MM+ZZZZ\n"
+"Last-Translator: NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <EMAIL@ADDRESS>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+#: systeminfo.admin.inc:27
+msgid "Modules list"
+msgstr ""
+
+#: systeminfo.admin.inc:28;39;92;111
+msgid ""
+msgstr ""
+
+#: systeminfo.admin.inc:31
+msgid "Ascending sorted by module's name."
+msgstr ""
+
+#: systeminfo.admin.inc:32
+msgid "Ascending sorted by module's filename."
+msgstr ""
+
+#: systeminfo.admin.inc:33
+msgid "Ascending sorted by module's call-up."
+msgstr ""
+
+#: systeminfo.admin.inc:38
+msgid "Themes list"
+msgstr ""
+
+#: systeminfo.admin.inc:42
+msgid "Ascending sorted by theme's name."
+msgstr ""
+
+#: systeminfo.admin.inc:43
+msgid "Ascending sorted by theme's filename."
+msgstr ""
+
+#: systeminfo.admin.inc:56
+msgid "PHPinfo"
+msgstr ""
+
+#: systeminfo.admin.inc:57
+msgid "Outputs a large amount of information about the current state of PHP."
+msgstr ""
+
+#: systeminfo.admin.inc:60
+msgid "The configuration line, php.ini location, build date, Web Server, System and more."
+msgstr ""
+
+#: systeminfo.admin.inc:61
+msgid "Current Local and Master values for PHP directives."
+msgstr ""
+
+#: systeminfo.admin.inc:62
+msgid "Loaded modules and their respective settings."
+msgstr ""
+
+#: systeminfo.admin.inc:63
+msgid "Environment Variable information that's also available in $_ENV."
+msgstr ""
+
+#: systeminfo.admin.inc:64
+msgid "Shows all predefined variables from EGPCS (Environment, GET, POST, Cookie, Server)."
+msgstr ""
+
+#: systeminfo.admin.inc:65
+msgid "Shows all of the above."
+msgstr ""
+
+#: systeminfo.admin.inc:79 systeminfo.module:383;64
+msgid "Database server"
+msgstr ""
+
+#: systeminfo.admin.inc:85 systeminfo.module:747
+msgid "Database tables"
+msgstr ""
+
+#: systeminfo.admin.inc:91
+msgid "Display"
+msgstr ""
+
+#: systeminfo.admin.inc:95
+msgid "All database tables."
+msgstr ""
+
+#: systeminfo.admin.inc:96
+msgid "Every database table except the listed tables."
+msgstr ""
+
+#: systeminfo.admin.inc:97
+msgid "Only the listed database tables."
+msgstr ""
+
+#: systeminfo.admin.inc:98
+msgid "None database tables."
+msgstr ""
+
+#: systeminfo.admin.inc:103
+msgid "Tables"
+msgstr ""
+
+#: systeminfo.admin.inc:105
+msgid "Enter one database table per line. The '*' character is a wildcard."
+msgstr ""
+
+#: systeminfo.admin.inc:109 systeminfo.module:712
+msgid "Rows"
+msgstr ""
+
+#: systeminfo.admin.inc:122;146
+msgid "Display SQL statement SHOW STATUS."
+msgstr ""
+
+#: systeminfo.admin.inc:123;147;171
+msgid "Provides server status information."
+msgstr ""
+
+#: systeminfo.admin.inc:128;152
+msgid "Display SQL statement SHOW TABLE STATUS."
+msgstr ""
+
+#: systeminfo.admin.inc:129;153
+msgid "Provides information about each non-TEMPORARY table."
+msgstr ""
+
+#: systeminfo.admin.inc:134;158
+msgid "Display SQL statement SHOW VARIABLES."
+msgstr ""
+
+#: systeminfo.admin.inc:135;159
+msgid "Shows the values of system variables."
+msgstr ""
+
+#: systeminfo.admin.inc:170
+msgid "Display SQL statement SHOW ALL."
+msgstr ""
+
+#: systeminfo.module:17
+msgid "This module displays information about the Drupal installation and system environment."
+msgstr ""
+
+#: systeminfo.module:18
+msgid "System requirements"
+msgstr ""
+
+#: systeminfo.module:19
+msgid "For detailed information about Drupal requirements, see <a href=\"@requirements\">System requirements</a> in the Drupal handbook."
+msgstr ""
+
+#: systeminfo.module:22
+msgid "Information about the Drupal installation and system environment."
+msgstr ""
+
+#: systeminfo.module:24
+msgid "Configure the display of <a href=\"@admin-reports-systeminfo\">System information</a>."
+msgstr ""
+
+#: systeminfo.module:107
+msgid "More information about the Drupal installation can be found <a href=\"@drupal\" title=\"Display information about the Drupal installation.\">here</a>."
+msgstr ""
+
+#: systeminfo.module:110;200;234;333;621;648
+msgid "Version"
+msgstr ""
+
+#: systeminfo.module:111
+msgid "Configuration file"
+msgstr ""
+
+#: systeminfo.module:113
+msgid "Cron"
+msgstr ""
+
+#: systeminfo.module:113
+msgid "Last run !time ago"
+msgstr ""
+
+#: systeminfo.module:113
+msgid "Not run yet"
+msgstr ""
+
+#: systeminfo.module:114
+msgid "File system path"
+msgstr ""
+
+#: systeminfo.module:117;446
+msgid "Content"
+msgstr ""
+
+#: systeminfo.module:119;136;423;537;568
+msgid "Total"
+msgstr ""
+
+#: systeminfo.module:119;125;423;427;428;429;430;436;437;438;439
+msgid "!nodes"
+msgstr ""
+
+#: systeminfo.module:129;518;543
+msgid "Content types"
+msgstr ""
+
+#: systeminfo.module:134;586
+msgid "Users"
+msgstr ""
+
+#: systeminfo.module:136;138;139
+msgid "!accounts"
+msgstr ""
+
+#: systeminfo.module:137;215;569
+msgid "Status"
+msgstr ""
+
+#: systeminfo.module:138;570
+msgid "Active"
+msgstr ""
+
+#: systeminfo.module:139;573
+msgid "Blocked"
+msgstr ""
+
+#: systeminfo.module:142;636
+msgid "Modules"
+msgstr ""
+
+#: systeminfo.module:152;663
+msgid "Themes"
+msgstr ""
+
+#: systeminfo.module:177;185;190;194;320;321;322
+msgid "Unknown"
+msgstr ""
+
+#: systeminfo.module:199;332;462;536
+msgid "Type"
+msgstr ""
+
+#: systeminfo.module:201
+msgid "IP address"
+msgstr ""
+
+#: systeminfo.module:202
+msgid "Operating system"
+msgstr ""
+
+#: systeminfo.module:204
+msgid "PHP interface"
+msgstr ""
+
+#: systeminfo.module:206
+msgid "URL"
+msgstr ""
+
+#: systeminfo.module:210
+msgid "Apache modules"
+msgstr ""
+
+#: systeminfo.module:212
+msgid "Info"
+msgstr ""
+
+#: systeminfo.module:212;213;214;215
+msgid "Loaded"
+msgstr ""
+
+#: systeminfo.module:212;213;214;215
+msgid "Not loaded"
+msgstr ""
+
+#: systeminfo.module:213
+msgid "Rewrite"
+msgstr ""
+
+#: systeminfo.module:214
+msgid "SSL"
+msgstr ""
+
+#: systeminfo.module:221
+msgid "Web server"
+msgstr ""
+
+#: systeminfo.module:231
+msgid "More information about the current state of PHP can be found <a href=\"@php\" title=\"Display current state of PHP.\" >here</a>."
+msgstr ""
+
+#: systeminfo.module:235
+msgid "Magic quotes GPC"
+msgstr ""
+
+#: systeminfo.module:235;236;241;242;544;545;546
+msgid "On"
+msgstr ""
+
+#: systeminfo.module:235;236;241;242;544;545;546
+msgid "Off"
+msgstr ""
+
+#: systeminfo.module:236
+msgid "Magic quotes runtime"
+msgstr ""
+
+#: systeminfo.module:237
+msgid "Max execution time"
+msgstr ""
+
+#: systeminfo.module:238
+msgid "Max input time"
+msgstr ""
+
+#: systeminfo.module:239
+msgid "Memory limit"
+msgstr ""
+
+#: systeminfo.module:240
+msgid "Post max size"
+msgstr ""
+
+#: systeminfo.module:241
+msgid "Register globals"
+msgstr ""
+
+#: systeminfo.module:242
+msgid "Safe mode"
+msgstr ""
+
+#: systeminfo.module:243
+msgid "Session cache limiter"
+msgstr ""
+
+#: systeminfo.module:245
+msgid "Session cookie domain"
+msgstr ""
+
+#: systeminfo.module:245;374
+msgid "no value"
+msgstr ""
+
+#: systeminfo.module:246
+msgid "Session name"
+msgstr ""
+
+#: systeminfo.module:247
+msgid "Session save handler"
+msgstr ""
+
+#: systeminfo.module:248
+msgid "Upload max filesize"
+msgstr ""
+
+#: systeminfo.module:251
+msgid "PHP extensions"
+msgstr ""
+
+#: systeminfo.module:255
+msgid "cURL version"
+msgstr ""
+
+#: systeminfo.module:258
+msgid "cURL support"
+msgstr ""
+
+#: systeminfo.module:258;263;264;265;268;270;271;272;273;469;473;499
+msgid "Disabled"
+msgstr ""
+
+#: systeminfo.module:262
+msgid "GD version"
+msgstr ""
+
+#: systeminfo.module:263
+msgid "FreeType support"
+msgstr ""
+
+#: systeminfo.module:263;264;265;270;271;272;273;469;499
+msgid "Enabled"
+msgstr ""
+
+#: systeminfo.module:264
+msgid "JPG support"
+msgstr ""
+
+#: systeminfo.module:265
+msgid "PNG support"
+msgstr ""
+
+#: systeminfo.module:268
+msgid "GD support"
+msgstr ""
+
+#: systeminfo.module:270
+msgid "Multibyte support"
+msgstr ""
+
+#: systeminfo.module:271
+msgid "XML support"
+msgstr ""
+
+#: systeminfo.module:272
+msgid "Zip support"
+msgstr ""
+
+#: systeminfo.module:273
+msgid "Zlib support"
+msgstr ""
+
+#: systeminfo.module:288
+msgid "More information about the database server can be found <a href=\"@database\" title=\"Display information about the database server.\">here</a>."
+msgstr ""
+
+#: systeminfo.module:329;703
+msgid "Database connection: %connection"
+msgstr ""
+
+#: systeminfo.module:331;460;534;597;621;648;712
+msgid "Name"
+msgstr ""
+
+#: systeminfo.module:334
+msgid "Host"
+msgstr ""
+
+#: systeminfo.module:335
+msgid "Port"
+msgstr ""
+
+#: systeminfo.module:337
+msgid "Charset"
+msgstr ""
+
+#: systeminfo.module:338
+msgid "Collation"
+msgstr ""
+
+#: systeminfo.module:341
+msgid "Storage engine"
+msgstr ""
+
+#: systeminfo.module:344
+msgid "Uptime"
+msgstr ""
+
+#: systeminfo.module:350;597
+msgid "Permissions"
+msgstr ""
+
+#: systeminfo.module:351;352;353;354;355;356;357;358;359;360
+msgid "Allowed"
+msgstr ""
+
+#: systeminfo.module:351;352;353;354;355;356;357;358;359;360
+msgid "Disallowed"
+msgstr ""
+
+#: systeminfo.module:365
+msgid "Table prefixes"
+msgstr ""
+
+#: systeminfo.module:402
+msgid "Information about the Drupal installation."
+msgstr ""
+
+#: systeminfo.module:421;566
+msgid "Group"
+msgstr ""
+
+#: systeminfo.module:421;460;534
+msgid "Value"
+msgstr ""
+
+#: systeminfo.module:425
+msgid "Active content types"
+msgstr ""
+
+#: systeminfo.module:428;437;464
+msgid "Published"
+msgstr ""
+
+#: systeminfo.module:429;438;465
+msgid "Promoted to front page"
+msgstr ""
+
+#: systeminfo.module:430;439;466
+msgid "Sticky at top of lists"
+msgstr ""
+
+#: systeminfo.module:434
+msgid "Deleted content types"
+msgstr ""
+
+#: systeminfo.module:459
+msgid "Content type: %type"
+msgstr ""
+
+#: systeminfo.module:464;465;466;467
+msgid "Yes"
+msgstr ""
+
+#: systeminfo.module:464;465;466;467
+msgid "No"
+msgstr ""
+
+#: systeminfo.module:467
+msgid "Create new revision"
+msgstr ""
+
+#: systeminfo.module:469
+msgid "Multilingual support"
+msgstr ""
+
+#: systeminfo.module:469
+msgid "Enabled, with translation"
+msgstr ""
+
+#: systeminfo.module:472;473
+msgid "Comment"
+msgstr ""
+
+#: systeminfo.module:473
+msgid "Read/Write"
+msgstr ""
+
+#: systeminfo.module:473
+msgid "Read only"
+msgstr ""
+
+#: systeminfo.module:477
+msgid "Display mode"
+msgstr ""
+
+#: systeminfo.module:480
+msgid "Display order"
+msgstr ""
+
+#: systeminfo.module:481
+msgid "Comments per page"
+msgstr ""
+
+#: systeminfo.module:484
+msgid "Display above the comments"
+msgstr ""
+
+#: systeminfo.module:485
+msgid "Display below the comments"
+msgstr ""
+
+#: systeminfo.module:486
+msgid "Display above and below the comments"
+msgstr ""
+
+#: systeminfo.module:487
+msgid "Do not display"
+msgstr ""
+
+#: systeminfo.module:489
+msgid "Controls"
+msgstr ""
+
+#: systeminfo.module:493
+msgid "Anonymous posters may not enter their contact information"
+msgstr ""
+
+#: systeminfo.module:494
+msgid "Anonymous posters may leave their contact information"
+msgstr ""
+
+#: systeminfo.module:495
+msgid "Anonymous posters must leave their contact information"
+msgstr ""
+
+#: systeminfo.module:497
+msgid "Anonymous commenting"
+msgstr ""
+
+#: systeminfo.module:499
+msgid "Subject field"
+msgstr ""
+
+#: systeminfo.module:500
+msgid "Preview"
+msgstr ""
+
+#: systeminfo.module:500
+msgid "Optional"
+msgstr ""
+
+#: systeminfo.module:500;545
+msgid "Required"
+msgstr ""
+
+#: systeminfo.module:501
+msgid "Location of submission form"
+msgstr ""
+
+#: systeminfo.module:501
+msgid "Display on separate page"
+msgstr ""
+
+#: systeminfo.module:501
+msgid "Display below post or comments"
+msgstr ""
+
+#: systeminfo.module:507;553
+msgid "Taxonomy"
+msgstr ""
+
+#: systeminfo.module:509
+msgid "Vocabulary"
+msgstr ""
+
+#: systeminfo.module:533
+msgid "Vocabulary: %vocabulary"
+msgstr ""
+
+#: systeminfo.module:536
+msgid "Multiple hierarchy"
+msgstr ""
+
+#: systeminfo.module:536
+msgid "Single hierarchy"
+msgstr ""
+
+#: systeminfo.module:536
+msgid "Flat"
+msgstr ""
+
+#: systeminfo.module:537
+msgid "!terms"
+msgstr ""
+
+#: systeminfo.module:544
+msgid "Multiple select"
+msgstr ""
+
+#: systeminfo.module:546
+msgid "Tags"
+msgstr ""
+
+#: systeminfo.module:547;621
+msgid "Weight"
+msgstr ""
+
+#: systeminfo.module:566
+msgid "Accounts"
+msgstr ""
+
+#: systeminfo.module:571;574
+msgid "Already logged in"
+msgstr ""
+
+#: systeminfo.module:572;575
+msgid "Not yet logged in"
+msgstr ""
+
+#: systeminfo.module:576;609
+msgid "Roles"
+msgstr ""
+
+#: systeminfo.module:621;648
+msgid "Date"
+msgstr ""
+
+#: systeminfo.module:621;648
+msgid "Filename"
+msgstr ""
+
+#: systeminfo.module:695
+msgid "Information about the database server."
+msgstr ""
+
+#: systeminfo.module:712
+msgid "Operations"
+msgstr ""
+
+#: systeminfo.module:722
+msgid "Database type is not supported."
+msgstr ""
+
+#: systeminfo.module:740
+msgid "View content"
+msgstr ""
+
+#: systeminfo.module:741
+msgid "View structure"
+msgstr ""
+
+#: systeminfo.module:771
+msgid "SQL statement: SHOW STATUS"
+msgstr ""
+
+#: systeminfo.module:795
+msgid "SQL statement: SHOW TABLE STATUS"
+msgstr ""
+
+#: systeminfo.module:819
+msgid "SQL statement: SHOW VARIABLES"
+msgstr ""
+
+#: systeminfo.module:843
+msgid "SQL statement: SHOW ALL"
+msgstr ""
+
+#: systeminfo.module:895
+msgid "Content of %databasename-tablename"
+msgstr ""
+
+#: systeminfo.module:897
+msgid "View <a href=\"@structure-table\">structure of %tablename</a>."
+msgstr ""
+
+#: systeminfo.module:903
+msgid "The database table is empty."
+msgstr ""
+
+#: systeminfo.module:950
+msgid "NULL"
+msgstr ""
+
+#: systeminfo.module:957
+msgid "Structure of %databasename-tablename"
+msgstr ""
+
+#: systeminfo.module:959
+msgid "View <a href=\"@content-table\">content of %tablename</a>."
+msgstr ""
+
+#: systeminfo.module:119;125;423;427;428;429;430;436;437;438;439
+msgid "1 node"
+msgid_plural "@count nodes"
+msgstr[0] ""
+msgstr[1] ""
+
+#: systeminfo.module:136;138;139
+msgid "1 account"
+msgid_plural "@count accounts"
+msgstr[0] ""
+msgstr[1] ""
+
+#: systeminfo.module:537
+msgid "1 term"
+msgid_plural "@count terms"
+msgstr[0] ""
+msgstr[1] ""
+
+#: systeminfo.module:33
+msgid "access system information"
+msgstr ""
+
+#: systeminfo.module:33
+msgid "administer system information"
+msgstr ""
+
+#: systeminfo.module:44;83 systeminfo.info:0
+msgid "System information"
+msgstr ""
+
+#: systeminfo.module:45
+msgid "Display information about the Drupal installation and system environment."
+msgstr ""
+
+#: systeminfo.module:50
+msgid "Drupal"
+msgstr ""
+
+#: systeminfo.module:51
+msgid "Display information about the Drupal installation."
+msgstr ""
+
+#: systeminfo.module:57
+msgid "PHP"
+msgstr ""
+
+#: systeminfo.module:58
+msgid "Display current state of PHP."
+msgstr ""
+
+#: systeminfo.module:65
+msgid "Display information about the database server."
+msgstr ""
+
+#: systeminfo.module:71
+msgid "Database table content"
+msgstr ""
+
+#: systeminfo.module:77
+msgid "Database table structure"
+msgstr ""
+
+#: systeminfo.module:84
+msgid "Configure the display of System information."
+msgstr ""
+
+#: systeminfo.module:0
+msgid "systeminfo"
+msgstr ""
+
+#: systeminfo.info:0
+msgid "Displays information about the Drupal installation and system environment."
+msgstr ""
+
+#: systeminfo.info:0
+msgid "Administration"
+msgstr ""
+

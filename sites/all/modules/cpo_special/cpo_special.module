@@ -1,0 +1,95 @@
+<?php
+// $Id: cpo_special.module,v 1.0.1.0 2011/30/03 22:15:23 asaphk Exp $
+
+/**
+ * hook_init
+ * Used for adding JS and CSS files
+ */
+function cpo_special_init() {
+  // custom module CSS file
+  drupal_add_css(drupal_get_path('module', 'cpo_special') .'/cpo_special.css', 'theme');
+  // jquery ui 1.8
+  drupal_add_css(drupal_get_path('module', 'cpo_special') .'/jquery-ui-1.8.10.custom.css', 'theme');
+  jquery_ui_add(array('ui.widget', 'ui.mouse', 'ui.position', 'ui.accordion', 'ui.tabs', 'effects.blind', 'effects.drop'));
+  // lavalamp for main menu
+  drupal_add_js(drupal_get_path('module','cpo_special') . '/js/jquery.lavalamp-1.3.5.min.js', 'theme', 'footer');
+  // --> anchor scroll jquery:  
+  drupal_add_js(drupal_get_path('module','cpo_special') . '/js/jquery.localscroll-1.2.7-min.js', 'theme', 'footer');
+  drupal_add_js(drupal_get_path('module','cpo_special') . '/js/jquery.scrollTo-1.4.2-min.js', 'theme', 'footer');
+  drupal_add_js(drupal_get_path('module','cpo_special') . '/js/scroll.js', 'theme', 'footer');
+  // <-- end anchor scroll 
+  // custom JS file for this module
+  drupal_add_js(drupal_get_path('module','cpo_special') . '/js/tabs.js', 'theme', 'footer');
+}
+
+/**
+ * hook_form_alter
+ * Used for:
+ * 1. custom webform ID for each form
+ * 2. Manipulation to search form
+ * 3. Manipulation to comment form
+ *
+ */
+function cpo_special_form_alter(&$form, &$form_state, $form_id) {
+  if (in_array($form_id ,array('webform_client_form_7','webform_client_form_8','webform_client_form_3','webform_client_form_28'))) {
+	$form['actions']['#prefix'] = '<div id="edit-actions-'.$form_id.'" class="form-actions form-wrapper">';
+  }
+  if ($form_id == 'webform_client_form_28') {
+	$form['actions']['submit']['#value'] = t('Contact us');
+  }
+  if ($form_id == 'search_form') {
+    unset($form['advanced']['keywords']);
+    $form['advanced']['type']['#title'] =  t('Search');
+    $form['advanced']['#type']='fieldset';
+    $form['advanced']['#title']=t('Advanced search');
+    $form['advanced']['#collapsible']=TRUE;
+    $form['advanced']['#collapsed']=TRUE;
+	$form['basic']['inline']['keys']['#title'] = t('Search');
+	unset($form['basic']['#title']);
+	$form['advanced']['#type'] = 'fieldset';
+	$form['advanced']['#attributes']['class'] = 'search-advanced';
+  }
+  if ($form_id=='comment_form') {
+    $subject = $form['subject'];
+    unset($form['subject']);
+    $form = array('subject' =>$subject)+$form;
+    $form['#action'] = '/'.drupal_get_path_alias($_GET['q']);
+	//unset($form['#action']);
+	$form['mail']['#description'] = '';
+	$form['mail']['#weight'] = 2;
+	$form['subject']['#title'] = t('Comment title');
+	$form['comment_filter']['comment']['#title'] = t('Comment body');
+	$form['comment_filter']['#weight'] = 3;
+	unset($form['comment_filter']['format']);
+	unset($form['preview']);
+	//dpm($form);
+  }
+}
+
+// custom validation test
+/*function cpo_special_comment(&$comment, $op) {
+  dpm($op);
+}*/
+
+/**
+ * Count number of data nodes
+ */
+function cpo_special_data_count() {
+  return (string)db_result(db_query('SELECT COUNT(DISTINCT(nid)) FROM node WHERE type = "data"'));
+}
+
+/**
+ * Returns a permanent link for the FAQ section
+ * CPO Special modules and functions
+ */
+function cpo_special_link($type, $object, $teaser = FALSE) {
+  $links = array();
+
+  if ($object->type == 'faq' && $object->name) {
+    $links['sample_link'] = array(
+      'title' => t('Permanent Link'),
+      'href' => 'faq/' . $object->nid,
+    );
+  }
+  return $links;
+}

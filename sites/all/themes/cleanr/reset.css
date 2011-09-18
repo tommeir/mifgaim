@@ -1,0 +1,37 @@
+html, body, div, span, applet, object, iframe, h1, h2, h3, h4, h5, h6, p, blockquote, pre, a, abbr, acronym, address, big, cite, code, del, dfn, em, font, img, ins, kbd, q, s, samp, small, strike, strong, sub, sup, tt, var, b, u, i, center, dl, dt, dd, ol, ul, li, fieldset, form, input, select, textarea, label, legend, table, caption, tbody, tfoot, thead, tr, th, td, ul.menu, ul.menu li, li.expanded, li.collapsed, li.leaf, li a.active, td.menu-disabled, ul.links, ul.links.inline, ul.links li, .block ul, div.admin, tr.even, tr.odd, tr.drag, tbody, tbody th, thead th, .breadcrumb, .item-list .icon, .item-list .title, .item-list ul, .item-list ul li, ol.task-list li.active, .form-item, tr.odd .form-item, tr.even .form-item, .form-item .description, .form-item label, .form-item label.option, .form-checkboxes, .form-radios, .form-checkboxes .form-item, .form-radios .form-item, .marker, .form-required, .more-link, .more-help-link, .item-list .pager, .item-list .pager li, .pager-current, .tips, dl.multiselect dd.b, dl.multiselect dd.b .form-item, dl.multiselect dd.b select, dl.multiselect dd.a, dl.multiselect dd.a .form-item, dl.multiselect dt, dl.multiselect dd, dl.multiselect .form-item, ul.primary, ul.primary li, ul.primary li a, ul.primary li.active a, ul.primary li a:hover, ul.secondary, ul.secondary li, ul.secondary a, ul.secondary a.active, html.js fieldset.collapsible legend a, html.js fieldset.collapsed legend a, .resizable-textarea { 
+  margin: 0;
+  padding: 0;
+  border: 0;
+  outline: 0;
+  font-size: 100%;
+/*   vertical-align: text-top; */
+  background: transparent;
+  line-height: inherit;
+/*   text-align: left; */
+}
+table {
+	border-collapse:collapse;
+	border-spacing:0;
+}
+fieldset,img { 
+	border:0;
+}
+address,caption,cite,code,dfn,em,strong,th,var {
+	font-style:normal;
+	font-weight:normal;
+}
+ol,ul {
+	list-style:none;
+}
+caption,th {
+	text-align:left;
+}
+h1,h2,h3,h4,h5,h6 {
+	font-size:100%;
+	font-weight:normal;
+}
+q:before,q:after {
+	content:'';
+}
+abbr,acronym { border:0;
+}

@@ -1,0 +1,13 @@
+; $Id: revision_all.info,v 1.2 2010/05/12 20:39:52 alexj Exp $
+name = "Revision All"
+description = "Enables centralized revisioning of content"
+core = 6.x
+files[] = revision_all.module
+files[] = revision_all.install
+
+; Information added by drupal.org packaging script on 2010-06-08
+version = "6.x-1.2"
+core = "6.x"
+project = "revision_all"
+datestamp = "1276011308"
+

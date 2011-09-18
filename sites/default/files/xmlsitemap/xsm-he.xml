@@ -1,0 +1,588 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+  http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+<url>
+	<loc>http://sts.cpo.co.il/</loc>
+	<lastmod>2011-03-17T06:39:24+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>1.0</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/data/75</loc>
+	<lastmod>2011-03-16T14:08:10+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.8</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%9E%D7%A9%D7%9C%D7%94/73</loc>
+	<lastmod>2011-03-16T08:45:10+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.8</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%A2%D7%A8%D7%9B%D7%95%D7%AA-%D7%AA%D7%95%D7%9B%D7%A0%D7%95%D7%AA-%D7%95%D7%90%D7%AA%D7%A8%D7%99%D7%9D/69</loc>
+	<lastmod>2011-03-14T15:10:32+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.8</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%9E%D7%A9%D7%9C%D7%94/51</loc>
+	<lastmod>2011-03-14T15:05:59+00:00</lastmod>
+	<changefreq>daily</changefreq>
+	<priority>0.8</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%A2%D7%A8%D7%9B%D7%95%D7%AA-%D7%AA%D7%95%D7%9B%D7%A0%D7%95%D7%AA-%D7%95%D7%90%D7%AA%D7%A8%D7%99%D7%9D/68</loc>
+	<lastmod>2011-03-14T14:58:38+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.8</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%A2%D7%A8%D7%9B%D7%95%D7%AA-%D7%AA%D7%95%D7%9B%D7%A0%D7%95%D7%AA-%D7%95%D7%90%D7%AA%D7%A8%D7%99%D7%9D/67</loc>
+	<lastmod>2011-03-14T14:11:22+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.8</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%A2%D7%A8%D7%9B%D7%95%D7%AA-%D7%AA%D7%95%D7%9B%D7%A0%D7%95%D7%AA-%D7%95%D7%90%D7%AA%D7%A8%D7%99%D7%9D/66</loc>
+	<lastmod>2011-03-14T14:06:56+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.8</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%9E%D7%A9%D7%9C%D7%94/46</loc>
+	<lastmod>2011-03-14T13:12:57+00:00</lastmod>
+	<changefreq>daily</changefreq>
+	<priority>0.8</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%A9%D7%AA%D7%99%D7%AA/52</loc>
+	<lastmod>2011-03-14T09:32:14+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.8</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/blog/50</loc>
+	<lastmod>2011-03-10T15:06:37+00:00</lastmod>
+	<changefreq>daily</changefreq>
+	<priority>0.8</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%9E%D7%A9%D7%9C%D7%94/49</loc>
+	<lastmod>2011-03-10T15:05:17+00:00</lastmod>
+	<changefreq>daily</changefreq>
+	<priority>0.8</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%9E%D7%A9%D7%9C%D7%94/47</loc>
+	<lastmod>2011-03-10T15:00:56+00:00</lastmod>
+	<changefreq>daily</changefreq>
+	<priority>0.8</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%A7%D7%95%D7%A8-%D7%94%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D/%D7%90%D7%99%D7%92%D7%95%D7%93-%D7%94%D7%90%D7%99%D7%A0%D7%98%D7%A8%D7%A0%D7%98-%D7%94%D7%99%D7%A9%D7%A8%D7%90%D7%9C%D7%99</loc>
+	<lastmod>2011-03-16T14:08:10+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%92%D7%99%D7%A9%D7%94-%D7%9C%D7%90%D7%99%D7%A0%D7%98%D7%A8%D7%A0%D7%98</loc>
+	<lastmod>2011-03-16T14:08:10+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/blog-topic/192</loc>
+	<lastmod>2011-03-16T13:30:11+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/blog-topic/193</loc>
+	<lastmod>2011-03-16T13:29:45+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/format/190</loc>
+	<lastmod>2011-03-16T11:58:28+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/format/188</loc>
+	<lastmod>2011-03-16T11:54:05+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/format/187</loc>
+	<lastmod>2011-03-16T11:53:43+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/format/186</loc>
+	<lastmod>2011-03-16T11:53:38+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/format/185</loc>
+	<lastmod>2011-03-16T11:53:33+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/format/184</loc>
+	<lastmod>2011-03-16T11:53:20+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/format/182</loc>
+	<lastmod>2011-03-16T11:53:00+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/format/181</loc>
+	<lastmod>2011-03-16T11:52:44+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/74</loc>
+	<lastmod>2011-03-16T11:48:55+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/71</loc>
+	<lastmod>2011-03-16T11:15:56+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%A7%D7%95%D7%A8-%D7%94%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D/16</loc>
+	<lastmod>2011-03-16T08:45:10+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/17-%D7%AA%D7%92%D7%99%D7%95%D7%AA-18-%D7%9B%D7%99%D7%A1%D7%95%D7%99-%D7%92%D7%99%D7%90%D7%95%D7%92%D7%A8%D7%A4%D7%99-19-%D7%A8%D7%99%D7%A9%D7%99%D7%95%D7%9F-20-%D7%9E%D7%91%D7%A0%D7%94-%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D</loc>
+	<lastmod>2011-03-16T08:45:10+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/17</loc>
+	<lastmod>2011-03-16T07:11:44+00:00</lastmod>
+	<changefreq>daily</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/72</loc>
+	<lastmod>2011-03-15T11:13:50+00:00</lastmod>
+	<changefreq>daily</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/70</loc>
+	<lastmod>2011-03-15T09:44:30+00:00</lastmod>
+	<changefreq>daily</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/geo/1</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%A8%D7%99%D7%A9%D7%99%D7%95%D7%9F-%D7%A9%D7%99%D7%9E%D7%95%D7%A9/%D7%99%D7%99%D7%97%D7%95%D7%A1-%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%9C%D7%90-%D7%9E%D7%A1%D7%97%D7%A8%D7%99-%D7%A9%D7%99%D7%AA%D7%95%D7%A3-%D7%96%D7%94%D7%94-25-%D7%99%D7%A9%D7%A8%D7%90%D7%9C-cc-nc-sa-25</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%A8%D7%99%D7%A9%D7%99%D7%95%D7%9F-%D7%A9%D7%99%D7%9E%D7%95%D7%A9/%D7%A2%D7%9C-%D7%A4%D7%99-%D7%94%D7%9E%D7%95%D7%A4%D7%99%D7%A2-%D7%91%D7%9E%D7%A7%D7%95%D7%A8-%D7%94%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%9E%D7%9E%D7%A9%D7%9C%D7%94</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%A7%D7%95%D7%A8-%D7%94%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D/%D7%9E%D7%9E%D7%A9%D7%9C%D7%AA-%D7%99%D7%A9%D7%A8%D7%90%D7%9C-%D7%9E%D7%9E%D7%A9%D7%9C-%D7%96%D7%9E%D7%99%D7%9F</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%9E%D7%9E%D7%A9%D7%9C-%D7%96%D7%9E%D7%99%D7%9F</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%A9%D7%99%D7%A8%D7%95%D7%AA%D7%99%D7%9D-%D7%9E%D7%9E%D7%A9%D7%9C%D7%AA%D7%99%D7%99%D7%9D</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%A9%D7%99%D7%A8%D7%95%D7%AA%D7%99%D7%9D-%D7%9E%D7%A7%D7%95%D7%95%D7%A0%D7%99%D7%9D</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%93%D7%95%D7%97-%D7%AA%D7%A7%D7%95%D7%A4%D7%AA%D7%99</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%A7%D7%95%D7%A8-%D7%94%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D/ookla</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%94%D7%95%D7%A8%D7%93%D7%94</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%94%D7%A2%D7%9C%D7%90%D7%94</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%A8%D7%95%D7%97%D7%91-%D7%A4%D7%A1</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%94%D7%A9%D7%95%D7%95%D7%90%D7%94-%D7%91%D7%99%D7%9F-%D7%9C%D7%90%D7%95%D7%9E%D7%99%D7%AA</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%A7%D7%98%D7%92%D7%95%D7%A8%D7%99%D7%95%D7%AA/%D7%A9%D7%99%D7%9E%D7%95%D7%A9-%D7%A4%D7%A8%D7%98%D7%99</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%A7%D7%98%D7%92%D7%95%D7%A8%D7%99%D7%95%D7%AA/%D7%A4%D7%A2%D7%A8-%D7%93%D7%99%D7%92%D7%99%D7%98%D7%90%D7%9C%D7%99</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%A7%D7%98%D7%92%D7%95%D7%A8%D7%99%D7%95%D7%AA/%D7%A6%D7%A8%D7%99%D7%9A-%D7%9C%D7%94%D7%97%D7%9C%D7%99%D7%98</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%A7%D7%98%D7%92%D7%95%D7%A8%D7%99%D7%95%D7%AA/%D7%9E%D7%A2%D7%A8%D7%9B%D7%95%D7%AA-%D7%AA%D7%95%D7%9B%D7%A0%D7%95%D7%AA-%D7%95%D7%90%D7%AA%D7%A8%D7%99%D7%9D</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%A7%D7%95%D7%A8-%D7%94%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D/clicky-web-analytics</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%93%D7%A4%D7%93%D7%A4%D7%A0%D7%99%D7%9D</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%90%D7%A0%D7%9C%D7%99%D7%98%D7%99%D7%A7%D7%A1</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%A0%D7%AA%D7%97-%D7%A9%D7%95%D7%A7</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%9E%D7%A0%D7%95%D7%A2-%D7%97%D7%99%D7%A4%D7%95%D7%A9</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%91%D7%A0%D7%94-%D7%94%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D/xml</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%91%D7%A0%D7%94-%D7%94%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D/rss</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%9E%D7%91%D7%A0%D7%94-%D7%94%D7%A0%D7%AA%D7%95%D7%A0%D7%99%D7%9D/pdf</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%9E%D7%9B%D7%A9%D7%99%D7%A8%D7%99%D7%9D-%D7%A0%D7%99%D7%99%D7%93%D7%99%D7%9D</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%AA%D7%92%D7%99%D7%95%D7%AA/%D7%90%D7%99%D7%A0%D7%98%D7%A8%D7%A0%D7%98-%D7%A0%D7%99%D7%99%D7%93</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/geo/2</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%A7%D7%98%D7%92%D7%95%D7%A8%D7%99%D7%95%D7%AA/%D7%9E%D7%9E%D7%A9%D7%9C%D7%94</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%A7%D7%98%D7%92%D7%95%D7%A8%D7%99%D7%95%D7%AA/%D7%A2%D7%A1%D7%A7%D7%99%D7%9D-%D7%95%D7%9E%D7%A1%D7%97%D7%A8</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/%D7%A7%D7%98%D7%92%D7%95%D7%A8%D7%99%D7%95%D7%AA/%D7%AA%D7%A9%D7%AA%D7%99%D7%AA</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/geo/3</loc>
+	<lastmod>2011-03-14T16:50:02+00:00</lastmod>
+	<changefreq>always</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/about</loc>
+	<lastmod>2011-03-14T16:38:50+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/form/ideas</loc>
+	<lastmod>2011-03-14T16:38:33+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/blog</loc>
+	<lastmod>2011-03-14T16:38:02+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/partners</loc>
+	<lastmod>2011-03-14T16:37:42+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/applications</loc>
+	<lastmod>2011-03-14T16:37:18+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/45</loc>
+	<lastmod>2011-03-14T16:24:16+00:00</lastmod>
+	<changefreq>daily</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/data</loc>
+	<lastmod>2011-03-14T13:11:43+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/64</loc>
+	<lastmod>2011-03-14T11:50:55+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/65</loc>
+	<lastmod>2011-03-14T11:48:25+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/61</loc>
+	<lastmod>2011-03-14T11:34:56+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/63</loc>
+	<lastmod>2011-03-14T11:05:14+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/62</loc>
+	<lastmod>2011-03-14T11:00:09+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/56</loc>
+	<lastmod>2011-03-14T10:56:24+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/57</loc>
+	<lastmod>2011-03-14T10:54:44+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/faq/58</loc>
+	<lastmod>2011-03-14T10:50:44+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/60</loc>
+	<lastmod>2011-03-14T10:49:14+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/59</loc>
+	<lastmod>2011-03-14T10:41:08+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/54</loc>
+	<lastmod>2011-03-14T10:37:25+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/55</loc>
+	<lastmod>2011-03-14T10:35:34+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/53</loc>
+	<lastmod>2011-03-14T10:25:41+00:00</lastmod>
+	<changefreq>hourly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/14</loc>
+	<lastmod>2011-03-10T14:50:57+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/contact</loc>
+	<lastmod>2011-03-10T14:35:19+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/44</loc>
+	<lastmod>2011-03-10T14:00:12+00:00</lastmod>
+	<changefreq>daily</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/form/7</loc>
+	<lastmod>2011-03-07T10:08:44+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/form/30</loc>
+	<lastmod>2011-03-07T08:10:54+00:00</lastmod>
+	<changefreq>weekly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/form/new-data</loc>
+	<lastmod>2011-03-07T08:10:30+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/43</loc>
+	<lastmod>2011-03-07T08:08:59+00:00</lastmod>
+	<changefreq>weekly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/24</loc>
+	<lastmod>2011-03-07T07:27:01+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/42</loc>
+	<lastmod>2011-02-14T16:34:53+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/29</loc>
+	<lastmod>2011-02-08T14:00:53+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/15</loc>
+	<lastmod>2011-02-01T10:51:43+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+<url>
+	<loc>http://sts.cpo.co.il/18</loc>
+	<lastmod>2011-02-01T07:39:35+00:00</lastmod>
+	<changefreq>monthly</changefreq>
+	<priority>0.5</priority>
+</url>
+</urlset>

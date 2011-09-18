@@ -1,0 +1,215 @@
+<?php
+
+/**
+ * Implementation of hook_requirements().
+ */
+function settings_audit_log_requirements($phase) {
+  global $db_type;
+
+  if ($phase == 'install') {
+    switch ($db_type) {
+      case 'pgsql':
+        // Check to make sure we have plpgsql installed on the Drupal database.
+        if (!db_result(db_query("SELECT lanname FROM pg_catalog.pg_language where lanname = 'plpgsql'"))) {
+          return array(array(
+            'title' => "Trigger installation requires plpgsql be installed.",
+            'description' => "Trigger installation requires plpgsql be installed.",
+            'severity' => REQUIREMENT_ERROR,
+          )); 
+        }
+          break;
+      case 'mysqli':
+      case 'mysql':
+        // We require mysql version 5, but Drupal 6 doesn't, so check it.
+        if ($variable = db_fetch_object(db_query("SHOW VARIABLES LIKE 'version'"))) {
+          if ($variable->Variable_name == 'version' && $variable->Value[0] < 5) {
+            return array(array(
+              'title' => "Trigger installation requires Mysql version of 5 or greater.",
+              'description' => "Trigger installation requires Mysql version of 5 or greater.",
+              'severity' => REQUIREMENT_ERROR,
+            ));
+          }
+        }
+          break;
+    }
+  }
+}
+
+/**
+ * Implementation of hook_install().
+ */
+function settings_audit_log_install() {
+  drupal_install_schema('settings_audit_log');
+  settings_audit_log_install_variable_trigger();
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function settings_audit_log_uninstall() {
+  global $db_type;
+
+  switch ($db_type) {
+    case 'pgsql':
+      db_query("DROP TRIGGER IF EXISTS settings_audit_log_variable_audit ON variable");
+      db_query("DROP FUNCTION IF EXISTS _settings_audit_log_variable_audit()");
+        break;
+    case 'mysqli':
+    case 'mysql':
+      db_query("DROP TRIGGER settings_audit_log_variable_update_audit");
+      db_query("DROP TRIGGER settings_audit_log_variable_insert_audit");
+      break;
+  }
+  drupal_uninstall_schema('settings_audit_log');
+}
+
+/**
+ * Create some triggers on the variable table. 
+ */
+function settings_audit_log_install_variable_trigger() {
+  global $db_type;
+
+  switch ($db_type) {
+    case 'pgsql':
+      $trigger_sql =<<<TRIGGER_SQL
+CREATE OR REPLACE FUNCTION _settings_audit_log_variable_audit()
+  RETURNS trigger AS
+  \$BODY\$
+  DECLARE
+    connection_uid  integer;
+  BEGIN
+    SELECT  uid INTO connection_uid
+    FROM    settings_audit_log_user_db_connection
+    WHERE   connection_id = (SELECT to_hex(EXTRACT(EPOCH FROM backend_start)::integer) || '.' ||
+                                      to_hex(procpid)
+                             FROM pg_stat_activity
+                             WHERE procpid = pg_backend_pid());
+      IF (TG_OP = 'UPDATE') THEN
+          IF (NEW.value != OLD.value) THEN
+              INSERT INTO settings_audit_log_variable_audit_log (name,old_value,new_value,event_timestamp,uid)
+                  VALUES (NEW.name,OLD.value,NEW.value,round(EXTRACT(EPOCH FROM current_timestamp)),COALESCE(connection_uid,0));
+          END IF;
+          RETURN NULL;
+      ELSIF (TG_OP = 'INSERT') THEN
+          INSERT INTO settings_audit_log_variable_audit_log (name,old_value,new_value,event_timestamp,uid)
+              VALUES (NEW.name,null,NEW.value,round(EXTRACT(EPOCH FROM current_timestamp)),COALESCE(connection_uid,0));
+          RETURN NULL;
+      ELSE
+          RETURN NULL;
+      END IF;
+   END;
+   \$BODY\$
+   LANGUAGE 'plpgsql' VOLATILE
+   COST 100;
+TRIGGER_SQL;
+      db_query($trigger_sql);
+
+      $trigger_sql =<<<TRIGGER_SQL
+CREATE TRIGGER settings_audit_log_variable_audit
+AFTER INSERT OR UPDATE ON variable FOR EACH ROW EXECUTE PROCEDURE _settings_audit_log_variable_audit();
+TRIGGER_SQL;
+      db_query($trigger_sql);
+        break;
+
+    case 'mysql':
+    case 'mysqli':
+      $trigger_sql =<<<TRIGGER_SQL
+CREATE TRIGGER `settings_audit_log_variable_update_audit` AFTER UPDATE ON `variable` FOR EACH ROW 
+BEGIN
+  DECLARE connection_uid INT;
+  IF (NEW.value != OLD.value) THEN
+    SELECT COALESCE(uid, 0) INTO connection_uid FROM settings_audit_log_user_db_connection WHERE connection_id = CONNECTION_ID(); 
+    INSERT INTO `settings_audit_log_variable_audit_log` (`name`, `old_value`, `new_value`, `event_timestamp`, `uid`)
+    VALUES (NEW.name, OLD.value, NEW.value, UNIX_TIMESTAMP(), connection_uid);
+  END IF;
+END;
+TRIGGER_SQL;
+      db_query($trigger_sql);
+
+      $trigger_sql =<<<TRIGGER_SQL
+CREATE TRIGGER `settings_audit_log_variable_insert_audit` AFTER INSERT ON `variable` FOR EACH ROW 
+BEGIN
+  DECLARE connection_uid INT;
+  SELECT COALESCE(uid, 0) INTO connection_uid FROM settings_audit_log_user_db_connection WHERE connection_id = CONNECTION_ID(); 
+  INSERT INTO `settings_audit_log_variable_audit_log` (`name`, `old_value`, `new_value`, `event_timestamp`, `uid`)
+  VALUES (NEW.name, NULL, NEW.value, UNIX_TIMESTAMP(), connection_uid);
+END;
+TRIGGER_SQL;
+      db_query($trigger_sql);
+        break;
+  }
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function settings_audit_log_schema() {
+  $schema['settings_audit_log_variable_audit_log'] = array(
+    'description' => 'Holds audit information for changes to the variable table.',
+    'fields' => array(
+      'name' => array(
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE,
+        'description' => 'Link to {variable}.name.',
+      ),
+      'old_value' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'description' => 'Old value in {variable}.',
+      ),
+      'new_value' => array(
+        'type' => 'text',
+        'not null' => TRUE,
+        'description' => 'New value in {variable}.',
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Link to {users}.uid',
+        'default' => 0,
+      ),
+      'event_timestamp' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp for change event.',
+      ),
+    ),
+    'indexes' => array(
+      'name' => array('name'),
+      'uid' => array('uid'),
+      'event_timestamp' => array('event_timestamp'),
+    ),
+  );
+  $schema['settings_audit_log_user_db_connection'] = array(
+    'description' => 'Holds information about the database connection id per user.',
+    'fields' => array(
+      'uid' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'description' => 'Link to {users}.uid',
+        'default' => 0,
+      ),
+      'connection_id' => array(
+        'type' => 'varchar',
+        'length' => 100,
+        'not null' => TRUE,
+        'description' => 'Connection id for database client connection.',
+      ),
+      'log_timestamp' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => 'Timestamp for value.',
+      ),
+    ),
+    'unique keys' => array(
+      'uid' => array('uid', 'connection_id'),
+    ),
+  );
+  return $schema;
+}
+

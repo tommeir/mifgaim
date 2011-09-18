@@ -1,0 +1,20 @@
+
+.report-summary-user .report-field,
+.report-summary-user .report-field-label,
+.report-summary-user .report-field-data {
+  float: left;
+}
+
+.report-summary-user .report-field {
+  clear: left;
+  margin-bottom: 1em;
+}
+
+.report-summary-user .report-field-label {
+  font-weight: bold;
+  width: 25em;
+}
+
+#report-summary .report-user-top-domain th {
+  text-align: left;
+}

@@ -1,0 +1,6 @@
+; $Id: cpo_special.module,v 1.0.0.1 2009/07/05 22:15:23 asaphk Exp $
+name = "CPO Special"
+description = "Custom modules and functions"
+package = "CPO"
+core = 6.x
+version = "6.x-1.0"

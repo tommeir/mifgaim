@@ -1,0 +1,321 @@
+<?php
+// $Id: report_content.module,v 1.4 2010/07/07 21:35:30 ki Exp $
+
+/**
+ * @file
+ * Report for contents
+ */
+
+/**
+ * Implementation of hook_menu().
+ */
+function report_content_menu() {
+  $items['report/content'] = array(
+    'title' => 'Contents',
+    'description' => 'Content report.',
+    'page callback' => 'report_content_page',
+    'access arguments' => array('access report'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 3,
+  );
+
+  $items['report/comment'] = array(
+    'title' => 'Comments',
+    'description' => 'Comment report.',
+    'page callback' => 'report_content_page',
+    'page arguments' => array('comment'),
+    'access arguments' => array('access report'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 4,
+  );
+
+  return $items;
+}
+
+/**
+ * Implementation of hook_form_FORM_ID_alter() in report module.
+ */
+function report_content_form_report_summary_alter(&$form, &$form_state) {
+  $form['report_content'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Contents'),
+    '#collapsible' => TRUE,
+    '#collapsed' => TRUE,
+    '#attributes' => array('class' => 'report-summary-content'),
+    '#weight' => 2,
+  );
+  
+  $form['report_content']['top_authors'] = array(
+    '#value' => report_content_top_authors(),
+  );
+
+  $form['report_content']['top_commentors'] = array(
+    '#value' => report_content_top_authors('commentor'),
+  );
+
+  $form['report_content']['top_node_comments'] = array(
+    '#value' => report_content_top_node_comment(),
+  );
+}
+
+function report_content_top_authors($who = 'author') {
+  if ($who == 'author') {
+    $header = array(t('Author'), t('Day'), t('Author'), t('Month'), t('Author'), t('Year'), t('Author'), t('All time'));
+  }
+  else {
+    $header = array(t('Commentor'), t('Day'), t('Commentor'), t('Month'), t('Commentor'), t('Year'), t('Commentor'), t('All time'));
+  }
+  
+  $periods = array(t('Day'), t('Month'), t('Year'), t('All time'));
+  
+  $rows = array();
+  foreach ($periods as $period) {
+    switch ($period) {
+    case t('Day'):
+      $when = ($who == 'author' ? 'n.created' : 'timestamp') . ' >= ' . (time() - 86400);
+      break;
+    case t('Month'):
+      $when = ($who == 'author' ? 'n.created' : 'timestamp') . ' >= ' . (time() - 86400 * 30);
+      break;
+    case t('Year'):
+      $when = ($who == 'author' ? 'n.created' : 'timestamp') . ' >= ' . (time() - 86400 * 30 * 365);
+      break;
+    default: // All time
+      $when = '1';
+    }
+    if ($who == 'author') {
+      $result = db_query_range("SELECT u.uid, u.name, COUNT(nid) AS posts FROM {node} n INNER JOIN {users} u ON n.uid = u.uid WHERE $when GROUP BY u.uid, u.name ORDER BY posts DESC", 0, 10);
+    }
+    else {
+      $result = db_query_range("SELECT uid, name, COUNT(cid) AS posts FROM {comments} WHERE $when GROUP BY uid, name ORDER BY posts DESC", 0, 10);
+    }
+    $index = 0;
+    while ($row = db_fetch_object($result)) {
+      $r = array();
+      $rows[$period][$index] = array(
+        l($row->name, 'user/' . $row->uid),
+        array('data' => $row->posts, 'style' => 'text-align: center;' .  ($period == t('All time') ? '' : 'border-right: 1px solid #CCC')),
+      );
+      $index++;
+    }
+    // Fill the rest rows with zero's if any.
+    for ($i = $index; $i < 10; $i++) {
+      $rows[$period][$i] = array('', array('data' => '', 'style' => 'border-right: 1px solid #CCC'));
+    }
+  }
+
+  for ($i = 0; $i < 10; $i++) {
+    $merged[$i] = array_merge($rows['Day'][$i], $rows['Month'][$i], $rows['Year'][$i], $rows['All time'][$i]);
+  }
+
+  $out .= theme('table', $header, $merged, array(), '<h3>&laquo; ' . ($who == 'author' ? t('Top authors') : t('Top commentors')) . ' &raquo;</h3>');
+  
+  return $out;
+}
+
+function report_content_top_node_comment() {
+  $types = node_get_types();
+  
+  $header = array(t('Comments'), t('Title'), t('Node ID'), t('Type'));
+  
+  $periods = array(t('Day'), t('Month'), t('Year'), t('All time'));
+  
+  foreach ($periods as $period) {
+    switch ($period) {
+    case t('Day'):
+      $when = 'created >= ' . (time() - 86400);
+      break;
+    case t('Month'):
+      $when = 'created >= ' . (time() - 86400 * 30);
+      break;
+    case t('Year'):
+      $when = 'created >= ' . (time() - 86400 * 30 * 365);
+      break;
+    default: // All time
+      $when = '1';
+    }
+    $result = db_query_range("SELECT n.nid, n.type, n.title, COUNT(c.cid) AS cmts FROM {node} n INNER JOIN {comments} c ON n.nid = c.nid WHERE $when GROUP BY n.nid, n.type, n.title ORDER BY cmts DESC", 0, 10);
+    $rows = array();
+    while ($row = db_fetch_object($result)) {
+      $r = array();
+      $rows[] = array(
+        array('data' => $row->cmts, 'style' => 'text-align: center'),
+        l($row->title, drupal_get_path_alias('node/' . $row->nid)),
+        $row->nid,
+        $types[$row->type]->name,
+      );
+    }
+    
+    $out .= theme('table', $header, $rows, array(), '<h3>&laquo; ' . t('Top nodes with most comments (!when)', array('!when' => $period)) . ' &raquo;</h3>');
+  }
+  
+  return $out;
+}
+/**
+ * Implementation of hook_form_FORM_ID_alter() in report module.
+ */
+function report_content_form_report_settings_alter(&$form, &$form_state) {
+  $form['report_content'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Contents'),
+    '#collapsible' => TRUE,
+    '#weight' => -8,
+  );
+  
+  $types = node_get_types();
+  foreach ($types as $type) {
+    $options[$type->type] = $type->name;
+  }
+  asort($options);
+  
+  $form['report_content']['report_content_type'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Content types to track'),
+    '#default_value' => variable_get('report_content_type', array()),
+    '#options' => $options,
+    '#description' => t('You may leave blank if you want to track all content types.'),
+  );
+}
+
+function report_content_page($which = 'content') {
+  $period = isset($_POST['period']) ? $_POST['period'] : variable_get('report_chart_period', '1');
+  
+  $types = report_content_types();
+  asort($types);
+
+  $header[] = report_period_name($period);
+
+  foreach ($types as $name) {
+    $header[] = $chart['#legends'][] = t($name);
+  }
+  $header[] = $chart['#legends'][] = t('Total');
+  
+  $limit = isset($_POST['range']) ? $_POST['range'] : variable_get('report_chart_range', '10');
+  $result = report_pager_query("SELECT date, data FROM {report} WHERE realm = 'content' ORDER BY date DESC", $limit, $period);
+
+  while ($row = db_fetch_object($result)) {
+    $data = unserialize($row->data);
+    
+    $r = array();
+    $r['data'][] = $row->date;
+    $total = 0;
+
+    foreach ($types as $type => $name) {
+      $total += $data[$which][$type];
+      $r['data'][] = $data[$which][$type];
+    }
+
+    $r['data'][] = $total;
+    $rows[] = $r;
+  }
+
+  $rows = report_flatten_period($rows, $period);
+  $size = isset($rows[0]) ? count($rows[0]) : 0;
+  $chart['#x_label'] = $chart['#data'] = array();
+  
+  foreach ($rows as $row) {
+    switch ($period) {
+    case REPORT_PERIOD_DAY:
+      $chart['#x_label'][] = drupal_substr($row[0], 5);        break;
+    case REPORT_PERIOD_WEEK:
+      $chart['#x_label'][] = drupal_substr($row[0], 0, 2);     break;
+    case REPORT_PERIOD_MONTH:
+      $chart['#x_label'][] = drupal_substr($row[0], 0, 3);     break;
+    case REPORT_PERIOD_YEAR:
+      $chart['#x_label'][] = $row[0];
+    }
+    
+    for ($i = 1; $i < $size; $i++) {
+      $chart['#data'][$i][] = $row[$i];
+
+      if ($i == $size - 1 && $row[$i] > $max) {
+        $max = $row[$i];
+      }
+    }
+  }
+
+  // Reverse to ascending order
+  foreach ($chart['#data'] as $key => $data) {
+    $chart['#data'][$key] = array_reverse($data);
+  }
+  $chart['#x_label'] = array_reverse($chart['#x_label']);
+  $chart['#data_colors'] = array_slice(
+                            array('ff0000', 'ff6600', 'ffaa00', '009900', '66cc00', 'aacc00', '0000aa', '3366cc', '11ccff',
+                              '333333', '666666', '999999', 'aaaaaa', 'cccccc'),
+                            0, count($chart['#legends']));
+  
+  $chart['#y_range_min'] = 0;
+  $chart['#y_range_max'] = $max;
+
+  $out = report_chart($chart);
+  
+  $out .= theme('table', $header, $rows);
+  $out .= theme('pager', array(), $limit);
+  
+  return $out;
+}
+
+/**
+ * Implementation of custom hook_report_cron().
+ */
+function report_content_report_cron($date) {
+  $types = report_content_types();
+  
+  $data = report_content_get_count($types, $date);
+
+  report_insert_data('content', $data, $date);
+}
+
+function report_content_get_count($types, $date) {
+  static $midnight, $_date;
+
+  if (!$midnight || $_date != $date) {
+    $_date = $date;
+    $midnight = strtotime(($date ? "$date " : '') . '00:00:00');
+  }
+
+  foreach ($types as $type => $name) {
+    $counts['content'][$type] = 0;
+    $counts['comment'][$type] = 0;
+  }
+  
+  $result = db_query("SELECT type, COUNT(nid) AS count FROM {node} WHERE type IN ('". implode("','", array_keys($types)) ."') AND created BETWEEN %d AND %d GROUP BY type ORDER BY type", $midnight, $midnight + 86399); // Not including the last second; it belongs to the next day.
+  
+  while ($row = db_fetch_object($result)) {
+    $counts['content'][$row->type] = $row->count;
+  }
+  
+  $result = db_query("SELECT n.type, COUNT(c.cid) AS count FROM {node} n LEFT JOIN {comments} c ON n.nid = c.nid WHERE type IN ('". implode("','", array_keys($types)) ."') AND created BETWEEN %d AND %d GROUP BY type ORDER BY type", $midnight, $midnight + 86399);
+
+  while ($row = db_fetch_object($result)) {
+    $counts['comment'][$row->type] = $row->count;
+  }
+  
+  return $counts;
+}
+
+function report_content_types() {
+  static $types;
+  
+  if (empty($types)) {
+    $types = variable_get('report_content_type', array());
+    $types = array_filter($types);
+
+    $all_types = node_get_types();
+    
+    if ($types) {
+      foreach ($types as $type) {
+        $typepair[$type] = $all_types[$type]->name;
+      }
+    }
+    // No choice is same as all choices.
+    else {
+      foreach ($all_types as $type) {
+        $typepair[$type->type] = $type->name;
+      }
+    }
+    $types = $typepair;
+  }
+
+  return $types;
+}

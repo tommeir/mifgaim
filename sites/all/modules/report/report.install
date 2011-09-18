@@ -1,0 +1,50 @@
+<?php
+// $Id: report.install,v 1.2 2009/11/04 00:35:53 ki Exp $
+
+/**
+ * @file
+ * Report installation file.
+ */
+
+/**
+ * Implementation of hook_install().
+ */
+function report_install() {
+  drupal_install_schema('report');
+}
+
+/**
+ * Implementation of hook_uninstall().
+ */
+function report_uninstall() {
+  drupal_uninstall_schema('report');
+
+  variable_del('report_chart_height');
+  variable_del('report_chart_width');
+  variable_del('report_chart_period');
+  variable_del('report_chart_range');
+  variable_del('report_cron_time');
+  variable_del('report_last_date');
+  variable_del('report_use_chart');
+}
+
+/**
+ * Implementation of hook_schema().
+ */
+function report_schema() {
+  $schema['report'] = array(
+    'fields' => array(
+      'rid' => array('type' => 'serial', 'not null' => TRUE),
+      'date' => array('type' => 'varchar', 'length' => 10, 'not null' => TRUE),
+      'realm' => array('type' => 'varchar', 'length' => 50, 'not null' => TRUE),
+      'data' => array('type' => 'text', 'not null' => TRUE),
+    ),
+    'indexes' => array(
+      'date' => array('date'),
+      'realm' => array('realm'),
+    ),
+    'primary key' => array('rid'),
+  );
+
+  return $schema;
+}

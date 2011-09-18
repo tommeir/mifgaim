@@ -1,0 +1,12 @@
+; $Id: nodewords_basic.info,v 1.1.2.3 2010/01/29 17:11:05 kiam Exp $
+name = Basic meta tags
+description = Define basic meta tags for Drupal pages.
+dependencies[] = nodewords
+package = Meta tags
+core = 6.x
+; Information added by drupal.org packaging script on 2010-02-17
+version = "6.x-1.12-beta3"
+core = "6.x"
+project = "nodewords"
+datestamp = "1266416413"
+

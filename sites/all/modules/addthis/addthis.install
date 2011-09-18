@@ -1,0 +1,131 @@
+<?php
+// $Id: addthis.install,v 1.1.2.1.2.7 2011/01/31 00:26:01 lesmana Exp $
+
+/**
+ * @file
+ * AddThis module installation/update hooks.
+ */
+
+/**
+ * Implements hook_install().
+ * 
+ */
+function addthis_install() {
+  // Module needs to load after Google Analytics (weight = 0) so we can execute
+  // scripts after the tracker object is loaded.
+  db_query('UPDATE {system} SET weight=1 WHERE type="module" AND name="addthis"');
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function addthis_uninstall() {
+  // Remove cached JavaScript file and cache directory.
+  addthis_clear_js();
+  $directory = file_directory_path() .'/addthis';
+  @rmdir($directory);
+  
+  // Remove database artifacts left by the module.
+  db_query('DELETE FROM {blocks} WHERE module = "addthis"');
+  cache_clear_all('addthis:', 'cache', TRUE);
+  
+  // Remove module variables.
+  $result = db_query("SELECT name FROM {variable} WHERE name LIKE 'addthis_%'");
+  while ($var_name = db_result($result)) {
+    variable_del($var_name);
+  }
+}
+
+/**
+ * Convert 2.x configuration settings to 3.x equivalents.
+ */
+function addthis_update_6300() {
+  $ret = array();
+  variable_set('addthis_widget_type', 'addthis_button');
+
+  // Convert widget settings.
+  $addthis_config = array();
+  $addthis_config['services_compact'] = variable_get('addthis_options', '');
+  $addthis_config['ui_cobrand'] = variable_get('addthis_brand', '');
+  $ui_header_color = trim(variable_get('addthis_logo_color', ''));
+  if (!empty($ui_header_color)) {
+    $addthis_config['ui_header_color'] = '#' . $ui_header_color;
+  }
+  $ui_header_background = trim(variable_get('addthis_logo_background', ''));
+  if (!empty($ui_header_background)) {
+    $addthis_config['ui_header_background'] = '#' . $ui_header_background;
+  }
+  $addthis_config['ui_hover'] = variable_get('addthis_dropdown_disabled', 0);
+  $addthis_config['ui_offset_left'] = variable_get('addthis_offset_left', '');
+  $addthis_config['ui_offset_top'] = variable_get('addthis_offset_top', '');
+  $addthis_config['ui_use_css'] = TRUE;
+  $addthis_config['username'] = variable_get('addthis_username', '');
+  variable_set('addthis_config', $addthis_config);
+
+  // Convert node type visibility settings.
+  $types = array_keys(node_get_types());
+  $addthis_node_types = array();
+  foreach ($types as $type) {
+    $addthis_node_types[$type] = (variable_get('addthis_nodetype_' . $type, 0)) ? $type : 0;
+    variable_del('addthis_nodetype_' . $type);
+  }
+  variable_set('addthis_node_types', $addthis_node_types);
+  
+  // Remove remaining obsolete 6.x-2.x variables.
+  $remove = array(
+    'addthis_brand',
+    'addthis_disable_flash',
+    'addthis_dropdown_disabled',
+    'addthis_image',
+    'addthis_image_attributes_alt',
+    'addthis_image_attributes_class',
+    'addthis_image_height',
+    'addthis_image_secure',
+    'addthis_image_width',
+    'addthis_logo',
+    'addthis_logo_background',
+    'addthis_logo_color',
+    'addthis_offset_left',
+    'addthis_offset_top',
+    'addthis_options',
+    'addthis_username',
+    'addthis_widget_version',
+  );
+  foreach ($remove as $variable) {
+    variable_del($variable);
+  }
+  
+  // Disable unsupported modules from the original 6.x-3.x-dev releases.
+  module_disable(array('at_cck_field', 'at_content_type', 'at_export', 'at_taxonomy', 'at_visibility'));
+  drupal_uninstall_module('at_cck_field');
+  drupal_uninstall_module('at_content_type');
+  drupal_uninstall_module('at_export');
+  drupal_uninstall_module('at_taxonomy');
+  drupal_uninstall_module('at_visibility');
+  if (db_table_exists('at_visibility_nodelist')) {
+    db_drop_table($ret, 'at_visibility_nodelist');
+  }
+  
+  // Module weight must be greater than Google Analytics, which is 0.
+  $ret[] = update_sql("UPDATE {system} SET weight=1 WHERE type='module' AND name='addthis'");
+  
+  return $ret;
+}
+
+/**
+ * Convert obsolete "icon_32x32" variable to use "addthis_toolbox_classes".
+ * Move cache_js setting out of addthis_config.
+ * Also force a menu rebuild to expose new administration pages.
+ */
+function addthis_update_6301() {
+  $ret = array();
+  $config = variable_get('addthis_config', array());
+  if ($config['icon_32x32']) {
+    variable_set('addthis_toolbox_classes', 'addthis_32x32_style');
+  }
+  if ($config['cache_js']) {
+    variable_set('addthis_cache_js', 1);
+  }
+  menu_rebuild();
+  return $ret;
+}

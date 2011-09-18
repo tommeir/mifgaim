@@ -1,0 +1,13 @@
+; $Id: readonlymode.info,v 1.2 2010/06/21 20:07:00 barisw Exp $
+name = "Read Only Mode"
+description = "This module will lock your site for any node and/or comment postings."
+core = "6.x"
+
+
+
+; Information added by drupal.org packaging script on 2010-07-16
+version = "6.x-1.0"
+core = "6.x"
+project = "readonlymode"
+datestamp = "1279297816"
+

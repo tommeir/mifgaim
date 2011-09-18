@@ -1,0 +1,89 @@
+<?php
+
+/**
+ * Implementation of hook_views_api().
+ */
+function views_galleriffic_views_api() {
+  return array('api' => 2);
+}
+
+/**
+ * Implementation of template preprocess for the view
+ */
+function template_preprocess_views_galleriffic_view(&$vars) {
+
+  $view   = $vars['view'];
+  $option = $view->style_plugin->options;
+  $row    = $view->row_plugin->options;
+  $vars['option']= $option;
+
+  drupal_add_js(
+    array(
+      'views_galleriffic' => array(
+          'delay'    => (int)$option['delay'],
+          'numbthumbs'    => (int)$option['numbthumbs'],  
+          'enableTopPager'     => $option['pager_top'],
+          'enableBottomPager'      => $option['pager_bottom'],
+          'renderSSControls'   => $option['renderss'],
+          'renderNavControls' => $option['rendernav'],
+          'playLinkText'     => $option['playtext'],
+          'pauseLinkText'     => $option['pausetext'],
+          'prevLinkText'     => $option['prevlink'],
+          'nextLinkText'     => $option['nextlink'],
+          'nextPageLinkText'     => $option['nextpage'],
+          'prevPageLinkText'     => $option['prevpage'],
+          'enableHistory'     => $option['history'],
+          'autoStart'     => $option['start'],
+      ),
+    ),
+    'setting'
+  );
+}
+
+/**
+ * Implementation of template preprocess for the view fields
+*/ 
+function template_preprocess_views_galleriffic_view_gallerifficrows(&$vars) {
+
+  $exit = 0;
+  $view = $vars['view']; 
+  $options = $vars['options'];
+  $vars['fields'] = array(); // ensure it's at least an empty array.
+  foreach ($view->field as $id => $field) {
+    $field_output = $view->field[$id]->theme($vars['row']);
+    $object = new stdClass();
+    $object->content = $field_output;
+    if (isset($view->field[$id]->field_alias) && isset($vars['row']->{$view->field[$id]->field_alias})) {
+      $object->raw = $vars['row']->{$view->field[$id]->field_alias};
+    }
+    else {
+      $object->raw = NULL; // make sure it exists to reduce NOTICE
+    }
+    $object->download_original = $view->style_options['download'];
+    $object->imagecache = $field->options['format'];
+    $object->fieldtype = $field->content_field['widget']['module'];
+    // I don't know how to get the imagefield file path from views, so this is how I'm doing it for now
+    if($object->fieldtype == 'imagefield') {
+      $alias = $field->field_alias;
+      $result = db_query('SELECT f.filepath FROM {files} f WHERE f.fid = %d', $vars['row']->$alias);
+      while($filepath= db_fetch_object($result)) {
+        $object->filepath = $filepath->filepath;
+      }
+      $object->imagecache = str_replace("_default","",$object->imagecache);
+      $object->imagecache = str_replace("_imagelink","",$object->imagecache);
+      $object->imagecache = str_replace("_linked","",$object->imagecache);
+      $object->raw = imagecache_create_url($object->imagecache, $object->filepath, $bypass_browser_cache = FALSE);
+    }
+
+    // find the option (ie title, description, slide, thumbnail)  for the field	
+    foreach($options as $field_title => $field_label) {	
+      if ($field_label == $id) {
+        $object->option = $field_title;
+      }   
+    }
+    $vars['fields'][$object->option] = $object;  
+    //cleaning up title and description field for output
+    $vars['fields']['title_field']->content = htmlspecialchars(strip_tags($vars['fields']['title_field']->content));
+    $vars['fields']['description_field']->content = htmlspecialchars(strip_tags($vars['fields']['description_field']->content));
+  }
+}

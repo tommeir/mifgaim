@@ -1,0 +1,11 @@
+; $Id: simple_menu_settings.info,v 1.1 2010/07/21 13:14:44 timmillwood Exp $
+name = Simple Menu Settings
+description = Makes adding nodes to menus easier.
+core = 6.x
+
+; Information added by drupal.org packaging script on 2010-07-22
+version = "6.x-1.x-dev"
+core = "6.x"
+project = "simple_menu_settings"
+datestamp = "1279758080"
+

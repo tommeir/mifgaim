@@ -1,0 +1,20 @@
+<?php
+/**
+ * @file node_edit_protection.module
+ */
+ 
+function node_edit_protection_form_alter(&$form, $form_state, $form_id) {
+  if (_nep_is_node_edit($form, $form_id)) {
+    drupal_add_js(drupal_get_path('module', 'node_edit_protection') . '/node-edit-protection.js');
+  }
+}
+
+/**
+ * Is this a node edit form?
+ */
+function _nep_is_node_edit($form, $form_id) {
+  return isset($form['type']) && isset($form['#node']) && $form['type']['#value'] . '_node_form' == $form_id;
+}
+
+
+
